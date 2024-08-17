@@ -24,7 +24,7 @@ namespace WorkTrack
                     {
                         Directory.CreateDirectory(directoryPath);
                     }
-                    Debug.WriteLine($"創建數據庫路徑: {fullPath}");
+                    Debug.WriteLine($"創建資料庫路徑: {fullPath}");
                 }
 
                 using (var connection = new SqliteConnection($"Data Source={fullPath};"))
@@ -33,58 +33,58 @@ namespace WorkTrack
 
                     var createTableQueries = new[]
                     {
-                    @"
-                    CREATE TABLE IF NOT EXISTS TaskBody (
-                        TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        TaskDate DATE NOT NULL,
-                        TaskName TEXT NOT NULL,
-                        DurationLevel TEXT,
-                        Duration INTEGER,
-                        Description TEXT,
-                        UnitID INTEGER,
-                        ApplicationID INTEGER,
-                        RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        DetailFlag BOOLEAN DEFAULT 0,
-                        DeleteFlag BOOLEAN DEFAULT 0
-                    );",
-                    @"
-                    CREATE TABLE IF NOT EXISTS Application (
-                        ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        ApplicationName TEXT,
-                        ApplicationSubName TEXT,
-                        ApplicationStatus TEXT,
-                        ApplicationDatetime DATETIME,
-                        PCDFlag BOOLEAN DEFAULT 0,
-                        UnitID INTEGER,
-                        RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        DeleteFlag BOOLEAN DEFAULT 0
-                    );",
-                    @"
-                    CREATE TABLE IF NOT EXISTS Unit (
-                        UnitID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        UnitName TEXT,
-                        RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        DeleteFlag BOOLEAN DEFAULT 0
-                    );",
-                    @"
-                    CREATE TABLE IF NOT EXISTS TaskHeader (
-                        TaskDate DATE PRIMARY KEY,
-                        OverTime REAL,
-                        BasicPoint REAL,
-                        Tiny REAL,
-                        Small REAL,
-                        Median REAL,
-                        Large REAL,
-                        Huge REAL,
-                        RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        DeleteFlag BOOLEAN DEFAULT 0
-                    );",
-                    @"
-                    CREATE TABLE DurationLevel (
-                        DurationLevel TEXT PRIMARY KEY,
-                        Points INT NOT NULL
-                    );"
-                };
+                        @"
+                        CREATE TABLE IF NOT EXISTS TaskBody (
+                            TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            TaskDate DATE NOT NULL,
+                            TaskName TEXT NOT NULL,
+                            DurationLevel INTEGER,
+                            Duration INTEGER,
+                            Description TEXT,
+                            UnitID INTEGER,
+                            ApplicationID INTEGER,
+                            RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            DeleteFlag BOOLEAN DEFAULT 0
+                        );",
+                        @"
+                        CREATE TABLE IF NOT EXISTS Application (
+                            ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            ApplicationName TEXT,
+                            ApplicationSubName TEXT,
+                            ApplicationStatus TEXT,
+                            ApplicationDatetime DATETIME,
+                            PCDFlag BOOLEAN DEFAULT 0,
+                            UnitID INTEGER,
+                            RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            DeleteFlag BOOLEAN DEFAULT 0
+                        );",
+                        @"
+                        CREATE TABLE IF NOT EXISTS Unit (
+                            UnitID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            UnitName TEXT,
+                            RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            DeleteFlag BOOLEAN DEFAULT 0
+                        );",
+                        @"
+                        CREATE TABLE IF NOT EXISTS TaskHeader (
+                            TaskDate DATE PRIMARY KEY,
+                            OverHours REAL DEFAULT 0,
+                            TotalHours REAL DEFAULT 8,
+                            TotalMins REAL DEFAULT 480,
+                            CustomizedMins REAL DEFAULT 0,
+                            UsedPoints INT DEFAULT 0,
+                            BasicPoints INT DEFAULT 0,
+                            UsedMins REAL DEFAULT 0,
+                            AvailableMins REAL DEFAULT 480,
+                            RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            DeleteFlag BOOLEAN DEFAULT 0
+                        );",
+                        @"
+                        CREATE TABLE IF NOT EXISTS DurationLevel (
+                            DurationLevelName TEXT PRIMARY KEY,
+                            Points INT NOT NULL
+                        );"
+                    };
 
                     foreach (var query in createTableQueries)
                     {
@@ -94,36 +94,61 @@ namespace WorkTrack
                     // 插入初始資料
                     var insertDataQuery = new[]
                     {
-                    @"
-                    INSERT OR IGNORE INTO DurationLevel (DurationLevel, Points) VALUES
-                        ('Tiny', 1)
-                        ,('Small', 2)
-                        ,('Medium', 3)
-                        ,('Large', 4)
-                        ,('Huge', 5)
-                        ,('-Customize-', 6)
-                    ;",
-                    @"
-                    INSERT OR IGNORE INTO Unit (UnitName) VALUES
-                        ('IMD')
-                        ,('FA')
-                        ,('APP')
-                        ,('MECT')
-                        ,('METRO')
-                        ,('CSO')
-                        ,('CSM')
-                        ,('AC')
-                        ,('AR')
-                        ,('PCD')
-                    ;",
-                };
+                        @"
+                        INSERT OR IGNORE INTO DurationLevel (DurationLevelName, Points) VALUES
+                            ('Tiny', 1),
+                            ('Small', 2),
+                            ('Medium', 3),
+                            ('Large', 4),
+                            ('Huge', 5),
+                            ('-Customize-', 0)
+                        ;",
+                        @"
+                        INSERT OR IGNORE INTO Unit (UnitName) VALUES
+                            ('IMD'),
+                            ('FA'),
+                            ('APP'),
+                            ('MECT'),
+                            ('METRO'),
+                            ('CSO'),
+                            ('CSM'),
+                            ('AC'),
+                            ('AR'),
+                            ('PCD')
+                        ;",
+                    };
 
                     foreach (var query in insertDataQuery)
                     {
                         connection.Execute(query);
                     }
 
-                    Debug.WriteLine("所有資料表已創建或已存在。");
+                    // 創建觸發器
+                    var createTriggerQuery = @"
+                        CREATE TRIGGER IF NOT EXISTS update_TaskHeader_Values
+                        AFTER UPDATE OF OverHours, CustomizedMins, UsedPoints ON TaskHeader
+                        FOR EACH ROW
+                        BEGIN
+                            UPDATE TaskHeader
+                            SET 
+                                TotalHours = NEW.OverHours + 8,
+                                TotalMins = (NEW.OverHours + 8) * 60,
+                                AvailableMins = (NEW.OverHours + 8) * 60 - NEW.CustomizedMins - NEW.UsedMins,
+                                BasicPoints = CASE 
+                                                WHEN NEW.UsedPoints != 0 THEN (TotalMins - NEW.CustomizedMins) / NEW.UsedPoints
+                                                ELSE 0
+                                             END,
+                                UsedMins = NEW.UsedPoints * CASE 
+                                                              WHEN NEW.UsedPoints != 0 THEN (TotalMins - NEW.CustomizedMins) / NEW.UsedPoints
+                                                              ELSE 0
+                                                            END
+                            WHERE TaskDate = NEW.TaskDate;
+                        END;
+                    ";
+
+                    connection.Execute(createTriggerQuery);
+
+                    Debug.WriteLine("所有資料表和觸發器已創建或已存在。");
                     connection.Close();
                 }
             }
@@ -134,4 +159,3 @@ namespace WorkTrack
         }
     }
 }
-

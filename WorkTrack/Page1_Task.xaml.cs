@@ -30,7 +30,7 @@ namespace WorkTrack
 
         }
 
-        private async Task DefaultSearch_TaskBody()
+        public async Task DefaultSearch_TaskBody()
         {
             try
             {
@@ -75,6 +75,13 @@ namespace WorkTrack
         private void DetailButton_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Detail");
+        }
+
+        private void bt_TaskAdd_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedDate = ip_TaskDate.SelectedDate;
+            InputTask inputTaskWindow = new InputTask(selectedDate);
+            inputTaskWindow.ShowDialog();
         }
     }
 

@@ -19,4 +19,20 @@ namespace WorkTrack
         public bool DeleteFlag { get; set; }
         public DateTime TaskDate { get; set; }
     }
+
+    public class Unit
+    {
+        public int UnitID { get; set; }
+        public string UnitName { get; set; } = string.Empty; // 設置初始值
+        public DateTime RegistDatetime { get; set; }
+        public bool DeleteFlag { get; set; }
+    }
+
+    public class DurationLevel
+    {
+    
+        public string DurationLevelName { get; set; }
+        public int Points { get; set; }
+    
+    }
 }

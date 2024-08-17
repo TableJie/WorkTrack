@@ -8,14 +8,6 @@ using Microsoft.Data.Sqlite;
 namespace WorkTrack
 {
 
-    public class Unit
-    {
-        public int UnitID { get; set; }
-        public string UnitName { get; set; } = string.Empty; // 設置初始值
-        public DateTime RegistDatetime { get; set; }
-        public bool DeleteFlag { get; set; }
-    }
-
     public partial class UnitManagement : Window
     {
         public UnitManagement()

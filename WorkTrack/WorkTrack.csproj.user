@@ -13,9 +13,14 @@
     <Compile Update="Page1_Task.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="UnitManagement.xaml.cs">
+    <Compile Update="InputTask.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="InputTask.xaml">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Elements.xaml">
@@ -28,9 +33,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Page1_Task.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="UnitManagement.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

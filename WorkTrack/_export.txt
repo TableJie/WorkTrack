@@ -1,764 +1,196 @@
-using System.Configuration;
-using System.Data;
-using System.Windows;
-
-namespace WorkTrack
-{
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
-    {
-        public static readonly string ConnectionString = "Data Source=Database/app.db";
-    }
-
-}
-
-This is App.xaml.cs
-
-<Application x:Class="WorkTrack.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:local="clr-namespace:WorkTrack"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             StartupUri="MainWindow.xaml">
-    <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Teal" SecondaryColor="Lime" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
-                <!--Select colors, options are metrial, metro, orange, blue, black and white-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Colors/black.xaml" /> 
-
-                <!--Select size, options are small, medium and large-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Size/s.xaml" />
-
-                <!--Select weight, options are light, normal and bold-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Weight/light.xaml" />
-
-                <!--Also add the base theme, this is required always-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/base.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-
-            <local:DeleteButtonOpacityConverter x:Key="DeleteButtonOpacityConverter" />
-
-            <sys:Double x:Key="FormElementWidth">180</sys:Double>
-            <sys:Double x:Key="FormElementHeight">24</sys:Double>
-            
-            <Thickness x:Key="FormElementMargin">0,10</Thickness>
-            <Thickness x:Key="FormElementPadding">0,5</Thickness>
-
-            
-            
-        </ResourceDictionary>
-    </Application.Resources>
-</Application>
-
-This is App.xaml
-
-using System;
-using System.Diagnostics;
-using System.IO;
-using Dapper;
 using Microsoft.Data.Sqlite;
-
-namespace WorkTrack
-{
-    public class DatabaseInitializer
-    {
-        private readonly string DatabasePath = "Database/app.db"; // ????????DatabasePath???readonly
-
-        public void Initialize()
-        {
-            try
-            {
-                string fullPath = Path.Combine(Directory.GetCurrentDirectory(), DatabasePath);
-
-                if (!File.Exists(fullPath))
-                {
-                    // ?? DirectoryPath ?? null
-                    string directoryPath = Path.GetDirectoryName(fullPath);
-                    if (directoryPath != null)
-                    {
-                        Directory.CreateDirectory(directoryPath);
-                    }
-                    Debug.WriteLine($"???????: {fullPath}");
-                }
-
-                using (var connection = new SqliteConnection($"Data Source={fullPath};"))
-                {
-                    connection.Open();
-
-                    var createTableQueries = new[]
-                    {
-                    @"
-                    CREATE TABLE IF NOT EXISTS TaskBody (
-                        TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        TaskDate DATE NOT NULL,
-                        TaskName TEXT NOT NULL,
-                        DurationLevel TEXT,
-                        Duration INTEGER,
-                        Description TEXT,
-                        UnitID INTEGER,
-                        ApplicationID INTEGER,
-                        RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        DetailFlag BOOLEAN DEFAULT 0,
-                        DeleteFlag BOOLEAN DEFAULT 0
-                    );",
-                    @"
-                    CREATE TABLE IF NOT EXISTS Application (
-                        ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        ApplicationName TEXT,
-                        ApplicationSubName TEXT,
-                        ApplicationStatus TEXT,
-                        ApplicationDatetime DATETIME,
-                        PCDFlag BOOLEAN DEFAULT 0,
-                        UnitID INTEGER,
-                        RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        DeleteFlag BOOLEAN DEFAULT 0
-                    );",
-                    @"
-                    CREATE TABLE IF NOT EXISTS Unit (
-                        UnitID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        UnitName TEXT,
-                        RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        DeleteFlag BOOLEAN DEFAULT 0
-                    );",
-                    @"
-                    CREATE TABLE IF NOT EXISTS TaskHeader (
-                        TaskDate DATE PRIMARY KEY,
-                        OverTime REAL,
-                        BasicPoint REAL,
-                        Tiny REAL,
-                        Small REAL,
-                        Median REAL,
-                        Large REAL,
-                        Huge REAL,
-                        RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        DeleteFlag BOOLEAN DEFAULT 0
-                    );",
-                    @"
-                    CREATE TABLE DurationLevel (
-                        DurationLevel TEXT PRIMARY KEY,
-                        Points INT NOT NULL
-                    );"
-                };
-
-                    foreach (var query in createTableQueries)
-                    {
-                        connection.Execute(query);
-                    }
-
-                    // ??????
-                    var insertDataQuery = new[]
-                    {
-                    @"
-                    INSERT OR IGNORE INTO DurationLevel (DurationLevel, Points) VALUES
-                        ('Tiny', 1)
-                        ,('Small', 2)
-                        ,('Medium', 3)
-                        ,('Large', 4)
-                        ,('Huge', 5)
-                        ,('-Customize-', 6)
-                    ;",
-                    @"
-                    INSERT OR IGNORE INTO Unit (UnitName) VALUES
-                        ('IMD')
-                        ,('FA')
-                        ,('APP')
-                        ,('MECT')
-                        ,('METRO')
-                        ,('CSO')
-                        ,('CSM')
-                        ,('AC')
-                        ,('AR')
-                        ,('PCD')
-                    ;",
-                };
-
-                    foreach (var query in insertDataQuery)
-                    {
-                        connection.Execute(query);
-                    }
-
-                    Debug.WriteLine("?????????????");
-                    connection.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"???????????: {ex.Message}");
-            }
-        }
-    }
-}
-
-
-This is DatabaseInitializer.cs
-
-using Dapper;
-using LiveCharts;
-using LiveCharts.Wpf;
-using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Navigation;
-
-namespace WorkTrack
-{
-    public partial class MainWindow : Window
-    {
-        public DateTime TodayDate { get; set; }
-        public ChartValues<double> TaskDurations { get; set; } = new ChartValues<double>();
-        public SeriesCollection SeriesCollection { get; set; }
-
-        public MainWindow()
-        {
-            InitializeComponent();
-            DataContext = this;
-            TodayDate = DateTime.Now;
-
-            MainFrame.NavigationService.Navigate(new Page0_Welcome());
-
-            // ??????
-            DatabaseInitializer dbInitializer = new DatabaseInitializer();
-            dbInitializer.Initialize();
-
-            // ?? Loaded ??
-            Loaded += MainWindow_Loaded;
-
-            // ?????
-            TaskDurations = new ChartValues<double>();
-            SeriesCollection = new SeriesCollection();
-            InitializeStackedColumnChart();
-        }
-        #region Cd1_Bt
-        private void bt_OverTime_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.NavigationService.Navigate(new Page1_Task());
-        }
-
-        private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.NavigationService.Navigate(new Page1_Task());
-        }
-        #endregion
-
-
-        private async Task InitializeStackedColumnChart()
-        {
-            SeriesCollection.Clear();
-
-            try
-            {
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                var query = "SELECT p1.TaskName ,p1.DurationLevel ,t1.Points ,CAST(p1.Duration as INT) as Duration FROM TaskBody p1 LEFT JOIN DurationLevel t1 on p1.DurationLevel = t1.DurationLevel WHERE DATE(p1.TaskDate) = DATE('now') ORDER BY p1.Duration DESC";
-                var tasks = await connection.QueryAsync<TaskBody>(query);
-
-                int taskCount = 0;
-                int pointsCount = 0;
-
-                foreach (var task in tasks)
-                {
-                    taskCount++;
-                    pointsCount += task.Points;
-
-                    SeriesCollection.Add(new StackedRowSeries
-                    {
-                        Values = new ChartValues<double> { task.Duration },
-                        StackMode = StackMode.Values,
-                        DataLabels = true,
-                        Fill = Brushes.Teal,
-                        Stroke = Brushes.White,
-                        StrokeThickness = 0.5,
-                        MaxRowHeight = 20,
-                        Title = task.TaskName
-                    });
-                }
-
-                Card_Label1.Text = taskCount.ToString();
-                Card_Label2.Text = pointsCount.ToString();
-
-                var Emptyquery = "SELECT (coalesce((SELECT coalesce(OverTime,0) * 60 FROM TaskHeader WHERE DATE(TaskDate) = DATE('now')),0) + 480 - (SELECT coalesce(sum(Duration),0) FROM TaskBody WHERE DATE(TaskDate) = DATE('now') and not DeleteFlag)) as Duration";
-                var durations = await connection.QueryAsync<int>(Emptyquery);
-
-                foreach (var duration in durations)
-                {
-                    SeriesCollection.Add(new StackedRowSeries
-                    {
-                        Values = new ChartValues<double> { duration },
-                        StackMode = StackMode.Values,
-                        DataLabels = true,
-                        Fill = Brushes.Gray,
-                        Stroke = Brushes.White,
-                        StrokeThickness = 0.5,
-                        MaxRowHeight = 20,
-                        Title = "Empty",
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-
-        #region Form
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-           
-            await LoadUnitNames();
-
-        }
-        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
-        {
-            await RefreshTaskBodyAsync();
-            await InitializeStackedColumnChart();
-
-            ip_TaskID.Clear();
-            ip_TaskName.Clear();
-            ip_Describe.Clear();
-            ip_DurationLevel.SelectedIndex = 2;
-            ip_UnitName.SelectedIndex = 0;
-            ip_ApplicationID.SelectedIndex = 0;
-
-        }
-        private async Task LoadUnitNames()
-        {
-            try
-            {
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                var unitNames = (await connection.QueryAsync<string>("SELECT UnitName FROM Unit")).ToList();
-                //unitNames.Insert(0, "-Add-");
-                unitNames.Add("-Add-");
-
-                ip_UnitName.ItemsSource = unitNames;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load unit names: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-        private async Task RefreshTaskBodyAsync()
-        {
-            try
-            {
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                DateTime? taskDate = ip_TaskDate.SelectedDate;
-                string taskID = ip_TaskID.Text;
-                string taskName = ip_TaskName.Text;
-                string description = ip_Describe.Text;
-                string durationLevel = ip_DurationLevel.Text;
-                int? duration = string.IsNullOrEmpty(ip_Duration.Text) ? (int?)null : int.Parse(ip_Duration.Text);
-                string unitID = ip_UnitName.Text;
-                string applicationID = ip_ApplicationID.Text;
-
-
-
-                if (string.IsNullOrEmpty(taskID))
-                {
-                    var insertQuery = $$"""
-                        INSERT INTO TaskBody (TaskDate, TaskName, DurationLevel, Duration, Description, UnitID, ApplicationID)
-                        VALUES (@TaskDate, @TaskName, @DurationLevel, @Duration, @Description, @UnitID, @ApplicationID);
-                    """;
-
-                    await connection.ExecuteAsync(insertQuery, new
-                    {
-                        TaskDate = taskDate,
-                        TaskName = taskName,
-                        DurationLevel = durationLevel,
-                        Duration = duration,
-                        Description = description,
-                        UnitID = unitID,
-                        ApplicationID = applicationID,
-                    });
-                }
-                else
-                {
-                    var updateQuery = $$"""
-                        UPDATE TaskBody
-                        SET TaskName = @TaskName, DurationLevel = @DurationLevel, Duration = @Duration, Description = @Description,
-                            UnitID = @UnitID, ApplicationID = @ApplicationID
-                        WHERE TaskID = @TaskID;
-                    """;
-
-                    await connection.ExecuteAsync(updateQuery, new
-                    {
-                        TaskName = taskName,
-                        DurationLevel = durationLevel,
-                        Duration = duration,
-                        Description = description,
-                        UnitID = unitID,
-                        ApplicationID = applicationID,
-                        TaskID = taskID
-                    });
-                }
-
-                var insertOrUpdateTaskHeader = $$"""
-                    INSERT INTO TaskHeader (TaskDate, OverTime)
-                    VALUES (@TaskDate, @OverTime)
-                    ON CONFLICT (TaskDate)
-                    DO UPDATE SET OverTime = @OverTime;
-
-                    WITH NetMin as (
-                	    SELECT (8 + p1.OverTime) * 60 - sum(coalesce(p2.Duration,0)) as NetMin
-                	    FROM
-                		    TaskHeader p1
-                		    LEFT JOIN TaskBody p2
-                			    on p1.TaskDate = p2.TaskDate
-                			    and not p2.DeleteFlag
-                			    and p2.DurationLevel = '-Customize-'
-                	    WHERE p1.TaskDate = @TaskDate
-                    ),BasicPoint as (
-                	    SELECT CAST((SELECT NetMin FROM NetMin) / sum(p2.Points) as INT) as BasicPoint
-                	    FROM
-                		    TaskBody p1
-                		    LEFT JOIN DurationLevel p2 on p1.DurationLevel = p2.DurationLevel
-                	    WHERE
-                		    not p1.DurationLevel = '-Customize-'
-                		    and not p1.DeleteFlag
-                		    and p1.TaskDate = @TaskDate
-                    ),GetPoint as (
-                	    SELECT
-                		    p1.TaskID
-                		    ,t1.Points * (SELECT BasicPoint FROM BasicPoint) as Points
-                	    FROM
-                		    TaskBody p1
-                		    LEFT JOIN DurationLevel t1 on p1.DurationLevel = t1.DurationLevel
-                	    WHERE
-                            p1.TaskDate = @TaskDate
-                            and not p1.DurationLevel = '-Customize-'
-                    )
-                    UPDATE TaskBody as p1
-                    SET Duration = foo.Points
-                    FROM GetPoint foo
-                    WHERE
-                	    p1.TaskID = foo.TaskID
-                	    and p1.TaskDate = @TaskDate
-                        and not p1.DurationLevel = '-Customize-'
-                
-                    ;
-                """;
-
-                await connection.ExecuteAsync(insertOrUpdateTaskHeader, new
-                {
-                    TaskDate = taskDate,
-                    OverTime = 0
-                });
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to update task body: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-
-        }
-        private void ip_DurationLevel_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ip_DurationLevel.SelectedItem is ComboBoxItem selectedItem)
-            {
-                ToggleDurationVisibility(selectedItem.Content.ToString());
-            }
-        }
-        private void ToggleDurationVisibility(string durationLevel)
-        {
-            if (durationLevel == "-Customize-")
-            {
-                ip_Duration.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                ip_Duration.Visibility = Visibility.Collapsed;
-            }
-        }
-        private void ip_UnitName_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ip_UnitName.SelectedItem != null && ip_UnitName.SelectedItem.ToString() == "-Add-")
-            {
-                UnitManagement unitManagementWindow = new UnitManagement();
-                unitManagementWindow.Closed += UnitManagementWindow_Closed;
-                unitManagementWindow.ShowDialog();
-            }
-        }
-        private async void UnitManagementWindow_Closed(object sender, EventArgs e)
-        {
-            await LoadUnitNames(); // ??????UnitName??
-        }
-        #endregion
-
-
-
-
-        private void TestButton_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show(ip_DurationLevel.Text);
-        }
-
-
-    }
-
-
-}
-This is MainWindow.xaml.cs
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Dapper;
 
 namespace WorkTrack
 {
-    public class TaskBody
+    /// <summary>
+    /// Page1.xaml ?????
+    /// </summary>
+    public partial class Page1_Task : Page
     {
-        public int TaskID { get; set; }
-        public string TaskName { get; set; } = string.Empty; // ?????
-        public string Description { get; set; } = string.Empty; // ?????
-        public long Duration { get; set; }
-        public string UnitID { get; set; } = string.Empty; // ?????
-        public string ApplicationID { get; set; } = string.Empty; // ?????
-        public string DurationLevel { get; set; } = string.Empty; // ?????
-        public int Points { get; set; } = 0;
-        public bool DeleteFlag { get; set; }
-        public DateTime TaskDate { get; set; }
+        public Page1_Task()
+        {
+            InitializeComponent();
+            ip_TaskDate.SelectedDate = DateTime.Today;
+            DefaultSearch_TaskBody();
+
+        }
+
+        public async Task DefaultSearch_TaskBody()
+        {
+            try
+            {
+                DateTime? selectedDate = ip_TaskDate.SelectedDate;
+
+                if (selectedDate == null)
+                {
+                    MessageBox.Show("??????", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                await using var connection = new SqliteConnection(App.ConnectionString);
+                await connection.OpenAsync();
+
+                var taskBodyData = (await connection.QueryAsync<TaskBody>(
+                    "SELECT p1.*, t1.UnitName FROM TaskBody p1 LEFT JOIN Unit t1 ON p1.UnitID = t1.UnitID WHERE TaskDate = @TaskDate",
+                    new { TaskDate = selectedDate.Value.Date }
+                )).ToList();
+
+                if (this.FindName("dt_TaskBody") is DataGrid dt_TaskBody)
+                {
+                    dt_TaskBody.ItemsSource = taskBodyData;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load task body: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Delete");
+        }
+
+        private void EditButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Edit");
+        }
+
+        private void DetailButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Detail");
+        }
+
+        private void bt_TaskAdd_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedDate = ip_TaskDate.SelectedDate;
+            InputTask inputTaskWindow = new InputTask(selectedDate);
+            inputTaskWindow.ShowDialog();
+        }
     }
+
 }
-This is TaskBody.cs
 
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+This is Page1_Task.xaml.cs
 
-    <!-- DataGrid -->
-    <Style x:Key="DefaultColumnHeaderStyle" TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="Black"/>
-        <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="Height" Value="25"/>
-    </Style>
-    <Style x:Key="MainColumnHeaderStyle" TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="Black"/>
-        <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="Height" Value="25"/>
-        <Setter Property="Padding" Value="0"/>
-        <Setter Property="Margin" Value="10,0,0,0"/>
-    </Style>
-    <Style x:Key="RowHeaderStyle" TargetType="{x:Type DataGridRowHeader}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type DataGridRowHeader}">
-                    <Grid>
-                        <Ellipse x:Name="headerEllipse" Fill="#4F9D9D" Width="10" Height="10"/>
-                        <TextBlock Text="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGridRow}}, Path=Header}" Foreground="Transparent"/>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type DataGridRow}}}" Value="True">
-                            <Setter TargetName="headerEllipse" Property="Fill" Value="#4F9D9D"/>
-                            <Setter TargetName="headerEllipse" Property="Stroke" Value="Transparent"/>
-                        </DataTrigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="Width" Value="25"/>
-    </Style>
-    <Style x:Key="RowStyle" TargetType="DataGridRow">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Height" Value="45"/>
-        <Style.Triggers>
-            <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="#D1E9E9"/>
-                <Setter Property="Foreground" Value="Transparent"/>
-                <Setter Property="BorderBrush" Value="Transparent"/>
-                <Setter Property="BorderThickness" Value="0"/>
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-    <Style x:Key="MainCellStyle" TargetType="DataGridCell">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="DataGridCell">
-                    <Grid Background="{TemplateBinding Background}">
-                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0,0,0"/>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="Black"/>
-        <Setter Property="FontWeight" Value="Bold"/>
-    </Style>
-    <Style x:Key="DurationCellStyle" TargetType="DataGridCell">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="DataGridCell">
-                    <Border BorderBrush="Transparent" BorderThickness="2" Margin="40,10,40,10" CornerRadius="12">
-                        <Border Background="LightSteelBlue" CornerRadius="12" x:Name="border">
-                            <TextBlock Text="{Binding Duration}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
-                        </Border>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <DataTrigger Binding="{Binding DurationLevel}" Value="1">
-                            <Setter TargetName="border" Property="Background" Value="#edf8b1"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding DurationLevel}" Value="2">
-                            <Setter TargetName="border" Property="Background" Value="#c7e9b4"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding DurationLevel}" Value="3">
-                            <Setter TargetName="border" Property="Background" Value="#7fcdbb"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding DurationLevel}" Value="4">
-                            <Setter TargetName="border" Property="Background" Value="#41b6c4"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding DurationLevel}" Value="5">
-                            <Setter TargetName="border" Property="Background" Value="#1d91c0"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding DurationLevel}" Value="6">
-                            <Setter TargetName="border" Property="Background" Value="#E0E3DA"/>
-                        </DataTrigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="Foreground" Value="Black"/>
-    </Style>
+<Page x:Class="WorkTrack.Page1_Task"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:WorkTrack"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      FontFamily="TimeNewsRoman"
+      Title="Page1_Task">
 
-    <Style x:Key="DefaultCellStyle" TargetType="DataGridCell">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="DataGridCell">
-                    <Grid Background="{TemplateBinding Background}">
-                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="Black"/>
-    </Style>
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
 
-    <PathGeometry x:Key="AscendingArrowGeometry" Figures="M 0 4 L 4 8 L 8 4 Z"/>
-    <PathGeometry x:Key="DescendingArrowGeometry" Figures="M 0 -4 L 4 -8 L 8 -4 Z"/>
-    <Style x:Key="SortableColumnHeaderStyle" TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="Black"/>
-        <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="Height" Value="25"/>
-        <Setter Property="Padding" Value="0"/>
-        <Setter Property="Margin" Value="0"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="DataGridColumnHeader">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="20" />
-                        </Grid.ColumnDefinitions>
-                        <ContentPresenter Grid.Column="0" VerticalAlignment="Center" />
-                        <Path x:Name="SortArrow" Grid.Column="1" Fill="Black" Stretch="Uniform" 
-                                  Width="12" Height="12" Margin="5,0,0,0" Visibility="Collapsed" />
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="SortDirection" Value="Ascending">
-                            <Setter TargetName="SortArrow" Property="Visibility" Value="Visible"/>
-                            <Setter TargetName="SortArrow" Property="Data" Value="{StaticResource AscendingArrowGeometry}"/>
-                        </Trigger>
-                        <Trigger Property="SortDirection" Value="Descending">
-                            <Setter TargetName="SortArrow" Property="Visibility" Value="Visible"/>
-                            <Setter TargetName="SortArrow" Property="Data" Value="{StaticResource DescendingArrowGeometry}"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
+    <Grid HorizontalAlignment="Stretch">
+        <Border Style="{StaticResource CardStyle}" Background="#F3F3F3">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="TaskList" Grid.Column="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Margin="5,0,0,0"
+                                />
+                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <DatePicker x:Name="ip_TaskDate"
+                                        Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                                        Width="80"
+                                        Height="30"
+                                        Margin="5,-10,5,0"
+                                        VerticalAlignment="Center"
+                                        materialDesign:HintAssist.Hint="TaskDate"
+                                        materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
+                        />
+                        <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="bt_TaskAdd_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Image Source="/icon/add_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Viewbox>
+                        </Button>
+                    </StackPanel>
+                </Grid>
 
-    <!-- ScrollBar Style -->
-    <Style x:Key="ScrollBarThumbStyle" TargetType="Thumb">
-        <Setter Property="Width" Value="6"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Thumb">
-                    <Border Background="Gray" CornerRadius="5"/>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    <Style x:Key="ScrollBarRepeatButtonStyle" TargetType="RepeatButton">
-        <Setter Property="Width" Value="0"/>
-        <Setter Property="Height" Value="0"/>
-        <Setter Property="Visibility" Value="Collapsed"/>
-    </Style>
-    <Style TargetType="{x:Type ScrollBar}">
-        <Setter Property="Width" Value="8"/>
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type ScrollBar}">
-                    <Grid Background="Transparent">
-                        <Border CornerRadius="5" Background="Transparent">
-                            <Track Name="PART_Track" IsDirectionReversed="true">
-                                <Track.Thumb>
-                                    <Thumb Background="Gray" Style="{StaticResource ScrollBarThumbStyle}" />
-                                </Track.Thumb>
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.LineDownCommand" Style="{StaticResource ScrollBarRepeatButtonStyle}" />
-                                </Track.IncreaseRepeatButton>
-                                <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.LineUpCommand" Style="{StaticResource ScrollBarRepeatButtonStyle}" />
-                                </Track.DecreaseRepeatButton>
-                            </Track>
-                        </Border>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
+                <DataGrid x:Name="dt_TaskBody" Grid.Row="1"
+                            AutoGenerateColumns="False"
+                            CanUserAddRows="False"
+                            CanUserDeleteRows="False"
+                            IsReadOnly="True"
+                            SelectionUnit="FullRow"
+                            BorderThickness="0"
+                            Background="White"
+                            Margin="5"
+                            ColumnHeaderHeight="40"
+                            RowHeight="35"
+                            Style="{StaticResource MaterialDesignDataGrid}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="TaskName" Binding="{Binding TaskName}" Width="120" SortMemberPath="TaskName"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" SortMemberPath="Description"/>
+                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="*" SortMemberPath="Duration" />
+                        <DataGridTextColumn Header="UnitName" Binding="{Binding UnitName}" Width="*" SortMemberPath="UnitName"/>
+                        <DataGridTemplateColumn Header="Action" Width="*" >
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                        <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Tag="{Binding TaskID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Image Source="/icon/file-edit.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Viewbox>
+                                        </Button>
+                                        <Button x:Name="bt_TaskDelete" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="DeleteButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Image Source="/icon/cross-small.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Viewbox>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
 
-
-
-</ResourceDictionary>
-This is DataGrid.xaml
-
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    
-    <Style x:Key="CardStyle" TargetType="Border">
-        <Setter Property="CornerRadius" Value="5"/>
-        <Setter Property="BorderBrush" Value="#CCCCCC"/>
-        <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Margin" Value="10"/>
-        <Setter Property="Padding" Value="10"/>
-        <Setter Property="Effect">
-            <Setter.Value>
-                <DropShadowEffect Color="Black" Direction="315" ShadowDepth="5" BlurRadius="10" Opacity="0.5"/>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    
-</ResourceDictionary>
-This is Elements.xaml
+This is Page1_Task.xaml
 
 <Window x:Class="WorkTrack.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -1006,7 +438,7 @@ This is Elements.xaml
                           Margin="{StaticResource FormElementMargin}"
                           materialDesign:HintAssist.Hint="DurationLevel"
                           materialDesign:HintAssist.FloatingOffset="0,-12"
-                          SelectionChanged="ip_DurationLevel_SelectionChanged"
+                          
                           >
                     <ComboBoxItem Content="Tiny" Tag="1" />
                     <ComboBoxItem Content="Small" Tag="2" />
@@ -1035,7 +467,6 @@ This is Elements.xaml
                           Margin="{StaticResource FormElementMargin}"
                           materialDesign:HintAssist.Hint="UnitName"
                           materialDesign:HintAssist.FloatingOffset="0,-12"
-                          SelectionChanged="ip_UnitName_SelectionChanged"
                           >
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
@@ -1069,8 +500,7 @@ This is Elements.xaml
                         Margin="{StaticResource FormElementMargin}"
                         materialDesign:ButtonAssist.CornerRadius="20"
                         Content="Refresh"
-                        HorizontalAlignment="Left"
-                        Click="RefreshButton_Click"/>
+                        HorizontalAlignment="Left"/>
                 <Button x:Name ="bt_Exist"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Width="{StaticResource FormElementWidth}"
@@ -1078,8 +508,7 @@ This is Elements.xaml
                         Margin="{StaticResource FormElementMargin}"
                         materialDesign:ButtonAssist.CornerRadius="20"
                         Content="Exist"
-                        HorizontalAlignment="Left"
-                        Click="RefreshButton_Click"/>
+                        HorizontalAlignment="Left"/>
 
                 <Button x:Name ="bt_Test"
                         Style="{StaticResource MaterialDesignFlatButton}"
@@ -1089,7 +518,6 @@ This is Elements.xaml
                         materialDesign:ButtonAssist.CornerRadius="20"
                         Content="Test"
                         HorizontalAlignment="Left"
-                        Click="TestButton_Click"
                 />
             </StackPanel>
         </Grid>
@@ -1098,241 +526,309 @@ This is Elements.xaml
 
 This is MainWindow.xaml
 
-<Application x:Class="WorkTrack.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:local="clr-namespace:WorkTrack"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             StartupUri="MainWindow.xaml">
-    <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Teal" SecondaryColor="Lime" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
-                <!--Select colors, options are metrial, metro, orange, blue, black and white-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Colors/black.xaml" /> 
+using Dapper;
+using LiveCharts;
+using LiveCharts.Wpf;
+using Microsoft.Data.Sqlite;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Navigation;
 
-                <!--Select size, options are small, medium and large-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Size/s.xaml" />
+namespace WorkTrack
+{
+    
 
-                <!--Select weight, options are light, normal and bold-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Weight/light.xaml" />
+    public partial class MainWindow : Window
+    {
 
-                <!--Also add the base theme, this is required always-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/base.xaml" />
-            </ResourceDictionary.MergedDictionaries>
+        private TaskSearch _taskSearch;  // TaskSearch ???
+        public DateTime TodayDate { get; set; }
+        public ChartValues<double> TaskDurations { get; set; } = new ChartValues<double>();
+        public SeriesCollection SeriesCollection { get; set; }
 
-            <local:DeleteButtonOpacityConverter x:Key="DeleteButtonOpacityConverter" />
+        public MainWindow()
+        {
+            InitializeComponent();
 
-            <sys:Double x:Key="FormElementWidth">180</sys:Double>
-            <sys:Double x:Key="FormElementHeight">24</sys:Double>
-            
-            <Thickness x:Key="FormElementMargin">0,10</Thickness>
-            <Thickness x:Key="FormElementPadding">0,5</Thickness>
+            _taskSearch = new TaskSearch();  // ??? TaskSearch
+            DataContext = this;
+            TodayDate = DateTime.Now;
 
-            
-            
-        </ResourceDictionary>
-    </Application.Resources>
-</Application>
+            MainFrame.NavigationService.Navigate(new Page0_Welcome());
 
-This is App.xaml
+            DatabaseInitializer dbInitializer = new DatabaseInitializer();
+            dbInitializer.Initialize();
 
-<Window x:Class="WorkTrack.UnitManagement"
+            TaskDurations = new ChartValues<double>();
+            SeriesCollection = new SeriesCollection();
+            InitializeStackedColumnChart();
+
+        }
+        #region Cd1_Bt
+        private void bt_OverTime_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.NavigationService.Navigate(new Page1_Task());
+        }
+        private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.NavigationService.Navigate(new Page1_Task());
+        }
+        #endregion
+
+
+
+        public async Task InitializeStackedColumnChart()
+        {
+            SeriesCollection.Clear();
+
+            try
+            {
+                var tasks = await _taskSearch.GetTasks(DateTime.Now);  // ? TaskSearch ?????????
+
+                int taskCount = 0;
+                int pointsCount = 0;
+
+                foreach (var task in tasks)
+                {
+                    taskCount++;
+                    pointsCount += task.Points;
+
+                    SeriesCollection.Add(new StackedRowSeries
+                    {
+                        Values = new ChartValues<double> { task.Duration },
+                        StackMode = StackMode.Values,
+                        DataLabels = true,
+                        Fill = Brushes.Teal,
+                        Stroke = Brushes.White,
+                        StrokeThickness = 0.5,
+                        MaxRowHeight = 20,
+                        Title = task.TaskName
+                    });
+                }
+
+                // ?????????
+
+
+                var Emptyquery = "SELECT AvailableMins FROM TaskHeader WHERE TaskDate = @TaskDate";
+                var durations = await ExecuteQueryAsync<int>(Emptyquery, new { TaskDate = DateTime.Now.Date });
+
+                foreach (var duration in durations)
+                {
+                    SeriesCollection.Add(new StackedRowSeries
+                    {
+                        Values = new ChartValues<double> { duration },
+                        StackMode = StackMode.Values,
+                        DataLabels = true,
+                        Fill = Brushes.Gray,
+                        Stroke = Brushes.White,
+                        StrokeThickness = 0.5,
+                        MaxRowHeight = 20,
+                        Title = "Empty",
+                    });
+                }
+
+                Card_Label1.Text = taskCount.ToString();
+                Card_Label2.Text = pointsCount.ToString();
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string query, object parameters = null)
+        {
+            try
+            {
+                await using var connection = new SqliteConnection(App.ConnectionString);
+                await connection.OpenAsync();
+                return await connection.QueryAsync<T>(query, parameters);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to execute query: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return Enumerable.Empty<T>();
+            }
+        }
+
+    }
+
+
+}
+This is MainWindow.xaml.cs
+
+<Window x:Class="WorkTrack.InputTask"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:WorkTrack"
         mc:Ignorable="d"
-        Title="Unit Management" Height="500" Width="400"
-        WindowStartupLocation="CenterScreen"
-        Background="White"
-        FontFamily="Calibri">
+        Title="InputTask" Height="520" Width="300">
+    
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    
     <Grid>
+        <StackPanel x:Name="MainForm">
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="45"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+            <TextBlock Text="Add Task" Margin="20,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" />
 
-        <Grid Grid.Row="0" HorizontalAlignment="Stretch">
-            <TextBlock Text="Unit Management"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Center"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       Margin="10"
-            />
-        </Grid>
-        <Grid Grid.Row="1" HorizontalAlignment="Stretch">
-            <StackPanel x:Name="Unit_InputForm" Orientation="Horizontal">
+            <DatePicker x:Name="ip_TaskDate"
+                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                    Width="180"
+                    Padding="0,5"
+                    Margin="5,10"
+                    materialDesign:HintAssist.Hint="TaskDate"
+                    materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
+                />
 
-                <TextBox Name="ip_UnitName"
+            <TextBox x:Name="ip_TaskID"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Padding="{StaticResource FormElementPadding}"
+                         Margin="{StaticResource FormElementMargin}"
+                         materialDesign:HintAssist.Hint="TaskID"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                />
+
+            <TextBox x:Name="ip_TaskName"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Padding="{StaticResource FormElementPadding}"
+                         Margin="{StaticResource FormElementMargin}"
+                         materialDesign:HintAssist.Hint="TaskName"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                         materialDesign:TextFieldAssist.HasClearButton="True"
+                />
+
+            <TextBox x:Name="ip_Describe"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Padding="{StaticResource FormElementPadding}"
+                         Margin="{StaticResource FormElementMargin}"
+                         materialDesign:HintAssist.Hint="Describe"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                         materialDesign:TextFieldAssist.HasClearButton="True"
+                />
+
+            <ComboBox x:Name="ip_DurationLevel"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                      Width="{StaticResource FormElementWidth}"
+                      Padding="{StaticResource FormElementPadding}"
+                      Margin="{StaticResource FormElementMargin}"
+                      materialDesign:HintAssist.Hint="DurationLevel"
+                      materialDesign:HintAssist.FloatingOffset="0,-12"
+                      SelectedValuePath="Points"
+                      SelectionChanged="ip_DurationLevel_SelectionChanged"
+                      >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DurationLevelName}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customized-">
+                                            <Setter Property="Foreground" Value="#4D869C" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+
+            <TextBox x:Name="ip_Duration"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                      Width="{StaticResource FormElementWidth}"
-                     Height="{StaticResource FormElementHeight}"
-                     Padding="0"
-                     Margin="10"                    
-                     materialDesign:HintAssist.Hint="Input New UnitName Here"
+                     Padding="{StaticResource FormElementPadding}"
+                     Margin="{StaticResource FormElementMargin}"
+                     materialDesign:HintAssist.Hint="Duration"
                      materialDesign:HintAssist.FloatingOffset="0,-12"
                      materialDesign:TextFieldAssist.HasClearButton="True"
+                     Visibility="Collapsed"
                 />
 
-                <Button Name ="bt_SaveUnit"
-                    Style="{StaticResource MaterialDesignFlatButton}"
-                    Width="60"
-                    Height="{StaticResource FormElementHeight}"
-                    Margin="10"
-                    materialDesign:ButtonAssist.CornerRadius="20"
-                    Content="Add"
-                    HorizontalAlignment="Left"
-                    Click="bt_SaveUnit_Click"
-                />
+            <ComboBox x:Name="ip_UnitName"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                      Width="{StaticResource FormElementWidth}"
+                      Padding="{StaticResource FormElementPadding}"
+                      Margin="{StaticResource FormElementMargin}"
+                      materialDesign:HintAssist.Hint="UnitName"
+                      materialDesign:HintAssist.FloatingOffset="0,-12"
+                      SelectedValuePath="UnitID"
+                      SelectionChanged="ip_DurationLevel_SelectionChanged"
+                      >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding UnitName}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding UnitName}" Value="-Add-">
+                                            <Setter Property="Foreground" Value="#4D869C" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
+            <ComboBox x:Name="ip_ApplicationID"
+                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                          Width="{StaticResource FormElementWidth}"
+                          Padding="{StaticResource FormElementPadding}"
+                          Margin="{StaticResource FormElementMargin}"
+                          materialDesign:HintAssist.Hint="ApplicationID"
+                          materialDesign:HintAssist.FloatingOffset="0,-12"/>
+            <Button x:Name ="bt_Refresh"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Width="{StaticResource FormElementWidth}"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="{StaticResource FormElementMargin}"
+                        materialDesign:ButtonAssist.CornerRadius="20"
+                        HorizontalAlignment="Center"
+                        Content="Refresh"
+                        Click="RefreshButton_Click"
+                        />
+            <Button x:Name ="bt_Close"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Width="{StaticResource FormElementWidth}"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="{StaticResource FormElementMargin}"
+                        materialDesign:ButtonAssist.CornerRadius="20"
+                        HorizontalAlignment="Center"
+                        Content="Close"
+                        />
 
-            </StackPanel>
-
-
-        </Grid>
-
-        <Grid Grid.Row="2" HorizontalAlignment="Stretch">
-            <StackPanel x:Name="Unit_UnitData" Margin="10">
-
-                <DataGrid Name="dt_Unit" AutoGenerateColumns="False">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="UnitName" Binding="{Binding UnitName}" Width="160" SortMemberPath="UnitName"/>
-                        <DataGridTemplateColumn Header="Action" Width="*" >
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Click="DeleteButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}" Width="40" HorizontalAlignment="Left">
-                                        <Image Source="/icon/delete.png" 
-                                               Width="25" 
-                                               Height="20"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               Opacity="{Binding DeleteFlag, Converter={StaticResource DeleteButtonOpacityConverter}}"/>
-                                    </Button>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-
-
-            </StackPanel>
-           
-        </Grid>
+        </StackPanel>
     </Grid>
 </Window>
 
-This is UnitManagement.xaml
+This is InputTask.xaml
 
-using System;
-using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
 using Dapper;
-using Microsoft.Data.Sqlite;
-
-namespace WorkTrack
-{
-
-    public class Unit
-    {
-        public int UnitID { get; set; }
-        public string UnitName { get; set; } = string.Empty; // ?????
-        public DateTime RegistDatetime { get; set; }
-        public bool DeleteFlag { get; set; }
-    }
-
-    public partial class UnitManagement : Window
-    {
-        public UnitManagement()
-        {
-            InitializeComponent();
-            LoadUnitData();
-        }
-
-        private async void LoadUnitData()
-        {
-            try
-            {
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-                var units = (await connection.QueryAsync<Unit>("SELECT * FROM Unit")).ToList();
-                dt_Unit.ItemsSource = units;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load units: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private async void bt_SaveUnit_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                string unitName = ip_UnitName.Text;
-
-                if (string.IsNullOrEmpty(unitName))
-                {
-                    MessageBox.Show("Unit Name cannot be empty.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-                var insertQuery = "INSERT INTO Unit (UnitName) VALUES (@UnitName)";
-                await connection.ExecuteAsync(insertQuery, new { UnitName = unitName });
-
-                MessageBox.Show("Unit saved successfully.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                LoadUnitData(); // ????????
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to save unit: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private async void DeleteButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.Tag is int unitId)
-            {
-                var result = MessageBox.Show("??????????", "????", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (result == MessageBoxResult.Yes)
-                {
-                    try
-                    {
-                        await using var connection = new SqliteConnection(App.ConnectionString);
-                        await connection.OpenAsync();
-
-                        var deleteQuery = "UPDATE Unit SET DeleteFlag = 1 WHERE UnitID = @UnitID";
-                        await connection.ExecuteAsync(deleteQuery, new { UnitID = unitId });
-
-                        MessageBox.Show("?????", "??", MessageBoxButton.OK, MessageBoxImage.Information);
-                        LoadUnitData(); // ??????
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            }
-        }
-
-
-    }
-
-
-
-
-}
-
-This is UnitManagement.xaml.cs
-
+using LiveCharts.Wpf;
+using LiveCharts;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -1346,180 +842,446 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Dapper;
 
 namespace WorkTrack
 {
     /// <summary>
-    /// Page1.xaml ?????
+    /// InputTask.xaml ?????
     /// </summary>
-    public partial class Page1_Task : Page
+    public partial class InputTask : Window
     {
-        public Page1_Task()
+        private DateTime? _taskDate;
+        public InputTask(DateTime? taskDate = null)
         {
             InitializeComponent();
-            ip_TaskDate.SelectedDate = DateTime.Today;
-            DefaultSearch_TaskBody();
+            _taskDate = taskDate;
+
+            // ?? Loaded ??
+            Loaded += MainWindow_Loaded;
 
         }
 
-        private async Task DefaultSearch_TaskBody()
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+
+            ip_TaskDate.SelectedDate = _taskDate.Value;
+            await LoadUnitNames();
+            await LoadDurationLevel();
+
+        }
+        private async Task LoadUnitNames()
         {
             try
             {
-                DateTime? selectedDate = ip_TaskDate.SelectedDate;
-
-                if (selectedDate == null)
-                {
-                    MessageBox.Show("??????", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
                 await using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
 
-                var taskBodyData = (await connection.QueryAsync<TaskBody>(
-                    "SELECT p1.*, t1.UnitName FROM TaskBody p1 LEFT JOIN Unit t1 ON p1.UnitID = t1.UnitID WHERE TaskDate = @TaskDate",
-                    new { TaskDate = selectedDate.Value.Date }
-                )).ToList();
+                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID, UnitName FROM Unit")).ToList();
+                unitNames.Add(new Unit { UnitID = 0, UnitName = "-Add-" });
 
-                if (this.FindName("dt_TaskBody") is DataGrid dt_TaskBody)
+                ip_UnitName.Items.Clear(); // ????? ItemsSource ?,??????
+                ip_UnitName.ItemsSource = unitNames;
+
+                if (unitNames.Count > 0)
                 {
-                    dt_TaskBody.ItemsSource = taskBodyData;
+                    ip_UnitName.SelectedIndex = 0;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load task body: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Failed to load unit names: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        private async Task LoadDurationLevel()
         {
-            MessageBox.Show("Delete");
+            try
+            {
+                await using var connection = new SqliteConnection(App.ConnectionString);
+                await connection.OpenAsync();
+
+                var durationNames = (await connection.QueryAsync<Unit>("SELECT DurationLevelName, Points FROM DurationLevel")).ToList();
+
+                ip_DurationLevel.Items.Clear();
+                ip_DurationLevel.ItemsSource = durationNames;
+
+                if (durationNames.Count > 0)
+                {
+                    ip_DurationLevel.SelectedIndex = 2;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load unit names: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
-        private void EditButton_Click(object sender, RoutedEventArgs e)
+        private void ip_UnitName_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            MessageBox.Show("Edit");
+            if (ip_UnitName.SelectedItem != null && ip_UnitName.SelectedItem.ToString() == "-Add-")
+            {
+                UnitManagement unitManagementWindow = new UnitManagement();
+                unitManagementWindow.Closed += UnitManagementWindow_Closed;
+                unitManagementWindow.ShowDialog();
+            }
+        }
+        private async void UnitManagementWindow_Closed(object sender, EventArgs e)
+        {
+            await LoadUnitNames(); // ??????UnitName??
+        }
+        private void ip_DurationLevel_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ip_DurationLevel.SelectedItem is ComboBoxItem selectedItem)
+            {
+                ToggleDurationVisibility(selectedItem.Content.ToString());
+            }
+        }
+        private void ToggleDurationVisibility(string durationLevel)
+        {
+            if (durationLevel == "-Customize-")
+            {
+                ip_Duration.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ip_Duration.Visibility = Visibility.Collapsed;
+            }
         }
 
-        private void DetailButton_Click(object sender, RoutedEventArgs e)
+        private async Task RefreshTaskBodyAsync()
         {
-            MessageBox.Show("Detail");
+            try
+            {
+                using var connection = new SqliteConnection(App.ConnectionString);
+                await connection.OpenAsync();
+
+                DateTime? taskDate = ip_TaskDate.SelectedDate;
+                string taskID = ip_TaskID.Text;
+                string taskName = ip_TaskName.Text;
+                string description = ip_Describe.Text;
+                string durationLevel = ip_DurationLevel.Text;
+                int? duration = string.IsNullOrEmpty(ip_Duration.Text) ? (int?)null : int.Parse(ip_Duration.Text);
+                int selectedUnitID = (int)ip_UnitName.SelectedValue;
+                string applicationID = ip_ApplicationID.Text;
+
+
+                if (string.IsNullOrEmpty(taskID))
+                {
+                    var insertQuery = $$"""
+                        INSERT INTO TaskBody (TaskDate, TaskName, DurationLevel, Duration, Description, UnitID, ApplicationID)
+                        VALUES (@TaskDate, @TaskName, @DurationLevel, @Duration, @Description, @UnitID, @ApplicationID);
+                    """;
+
+                    await connection.ExecuteAsync(insertQuery, new
+                    {
+                        TaskDate = taskDate,
+                        TaskName = taskName,
+                        DurationLevel = durationLevel,
+                        Duration = duration,
+                        Description = description,
+                        UnitID = selectedUnitID,
+                        ApplicationID = applicationID,
+                    });
+                }
+                else
+                {
+                    var updateQuery = $$"""
+                        UPDATE TaskBody
+                        SET TaskName = @TaskName, DurationLevel = @DurationLevel, Duration = @Duration, Description = @Description,
+                            UnitID = @UnitID, ApplicationID = @ApplicationID
+                        WHERE TaskID = @TaskID;
+                    """;
+
+                    await connection.ExecuteAsync(updateQuery, new
+                    {
+                        TaskName = taskName,
+                        DurationLevel = durationLevel,
+                        Duration = duration,
+                        Description = description,
+                        UnitID = selectedUnitID,
+                        ApplicationID = applicationID,
+                        TaskID = taskID
+                    });
+                }
+
+                var insertOrUpdateTaskHeader = $$"""
+
+                    WITH t_UsedPoints as (
+
+                        SELECT p1.TaskDate ,sum(p2.Points) as UsedPoints 
+                        FROM
+                            TaskBody p1
+                            LEFT JOIN DurationLevel p2 on p1.DurationLevel = p2.DurationLevel
+                        WHERE
+                            p1.DurationLevel != '-Customized-'
+                            and p1.TaskDate = @TaskDate
+                        GROUP BY TaskDate
+
+                    ), t_Customized as (
+
+                        SELECT TaskDate ,sum(p1.Duration) as CustomizedMins
+                        FROM TaskBody p1
+                        WHERE
+                            p1.DurationLevel = '-Customized-'
+                            and p1.TaskDate = @TaskDate
+                        GROUP BY TaskDate
+
+                    )
+                    UPDATE TaskHeader 
+                    SET
+                        UsedPoints = p1.UsedPoints
+                        ,CustomizedMins = coalesce(p2.CustomizedMins,0)
+                    FROM
+                        t_UsedPoints p1
+                        LEFT JOIN t_Customized p2 on p1.TaskDate = p2.TaskDate
+                    WHERE TaskHeader.TaskDate = @TaskDate;
+                    ;
+                """;
+
+                await connection.ExecuteAsync(insertOrUpdateTaskHeader, new{TaskDate = taskDate});
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to update task body: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
         }
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            await RefreshTaskBodyAsync();
+
+            ip_TaskID.Clear();
+            ip_TaskName.Clear();
+            ip_Describe.Clear();
+            ip_DurationLevel.SelectedIndex = 2;
+            ip_UnitName.SelectedIndex = 0;
+            ip_ApplicationID.SelectedIndex = 0;
+
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow != null)
+            {
+                await mainWindow.InitializeStackedColumnChart(); // ?? MainWindow ???
+
+                if (mainWindow.MainFrame.Content is Page1_Task page1Task)
+                {
+                    await page1Task.DefaultSearch_TaskBody(); // ?? Page1_Task ? DataGrid
+                }
+            }
+        }
+
+    }
+
+
+}
+
+This is InputTask.xaml.cs
+
+using Dapper;
+using Microsoft.Data.Sqlite;
+using LiveCharts;
+using LiveCharts.Wpf;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Navigation;
+
+namespace WorkTrack 
+{
+    public class TaskSearch
+    {
+
+        public async Task<List<TaskBody>> GetTasks(DateTime taskDate)
+        {
+            var query = "SELECT p1.*, t1.UnitName FROM TaskBody p1 LEFT JOIN Unit t1 ON p1.UnitID = t1.UnitID WHERE TaskDate = @TaskDate";
+
+            await using var connection = new SqliteConnection(App.ConnectionString);
+            await connection.OpenAsync();
+
+            return (await connection.QueryAsync<TaskBody>(query, new { TaskDate = taskDate })).ToList();
+        }
+
+        public async Task UpdateTaskBodyAsync(TaskBody taskBody)
+        {
+            await using var connection = new SqliteConnection(App.ConnectionString);
+            await connection.OpenAsync();
+
+            // ?????? TaskBody ???
+        }
+
+        // ??????
     }
 
 }
 
-This is Page1_Task.xaml.cs
+This is TaskSearch.cs
 
-<Page x:Class="WorkTrack.Page1_Task"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:WorkTrack"
-      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      FontFamily="TimeNewsRoman"
-      Title="Page1_Task">
+using System;
+using System.Diagnostics;
+using System.IO;
+using Dapper;
+using Microsoft.Data.Sqlite;
 
-    <Page.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Elements.xaml"/>
-                <ResourceDictionary Source="DataGrid.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Page.Resources>
+namespace WorkTrack
+{
+    public class DatabaseInitializer
+    {
+        private readonly string DatabasePath = "Database/app.db"; // ????????DatabasePath???readonly
 
-    <Grid HorizontalAlignment="Stretch">
-        <Border Style="{StaticResource CardStyle}" Background="#F3F3F3">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="40" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+        public void Initialize()
+        {
+            try
+            {
+                string fullPath = Path.Combine(Directory.GetCurrentDirectory(), DatabasePath);
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="TaskList" Grid.Column="0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Margin="5,0,0,0"
-                                />
-                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                        <DatePicker x:Name="ip_TaskDate"
-                                        Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
-                                        Width="80"
-                                        Height="30"
-                                        Margin="5,-10,5,0"
-                                        VerticalAlignment="Center"
-                                        materialDesign:HintAssist.Hint="TaskDate"
-                                        materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
-                        />
-                        <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="DetailButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
-                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Image Source="/icon/add_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                            </Viewbox>
-                        </Button>
-                    </StackPanel>
-                </Grid>
+                if (!File.Exists(fullPath))
+                {
+                    // ?? DirectoryPath ?? null
+                    string directoryPath = Path.GetDirectoryName(fullPath);
+                    if (directoryPath != null)
+                    {
+                        Directory.CreateDirectory(directoryPath);
+                    }
+                    Debug.WriteLine($"???????: {fullPath}");
+                }
 
-                <DataGrid x:Name="dt_TaskBody" Grid.Row="1"
-                            AutoGenerateColumns="False"
-                            CanUserAddRows="False"
-                            CanUserDeleteRows="False"
-                            IsReadOnly="True"
-                            SelectionUnit="FullRow"
-                            BorderThickness="0"
-                            Background="White"
-                            Margin="5"
-                            ColumnHeaderHeight="40"
-                            RowHeight="35"
-                            Style="{StaticResource MaterialDesignDataGrid}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="TaskName" Binding="{Binding TaskName}" Width="120" SortMemberPath="TaskName"/>
-                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" SortMemberPath="Description"/>
-                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="*" SortMemberPath="Duration" />
-                        <DataGridTextColumn Header="UnitName" Binding="{Binding UnitName}" Width="*" SortMemberPath="UnitName"/>
-                        <DataGridTemplateColumn Header="Action" Width="*" >
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                        <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Click="DetailButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
-                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Image Source="/icon/file-edit.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            </Viewbox>
-                                        </Button>
-                                        <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="DeleteButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
-                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Image Source="/icon/cross-small.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            </Viewbox>
-                                        </Button>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-        </Border>
-    </Grid>
-</Page>
+                using (var connection = new SqliteConnection($"Data Source={fullPath};"))
+                {
+                    connection.Open();
 
-This is Page1_Task.xaml
+                    var createTableQueries = new[]
+                    {
+                        @"
+                        CREATE TABLE IF NOT EXISTS TaskBody (
+                            TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            TaskDate DATE NOT NULL,
+                            TaskName TEXT NOT NULL,
+                            DurationLevel INTEGER,
+                            Duration INTEGER,
+                            Description TEXT,
+                            UnitID INTEGER,
+                            ApplicationID INTEGER,
+                            RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            DeleteFlag BOOLEAN DEFAULT 0
+                        );",
+                        @"
+                        CREATE TABLE IF NOT EXISTS Application (
+                            ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            ApplicationName TEXT,
+                            ApplicationSubName TEXT,
+                            ApplicationStatus TEXT,
+                            ApplicationDatetime DATETIME,
+                            PCDFlag BOOLEAN DEFAULT 0,
+                            UnitID INTEGER,
+                            RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            DeleteFlag BOOLEAN DEFAULT 0
+                        );",
+                        @"
+                        CREATE TABLE IF NOT EXISTS Unit (
+                            UnitID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            UnitName TEXT,
+                            RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            DeleteFlag BOOLEAN DEFAULT 0
+                        );",
+                        @"
+                        CREATE TABLE IF NOT EXISTS TaskHeader (
+                            TaskDate DATE PRIMARY KEY,
+                            OverHours REAL DEFAULT 0,
+                            TotalHours REAL DEFAULT 8,
+                            TotalMins REAL DEFAULT 480,
+                            CustomizedMins REAL DEFAULT 0,
+                            UsedPoints INT DEFAULT 0,
+                            BasicPoints INT DEFAULT 0,
+                            UsedMins REAL DEFAULT 0,
+                            AvailableMins REAL DEFAULT 480,
+                            RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            DeleteFlag BOOLEAN DEFAULT 0
+                        );",
+                        @"
+                        CREATE TABLE IF NOT EXISTS DurationLevel (
+                            DurationLevelName TEXT PRIMARY KEY,
+                            Points INT NOT NULL
+                        );"
+                    };
 
-File WorkTrack.csporj does not exist
+                    foreach (var query in createTableQueries)
+                    {
+                        connection.Execute(query);
+                    }
+
+                    // ??????
+                    var insertDataQuery = new[]
+                    {
+                        @"
+                        INSERT OR IGNORE INTO DurationLevel (DurationLevelName, Points) VALUES
+                            ('Tiny', 1),
+                            ('Small', 2),
+                            ('Medium', 3),
+                            ('Large', 4),
+                            ('Huge', 5),
+                            ('-Customize-', 0)
+                        ;",
+                        @"
+                        INSERT OR IGNORE INTO Unit (UnitName) VALUES
+                            ('IMD'),
+                            ('FA'),
+                            ('APP'),
+                            ('MECT'),
+                            ('METRO'),
+                            ('CSO'),
+                            ('CSM'),
+                            ('AC'),
+                            ('AR'),
+                            ('PCD')
+                        ;",
+                    };
+
+                    foreach (var query in insertDataQuery)
+                    {
+                        connection.Execute(query);
+                    }
+
+                    // ?????
+                    var createTriggerQuery = @"
+                        CREATE TRIGGER IF NOT EXISTS update_TaskHeader_Values
+                        AFTER UPDATE OF OverHours, CustomizedMins, UsedPoints ON TaskHeader
+                        FOR EACH ROW
+                        BEGIN
+                            UPDATE TaskHeader
+                            SET 
+                                TotalHours = NEW.OverHours + 8,
+                                TotalMins = (NEW.OverHours + 8) * 60,
+                                AvailableMins = (NEW.OverHours + 8) * 60 - NEW.CustomizedMins - NEW.UsedMins,
+                                BasicPoints = CASE 
+                                                WHEN NEW.UsedPoints != 0 THEN (TotalMins - NEW.CustomizedMins) / NEW.UsedPoints
+                                                ELSE 0
+                                             END,
+                                UsedMins = NEW.UsedPoints * CASE 
+                                                              WHEN NEW.UsedPoints != 0 THEN (TotalMins - NEW.CustomizedMins) / NEW.UsedPoints
+                                                              ELSE 0
+                                                            END
+                            WHERE TaskDate = NEW.TaskDate;
+                        END;
+                    ";
+
+                    connection.Execute(createTriggerQuery);
+
+                    Debug.WriteLine("?????????????????");
+                    connection.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"???????????: {ex.Message}");
+            }
+        }
+    }
+}
+
+This is DatabaseInitializer.cs
 
 Based on the above files, solve my requirements. Please answer in Traditional Chinese, prioritizing solutions that reduce system load, with maintainability as secondary. Responses should be clear, concise, and to the point. Since there are many different files, please first provide the file names and present the solutions in a before-and-after comparison format. For both the before and after content, only show the modified sections, no need to display everything. My requirement is:

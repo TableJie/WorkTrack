@@ -244,7 +244,7 @@
                           Margin="{StaticResource FormElementMargin}"
                           materialDesign:HintAssist.Hint="DurationLevel"
                           materialDesign:HintAssist.FloatingOffset="0,-12"
-                          SelectionChanged="ip_DurationLevel_SelectionChanged"
+                          
                           >
                     <ComboBoxItem Content="Tiny" Tag="1" />
                     <ComboBoxItem Content="Small" Tag="2" />
@@ -273,7 +273,6 @@
                           Margin="{StaticResource FormElementMargin}"
                           materialDesign:HintAssist.Hint="UnitName"
                           materialDesign:HintAssist.FloatingOffset="0,-12"
-                          SelectionChanged="ip_UnitName_SelectionChanged"
                           >
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
@@ -307,8 +306,7 @@
                         Margin="{StaticResource FormElementMargin}"
                         materialDesign:ButtonAssist.CornerRadius="20"
                         Content="Refresh"
-                        HorizontalAlignment="Left"
-                        Click="RefreshButton_Click"/>
+                        HorizontalAlignment="Left"/>
                 <Button x:Name ="bt_Exist"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Width="{StaticResource FormElementWidth}"
@@ -316,8 +314,7 @@
                         Margin="{StaticResource FormElementMargin}"
                         materialDesign:ButtonAssist.CornerRadius="20"
                         Content="Exist"
-                        HorizontalAlignment="Left"
-                        Click="RefreshButton_Click"/>
+                        HorizontalAlignment="Left"/>
 
                 <Button x:Name ="bt_Test"
                         Style="{StaticResource MaterialDesignFlatButton}"
@@ -327,7 +324,6 @@
                         materialDesign:ButtonAssist.CornerRadius="20"
                         Content="Test"
                         HorizontalAlignment="Left"
-                        Click="TestButton_Click"
                 />
             </StackPanel>
         </Grid>

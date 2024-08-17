@@ -49,7 +49,7 @@
                                         materialDesign:HintAssist.Hint="TaskDate"
                                         materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
                         />
-                        <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="DetailButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                        <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="bt_TaskAdd_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
                             <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Image Source="/icon/add_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Viewbox>
@@ -78,12 +78,12 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                        <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Click="DetailButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                        <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Tag="{Binding TaskID}" Style="{StaticResource MaterialDesignFlatButton}">
                                             <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Image Source="/icon/file-edit.png" RenderOptions.BitmapScalingMode="HighQuality"/>
                                             </Viewbox>
                                         </Button>
-                                        <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="DeleteButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                        <Button x:Name="bt_TaskDelete" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="DeleteButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
                                             <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Image Source="/icon/cross-small.png" RenderOptions.BitmapScalingMode="HighQuality"/>
                                             </Viewbox>

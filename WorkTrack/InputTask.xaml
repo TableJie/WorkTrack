@@ -1,0 +1,160 @@
+﻿<Window x:Class="WorkTrack.InputTask"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:WorkTrack"
+        mc:Ignorable="d"
+        Title="InputTask" Height="520" Width="300">
+    
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    
+    <Grid>
+        <StackPanel x:Name="MainForm">
+
+            <TextBlock Text="Add Task" Margin="20,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" />
+
+            <DatePicker x:Name="ip_TaskDate"
+                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                    Width="180"
+                    Padding="0,5"
+                    Margin="5,10"
+                    materialDesign:HintAssist.Hint="TaskDate"
+                    materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
+                />
+
+            <TextBox x:Name="ip_TaskID"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Padding="{StaticResource FormElementPadding}"
+                         Margin="{StaticResource FormElementMargin}"
+                         materialDesign:HintAssist.Hint="TaskID"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                />
+
+            <TextBox x:Name="ip_TaskName"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Padding="{StaticResource FormElementPadding}"
+                         Margin="{StaticResource FormElementMargin}"
+                         materialDesign:HintAssist.Hint="TaskName"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                         materialDesign:TextFieldAssist.HasClearButton="True"
+                />
+
+            <TextBox x:Name="ip_Describe"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Padding="{StaticResource FormElementPadding}"
+                         Margin="{StaticResource FormElementMargin}"
+                         materialDesign:HintAssist.Hint="Describe"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                         materialDesign:TextFieldAssist.HasClearButton="True"
+                />
+
+            <ComboBox x:Name="ip_DurationLevel"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                      Width="{StaticResource FormElementWidth}"
+                      Padding="{StaticResource FormElementPadding}"
+                      Margin="{StaticResource FormElementMargin}"
+                      materialDesign:HintAssist.Hint="DurationLevel"
+                      materialDesign:HintAssist.FloatingOffset="0,-12"
+                      SelectedValuePath="Points"
+                      SelectionChanged="ip_DurationLevel_SelectionChanged"
+                      >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DurationLevelName}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customize-">
+                                            <Setter Property="Foreground" Value="#4D869C" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+
+            <TextBox x:Name="ip_Duration"
+                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                     Width="{StaticResource FormElementWidth}"
+                     Padding="{StaticResource FormElementPadding}"
+                     Margin="{StaticResource FormElementMargin}"
+                     materialDesign:HintAssist.Hint="Duration"
+                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                     materialDesign:TextFieldAssist.HasClearButton="True"
+                     Visibility="Collapsed"
+                />
+
+            <ComboBox x:Name="ip_UnitName"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                      Width="{StaticResource FormElementWidth}"
+                      Padding="{StaticResource FormElementPadding}"
+                      Margin="{StaticResource FormElementMargin}"
+                      materialDesign:HintAssist.Hint="UnitName"
+                      materialDesign:HintAssist.FloatingOffset="0,-12"
+                      SelectedValuePath="UnitID"
+                      SelectionChanged="ip_DurationLevel_SelectionChanged"
+                      >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding UnitName}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding UnitName}" Value="-Add-">
+                                            <Setter Property="Foreground" Value="#4D869C" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <ComboBox x:Name="ip_ApplicationID"
+                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                          Width="{StaticResource FormElementWidth}"
+                          Padding="{StaticResource FormElementPadding}"
+                          Margin="{StaticResource FormElementMargin}"
+                          materialDesign:HintAssist.Hint="ApplicationID"
+                          materialDesign:HintAssist.FloatingOffset="0,-12"/>
+            <Button x:Name ="bt_Refresh"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Width="{StaticResource FormElementWidth}"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="{StaticResource FormElementMargin}"
+                        materialDesign:ButtonAssist.CornerRadius="20"
+                        HorizontalAlignment="Center"
+                        Content="Refresh"
+                        Click="RefreshButton_Click"
+                        />
+            <Button x:Name ="bt_Close"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Width="{StaticResource FormElementWidth}"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="{StaticResource FormElementMargin}"
+                        materialDesign:ButtonAssist.CornerRadius="20"
+                        HorizontalAlignment="Center"
+                        Content="Close"
+                        />
+
+        </StackPanel>
+    </Grid>
+</Window>
