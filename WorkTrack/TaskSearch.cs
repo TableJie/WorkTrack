@@ -18,7 +18,17 @@ namespace WorkTrack
 
         public async Task<List<TaskBody>> GetTasks(DateTime taskDate)
         {
-            var query = "SELECT p1.*, t1.UnitName FROM TaskBody p1 LEFT JOIN Unit t1 ON p1.UnitID = t1.UnitID WHERE TaskDate = @TaskDate";
+            var query = """
+                SELECT
+                    p1.*
+                    ,t1.UnitName
+                    ,t2.DurationLevelName
+                FROM
+                    TaskBody p1
+                    LEFT JOIN Unit t1 on p1.UnitID = t1.UnitID
+                    LEFT JOIN DurationLevel t2 on p1.DurationLevel = t2.Points
+                WHERE TaskDate = @TaskDate
+             """;
 
             await using var connection = new SqliteConnection(App.ConnectionString);
             await connection.OpenAsync();

@@ -38,7 +38,9 @@ namespace WorkTrack
 
             TaskDurations = new ChartValues<double>();
             SeriesCollection = new SeriesCollection();
-            InitializeStackedColumnChart();
+
+            var defaultDate = DateTime.Today;
+            InitializeStackedColumnChart(defaultDate);
 
         }
         #region Cd1_Bt
@@ -54,13 +56,13 @@ namespace WorkTrack
 
 
 
-        public async Task InitializeStackedColumnChart()
+        public async Task InitializeStackedColumnChart(DateTime selectedDate)
         {
             SeriesCollection.Clear();
 
             try
             {
-                var tasks = await _taskSearch.GetTasks(DateTime.Now);  // 從 TaskSearch 獲取當天的任務資料
+                var tasks = await _taskSearch.GetTasks(selectedDate);  // 從 TaskSearch 獲取當天的任務資料
 
                 int taskCount = 0;
                 int pointsCount = 0;
@@ -68,7 +70,7 @@ namespace WorkTrack
                 foreach (var task in tasks)
                 {
                     taskCount++;
-                    pointsCount += task.Points;
+                    pointsCount += task.DurationLevel;
 
                     SeriesCollection.Add(new StackedRowSeries
                     {

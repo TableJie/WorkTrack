@@ -41,13 +41,16 @@
                                 />
                     <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
                         <DatePicker x:Name="ip_TaskDate"
-                                        Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
-                                        Width="80"
-                                        Height="30"
-                                        Margin="5,-10,5,0"
-                                        VerticalAlignment="Center"
-                                        materialDesign:HintAssist.Hint="TaskDate"
-                                        materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
+                                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                                    Width="80"
+                                    Height="30"
+                                    Margin="5,-10,5,0"
+                                    VerticalAlignment="Center"
+                                    materialDesign:HintAssist.Hint="TaskDate"
+                                    materialDesign:HintAssist.FloatingOffset="0,-12"
+                                    FirstDayOfWeek="Monday"
+                                    SelectedDateFormat="Short"
+                                    SelectedDateChanged="ip_TaskDate_SelectedDateChanged"
                         />
                         <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="bt_TaskAdd_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
                             <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">

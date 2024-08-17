@@ -42,18 +42,12 @@ namespace WorkTrack
                     return;
                 }
 
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
+                var taskSearch = new TaskSearch();
+                var taskBodyData = await taskSearch.GetTasks(selectedDate.Value.Date);
 
-                var taskBodyData = (await connection.QueryAsync<TaskBody>(
-                    "SELECT p1.*, t1.UnitName FROM TaskBody p1 LEFT JOIN Unit t1 ON p1.UnitID = t1.UnitID WHERE TaskDate = @TaskDate",
-                    new { TaskDate = selectedDate.Value.Date }
-                )).ToList();
 
-                if (this.FindName("dt_TaskBody") is DataGrid dt_TaskBody)
-                {
-                    dt_TaskBody.ItemsSource = taskBodyData;
-                }
+                dt_TaskBody.ItemsSource = taskBodyData;
+
             }
             catch (Exception ex)
             {
@@ -83,6 +77,25 @@ namespace WorkTrack
             InputTask inputTaskWindow = new InputTask(selectedDate);
             inputTaskWindow.ShowDialog();
         }
+
+        private async void ip_TaskDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            await DefaultSearch_TaskBody();
+
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                var selectedDate = ip_TaskDate.SelectedDate ?? DateTime.Today;
+
+                if (selectedDate.Date != DateTime.Today)
+                {
+                    // ???? TextBlock ? Text ??
+                    mainWindow.ChartDate.Text = selectedDate.ToString("yyyy-MM-dd");
+
+                    await mainWindow.InitializeStackedColumnChart(selectedDate);
+                }
+            }
+        }
+
     }
 
 }
@@ -132,13 +145,16 @@ This is Page1_Task.xaml.cs
                                 />
                     <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
                         <DatePicker x:Name="ip_TaskDate"
-                                        Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
-                                        Width="80"
-                                        Height="30"
-                                        Margin="5,-10,5,0"
-                                        VerticalAlignment="Center"
-                                        materialDesign:HintAssist.Hint="TaskDate"
-                                        materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
+                                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                                    Width="80"
+                                    Height="30"
+                                    Margin="5,-10,5,0"
+                                    VerticalAlignment="Center"
+                                    materialDesign:HintAssist.Hint="TaskDate"
+                                    materialDesign:HintAssist.FloatingOffset="0,-12"
+                                    FirstDayOfWeek="Monday"
+                                    SelectedDateFormat="Short"
+                                    SelectedDateChanged="ip_TaskDate_SelectedDateChanged"
                         />
                         <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="bt_TaskAdd_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
                             <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -256,7 +272,7 @@ This is Page1_Task.xaml
                                 </StackPanel>
                             </Grid>
                             <Grid Grid.Row="1">
-                                <TextBlock Text="{Binding TodayDate, StringFormat=' {0:yyyy-MM-dd}'}" FontSize="12" Margin="5,10,0,0"/>
+                                <TextBlock x:Name="ChartDate" Text="{Binding TodayDate, StringFormat=' {0:yyyy-MM-dd}'}" FontSize="12" Margin="5,10,0,0"/>
                             </Grid>
                             <Grid Grid.Row="2">
                                 <StackPanel Orientation="Vertical">
@@ -566,7 +582,9 @@ namespace WorkTrack
 
             TaskDurations = new ChartValues<double>();
             SeriesCollection = new SeriesCollection();
-            InitializeStackedColumnChart();
+
+            var defaultDate = DateTime.Today;
+            InitializeStackedColumnChart(defaultDate);
 
         }
         #region Cd1_Bt
@@ -582,13 +600,13 @@ namespace WorkTrack
 
 
 
-        public async Task InitializeStackedColumnChart()
+        public async Task InitializeStackedColumnChart(DateTime selectedDate)
         {
             SeriesCollection.Clear();
 
             try
             {
-                var tasks = await _taskSearch.GetTasks(DateTime.Now);  // ? TaskSearch ?????????
+                var tasks = await _taskSearch.GetTasks(selectedDate);  // ? TaskSearch ?????????
 
                 int taskCount = 0;
                 int pointsCount = 0;
@@ -596,7 +614,7 @@ namespace WorkTrack
                 foreach (var task in tasks)
                 {
                     taskCount++;
-                    pointsCount += task.Points;
+                    pointsCount += task.DurationLevel;
 
                     SeriesCollection.Add(new StackedRowSeries
                     {
@@ -741,7 +759,7 @@ This is MainWindow.xaml.cs
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customized-">
+                                        <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customize-">
                                             <Setter Property="Foreground" Value="#4D869C" />
                                             <Setter Property="FontWeight" Value="Bold" />
                                         </DataTrigger>
@@ -901,7 +919,7 @@ namespace WorkTrack
                 await using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
 
-                var durationNames = (await connection.QueryAsync<Unit>("SELECT DurationLevelName, Points FROM DurationLevel")).ToList();
+                var durationNames = (await connection.QueryAsync<DurationLevel>("SELECT DurationLevelName, Points FROM DurationLevel")).ToList();
 
                 ip_DurationLevel.Items.Clear();
                 ip_DurationLevel.ItemsSource = durationNames;
@@ -960,7 +978,7 @@ namespace WorkTrack
                 string taskID = ip_TaskID.Text;
                 string taskName = ip_TaskName.Text;
                 string description = ip_Describe.Text;
-                string durationLevel = ip_DurationLevel.Text;
+                int durationLevel = (int)ip_DurationLevel.SelectedValue;
                 int? duration = string.IsNullOrEmpty(ip_Duration.Text) ? (int?)null : int.Parse(ip_Duration.Text);
                 int selectedUnitID = (int)ip_UnitName.SelectedValue;
                 string applicationID = ip_ApplicationID.Text;
@@ -1006,36 +1024,30 @@ namespace WorkTrack
                 }
 
                 var insertOrUpdateTaskHeader = $$"""
+                    INSERT OR IGNORE INTO TaskHeader (TaskDate) VALUES
+                       (@TaskDate)
+                    ;
 
-                    WITH t_UsedPoints as (
-
-                        SELECT p1.TaskDate ,sum(p2.Points) as UsedPoints 
-                        FROM
-                            TaskBody p1
-                            LEFT JOIN DurationLevel p2 on p1.DurationLevel = p2.DurationLevel
-                        WHERE
-                            p1.DurationLevel != '-Customized-'
-                            and p1.TaskDate = @TaskDate
-                        GROUP BY TaskDate
-
-                    ), t_Customized as (
-
-                        SELECT TaskDate ,sum(p1.Duration) as CustomizedMins
-                        FROM TaskBody p1
-                        WHERE
-                            p1.DurationLevel = '-Customized-'
-                            and p1.TaskDate = @TaskDate
-                        GROUP BY TaskDate
-
+                    WITH CTE AS (
+                        SELECT 
+                            sum(CASE WHEN DurationLevel != 0 THEN DurationLevel END) as UsedPoints
+                            ,sum(CASE WHEN DurationLevel = 0 THEN Duration END) as CustomizedMins
+                        FROM TaskBody
+                        WHERE TaskDate = @TaskDate
                     )
-                    UPDATE TaskHeader 
+                    UPDATE TaskHeader
                     SET
-                        UsedPoints = p1.UsedPoints
-                        ,CustomizedMins = coalesce(p2.CustomizedMins,0)
-                    FROM
-                        t_UsedPoints p1
-                        LEFT JOIN t_Customized p2 on p1.TaskDate = p2.TaskDate
-                    WHERE TaskHeader.TaskDate = @TaskDate;
+                        UsedPoints = coalesce(CTE.UsedPoints, 0)
+                        ,CustomizedMins = coalesce(CTE.CustomizedMins, 0)
+                    FROM CTE
+                    WHERE TaskHeader.TaskDate = @TaskDate
+                    ;
+
+                    UPDATE TaskBody
+                    SET Duration = DurationLevel * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate)
+                    WHERE
+                        DurationLevel != 0
+                        and TaskDate = @TaskDate
                     ;
                 """;
 
@@ -1061,7 +1073,9 @@ namespace WorkTrack
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
-                await mainWindow.InitializeStackedColumnChart(); // ?? MainWindow ???
+                var selectedDate = ip_TaskDate.SelectedDate ?? DateTime.Now;
+                await mainWindow.InitializeStackedColumnChart(selectedDate);
+
 
                 if (mainWindow.MainFrame.Content is Page1_Task page1Task)
                 {
@@ -1097,7 +1111,17 @@ namespace WorkTrack
 
         public async Task<List<TaskBody>> GetTasks(DateTime taskDate)
         {
-            var query = "SELECT p1.*, t1.UnitName FROM TaskBody p1 LEFT JOIN Unit t1 ON p1.UnitID = t1.UnitID WHERE TaskDate = @TaskDate";
+            var query = """
+                SELECT
+                    p1.*
+                    ,t1.UnitName
+                    ,t2.DurationLevelName
+                FROM
+                    TaskBody p1
+                    LEFT JOIN Unit t1 on p1.UnitID = t1.UnitID
+                    LEFT JOIN DurationLevel t2 on p1.DurationLevel = t2.Points
+                WHERE TaskDate = @TaskDate
+             """;
 
             await using var connection = new SqliteConnection(App.ConnectionString);
             await connection.OpenAsync();

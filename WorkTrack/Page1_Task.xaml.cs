@@ -25,8 +25,10 @@ namespace WorkTrack
         public Page1_Task()
         {
             InitializeComponent();
-            ip_TaskDate.SelectedDate = DateTime.Today;
+            ip_TaskDate.SelectedDateChanged -= ip_TaskDate_SelectedDateChanged; // 暫時取消事件綁定
+            ip_TaskDate.SelectedDate = DateTime.Today; // 設定日期但不觸發事件
             DefaultSearch_TaskBody();
+            ip_TaskDate.SelectedDateChanged += ip_TaskDate_SelectedDateChanged; // 重新綁定事件
 
         }
 
@@ -42,18 +44,12 @@ namespace WorkTrack
                     return;
                 }
 
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
+                var taskSearch = new TaskSearch();
+                var taskBodyData = await taskSearch.GetTasks(selectedDate.Value.Date);
 
-                var taskBodyData = (await connection.QueryAsync<TaskBody>(
-                    "SELECT p1.*, t1.UnitName FROM TaskBody p1 LEFT JOIN Unit t1 ON p1.UnitID = t1.UnitID WHERE TaskDate = @TaskDate",
-                    new { TaskDate = selectedDate.Value.Date }
-                )).ToList();
 
-                if (this.FindName("dt_TaskBody") is DataGrid dt_TaskBody)
-                {
-                    dt_TaskBody.ItemsSource = taskBodyData;
-                }
+                dt_TaskBody.ItemsSource = taskBodyData;
+
             }
             catch (Exception ex)
             {
@@ -83,6 +79,22 @@ namespace WorkTrack
             InputTask inputTaskWindow = new InputTask(selectedDate);
             inputTaskWindow.ShowDialog();
         }
+
+        private async void ip_TaskDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            await DefaultSearch_TaskBody();
+
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                var selectedDate = ip_TaskDate.SelectedDate ?? DateTime.Today;
+
+                    // 直接更新 TextBlock 的 Text 屬性
+                    mainWindow.ChartDate.Text = selectedDate.ToString("yyyy-MM-dd");
+                    await mainWindow.InitializeStackedColumnChart(selectedDate);
+
+            }
+        }
+
     }
 
 }

@@ -14,7 +14,8 @@ namespace WorkTrack
         public long Duration { get; set; }
         public string UnitID { get; set; } = string.Empty; // 設置初始值
         public string ApplicationID { get; set; } = string.Empty; // 設置初始值
-        public string DurationLevel { get; set; } = string.Empty; // 設置初始值
+        public int DurationLevel { get; set; } // 設置初始值
+        public String DurationLevelName { get; set; } = string.Empty; // 設置初始值
         public int Points { get; set; } = 0;
         public bool DeleteFlag { get; set; }
         public DateTime TaskDate { get; set; }

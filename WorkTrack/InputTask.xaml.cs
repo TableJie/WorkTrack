@@ -227,7 +227,9 @@ namespace WorkTrack
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
-                await mainWindow.InitializeStackedColumnChart(); // 更新 MainWindow 的圖表
+                var selectedDate = ip_TaskDate.SelectedDate ?? DateTime.Now;
+                await mainWindow.InitializeStackedColumnChart(selectedDate);
+
 
                 if (mainWindow.MainFrame.Content is Page1_Task page1Task)
                 {
