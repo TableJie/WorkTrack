@@ -516,9 +516,12 @@ This is InputTask.xaml.cs
                                                              VerticalAlignment="Center"
                                                              ToolTip="Copy"/>
                                         </Button>
-                                        <ToggleButton Margin="5,0,0,0" Width="20" Height="20" Background="Transparent" Style="{StaticResource MaterialDesignActionToggleButton}">
+                                        <ToggleButton Margin="5,0,0,0" Width="20" Height="20" Background="Transparent" Style="{StaticResource MaterialDesignActionToggleButton}" 
+                                                      IsChecked="{Binding DeleteFlag, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                                      Checked="ToggleButton_Checked" 
+                                                      Unchecked="ToggleButton_Unchecked">
                                             <materialDesign:ToggleButtonAssist.OnContent>
-                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20"  Foreground="Gray" ToolTip="Alive"/>
+                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20" Foreground="Gray" ToolTip="Alive"/>
                                             </materialDesign:ToggleButtonAssist.OnContent>
                                             <ToggleButton.Content>
                                                 <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="Black" ToolTip="Delete"/>
@@ -633,6 +636,41 @@ namespace WorkTrack
                 await mainWindow.InitializeStackedColumnChart(selectedDate);
             }
         }
+
+        private async void ToggleButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton toggleButton && toggleButton.DataContext is TaskBody task)
+            {
+                task.DeleteFlag = true;
+                await UpdateDeleteFlagInDatabase(task.TaskID, true);
+            }
+        }
+
+        private async void ToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton toggleButton && toggleButton.DataContext is TaskBody task)
+            {
+                task.DeleteFlag = false;
+                await UpdateDeleteFlagInDatabase(task.TaskID, false);
+            }
+        }
+
+        private async Task UpdateDeleteFlagInDatabase(int taskId, bool deleteFlag)
+        {
+            try
+            {
+                using var connection = new SqliteConnection(App.ConnectionString);
+                await connection.OpenAsync();
+
+                string query = "UPDATE TaskBody SET DeleteFlag = @DeleteFlag WHERE TaskID = @TaskID";
+                await connection.ExecuteAsync(query, new { DeleteFlag = deleteFlag, TaskID = taskId });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"?????????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
 
     }
 

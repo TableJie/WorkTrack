@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Dapper;
 using static WorkTrack.InputTask;
+using System.Windows.Controls.Primitives; // 確保命名空間引用正確
 
 namespace WorkTrack
 {
@@ -93,6 +94,41 @@ namespace WorkTrack
                 await mainWindow.InitializeStackedColumnChart(selectedDate);
             }
         }
+
+        private async void ToggleButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton toggleButton && toggleButton.DataContext is TaskBody task)
+            {
+                task.DeleteFlag = false;
+                await UpdateDeleteFlagInDatabase(task.TaskID, true);
+            }
+        }
+
+        private async void ToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton toggleButton && toggleButton.DataContext is TaskBody task)
+            {
+                task.DeleteFlag = true;
+                await UpdateDeleteFlagInDatabase(task.TaskID, false);
+            }
+        }
+
+        private async Task UpdateDeleteFlagInDatabase(int taskId, bool deleteFlag)
+        {
+            try
+            {
+                using var connection = new SqliteConnection(App.ConnectionString);
+                await connection.OpenAsync();
+
+                string query = "UPDATE TaskBody SET DeleteFlag = @DeleteFlag WHERE TaskID = @TaskID";
+                await connection.ExecuteAsync(query, new { DeleteFlag = deleteFlag, TaskID = taskId });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"更新刪除標誌時出錯: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
 
     }
 
