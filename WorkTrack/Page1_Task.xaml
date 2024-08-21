@@ -42,7 +42,7 @@
                     <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
                         <DatePicker x:Name="ip_TaskDate"
                                     Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
-                                    Width="80"
+                                    Width="90"
                                     Height="30"
                                     Margin="5,-10,5,0"
                                     VerticalAlignment="Center"
@@ -53,9 +53,12 @@
                                     SelectedDateChanged="ip_TaskDate_SelectedDateChanged"
                         />
                         <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="ActionButton_Click" Tag="Add" Style="{StaticResource MaterialDesignFlatButton}">
-                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Image Source="/icon/add_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                            </Viewbox>
+                            <materialDesign:PackIcon Kind="ClipboardPlusOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="#008080" 
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -74,23 +77,41 @@
                             Style="{StaticResource MaterialDesignDataGrid}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="TaskName" Binding="{Binding TaskName}" Width="120" SortMemberPath="TaskName"/>
-                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" SortMemberPath="Description"/>
-                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="*" SortMemberPath="Duration" />
                         <DataGridTextColumn Header="UnitName" Binding="{Binding UnitName}" Width="*" SortMemberPath="UnitName"/>
+                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="*" SortMemberPath="Duration" />
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" SortMemberPath="Description"/>
+
                         <DataGridTemplateColumn Header="Action" Width="*" >
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="-5">
                                         <Button x:Name="bt_TaskEdit" Click="ActionButton_Click" Tag ="Edit" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
-                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Image Source="/icon/file-edit.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            </Viewbox>
+                                            <materialDesign:PackIcon Kind="ClipboardEditOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="Gray" 
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"
+                                                             ToolTip="Edit"/>
                                         </Button>
                                         <Button x:Name="bt_TaskCopy" Click="ActionButton_Click" Tag ="Copy" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
-                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Image Source="/icon/copy.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            </Viewbox>
+                                            <materialDesign:PackIcon Kind="ClipboardMultipleOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="Gray"
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"
+                                                             ToolTip="Copy"/>
                                         </Button>
+                                        <ToggleButton Margin="5,0,0,0" Width="20" Height="20" Background="Transparent" Style="{StaticResource MaterialDesignActionToggleButton}">
+                                            <materialDesign:ToggleButtonAssist.OnContent>
+                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20"  Foreground="Gray" ToolTip="Alive"/>
+                                            </materialDesign:ToggleButtonAssist.OnContent>
+                                            <ToggleButton.Content>
+                                                <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="Black" ToolTip="Delete"/>
+                                            </ToggleButton.Content>
+                                        </ToggleButton>
+
                                     </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
