@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Windows.Documents;
+using System.Windows.Input;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WorkTrack
 {
@@ -83,8 +87,21 @@ namespace WorkTrack
                         CREATE TABLE IF NOT EXISTS DurationLevel (
                             DurationLevelName TEXT PRIMARY KEY,
                             Points INT NOT NULL
+                        );",
+                        @"
+                        CREATE TABLE IF NOT EXISTS Calendar (
+                            CalendarDate DATE PRIMARY KEY,            
+                            Year TEXT NOT NULL,                       
+                            YearMonth TEXT NOT NULL,                   
+                            YearHalf TEXT NOT NULL,                    
+                            YearQuarter TEXT NOT NULL,                 
+                            YearMonthSequence INTEGER NOT NULL,        
+                            YearQuarterSequence INTEGER NOT NULL,      
+                            YearHalfSequence INTEGER NOT NULL,         
+                            WorkDayFlag BOOLEAN NOT NULL,              
+                            WeeklySequenceMonthly INTEGER NOT NULL     
                         );"
-                    };
+                };
 
                     foreach (var query in createTableQueries)
                     {
@@ -115,6 +132,69 @@ namespace WorkTrack
                             ('AC'),
                             ('AR'),
                             ('PCD')
+                        ;",
+                        @"
+                        WITH RECURSIVE CalendarGenerator AS (
+                            SELECT DATE('2020-03-01') AS CalendarDate
+                            UNION ALL
+                            -- 遞歸產生每一天的日期
+                            SELECT DATE(CalendarDate, '+1 day')
+                            FROM CalendarGenerator
+                            WHERE CalendarDate < DATE('2030-02-28')
+                        ),
+                        CalendarData AS (
+                            SELECT 
+                                CalendarDate,
+                                CASE 
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
+                                    THEN STRFTIME('%Y', CalendarDate)
+                                    ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
+                                END AS Year,
+                                CASE 
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
+                                    THEN STRFTIME('%Y', CalendarDate) || '/' || STRFTIME('%m', CalendarDate)
+                                    ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year')) || '/' || STRFTIME('%m', CalendarDate)
+                                END AS YearMonth,
+                                CASE 
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-1H'
+                                    ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-2H'
+                                END AS YearHalf,
+                                CASE 
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 5 THEN STRFTIME('%Y', CalendarDate) || '-1Q'
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 6 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-2Q'
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 9 AND 11 THEN STRFTIME('%Y', CalendarDate) || '-3Q'
+                                    ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-4Q'
+                                END AS YearQuarter,
+                                ROW_NUMBER() OVER (ORDER BY CalendarDate) AS YearMonthSequence,
+                                ROW_NUMBER() OVER (PARTITION BY CASE 
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
+                                    THEN STRFTIME('%Y', CalendarDate)
+                                    ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
+                                END, CASE 
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 5 THEN 1
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 6 AND 8 THEN 2
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 9 AND 11 THEN 3
+                                    ELSE 4
+                                END ORDER BY CalendarDate) AS YearQuarterSequence,
+                                ROW_NUMBER() OVER (PARTITION BY CASE 
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
+                                    THEN STRFTIME('%Y', CalendarDate)
+                                    ELSE STRFTIME('%Y', DATE(CalendarDate, '-1年'))
+                                END, CASE 
+                                    WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 8 THEN 1
+                                    ELSE 2
+                                END ORDER BY CalendarDate) AS YearHalfSequence,
+                                CASE 
+                                    WHEN STRFTIME('%w', CalendarDate) IN ('0', '6') THEN False -- 週日(0)和週六(6)視為非工作日
+                                    ELSE True -- 週一到週五視為工作日
+                                END AS WorkDayFlag,
+                                ROW_NUMBER() OVER (PARTITION BY STRFTIME('%Y-%W', CalendarDate) ORDER BY CalendarDate) AS WeeklySequenceMonthly
+                            FROM 
+                                CalendarGenerator
+                        )
+                        INSERT INTO Calendar
+                        SELECT *
+                        FROM CalendarData
                         ;",
                     };
 
