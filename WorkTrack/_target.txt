@@ -1,2 +1,4 @@
 InputTask.xaml
 InputTask.xaml.cs
+Page1_Task.xaml
+Page1_Task.xaml.cs

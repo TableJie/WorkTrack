@@ -59,7 +59,14 @@ namespace WorkTrack
         {
             if (sender is not Button button) return;
 
-            var mode = (TaskInitializationMode)button.Tag;
+            TaskInitializationMode mode = button.Tag switch
+            {
+                "Add" => TaskInitializationMode.Add,
+                "Edit" => TaskInitializationMode.Edit,
+                "Copy" => TaskInitializationMode.Copy,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
             TaskBody task = mode == TaskInitializationMode.Add
                 ? new TaskBody { TaskDate = ip_TaskDate.SelectedDate ?? DateTime.Today }
                 : button.DataContext as TaskBody ?? new TaskBody { TaskDate = DateTime.Today };

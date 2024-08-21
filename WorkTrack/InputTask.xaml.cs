@@ -103,7 +103,7 @@ namespace WorkTrack
         {
             await LoadOption(); // 更新主視窗的UnitName選項
         }
-        private void ip_DurationLevel_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ip_DurationLevelName_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ip_DurationLevelName.SelectedItem is ComboBoxItem selectedItem)
             {
@@ -133,7 +133,7 @@ namespace WorkTrack
                 string taskID = ip_TaskID.Text;
                 string taskName = ip_TaskName.Text;
                 string description = ip_Describe.Text;
-                int durationLevel = (int)ip_DurationLevelName.SelectedValue;
+                int durationLevelID = (int)ip_DurationLevelName.SelectedValue;
                 int? duration = string.IsNullOrEmpty(ip_Duration.Text) ? (int?)null : int.Parse(ip_Duration.Text);
                 int selectedUnitID = (int)ip_UnitName.SelectedValue;
                 string applicationID = ip_ApplicationID.Text;
@@ -142,15 +142,15 @@ namespace WorkTrack
                 if (string.IsNullOrEmpty(taskID))
                 {
                     var insertQuery = $$"""
-                        INSERT INTO TaskBody (TaskDate, TaskName, DurationLevel, Duration, Description, UnitID, ApplicationID)
-                        VALUES (@TaskDate, @TaskName, @DurationLevel, @Duration, @Description, @UnitID, @ApplicationID);
+                        INSERT INTO TaskBody (TaskDate, TaskName, DurationLevelID, Duration, Description, UnitID, ApplicationID)
+                        VALUES (@TaskDate, @TaskName, @DurationLevelID, @Duration, @Description, @UnitID, @ApplicationID);
                     """;
 
                     await connection.ExecuteAsync(insertQuery, new
                     {
                         TaskDate = taskDate,
                         TaskName = taskName,
-                        DurationLevel = durationLevel,
+                        DurationLevelID = durationLevelID,
                         Duration = duration,
                         Description = description,
                         UnitID = selectedUnitID,
@@ -161,7 +161,7 @@ namespace WorkTrack
                 {
                     var updateQuery = $$"""
                         UPDATE TaskBody
-                        SET TaskName = @TaskName, DurationLevel = @DurationLevel, Duration = @Duration, Description = @Description,
+                        SET TaskName = @TaskName, DurationLevelID = @DurationLevelID, Duration = @Duration, Description = @Description,
                             UnitID = @UnitID, ApplicationID = @ApplicationID
                         WHERE TaskID = @TaskID;
                     """;
@@ -169,7 +169,7 @@ namespace WorkTrack
                     await connection.ExecuteAsync(updateQuery, new
                     {
                         TaskName = taskName,
-                        DurationLevel = durationLevel,
+                        DurationLevelID = durationLevelID,
                         Duration = duration,
                         Description = description,
                         UnitID = selectedUnitID,
@@ -183,8 +183,8 @@ namespace WorkTrack
 
                     WITH CTE AS (
                         SELECT 
-                            sum(CASE WHEN DurationLevel != 0 THEN DurationLevel END) as UsedPoints
-                            ,sum(CASE WHEN DurationLevel = 0 THEN Duration END) as CustomizedMins
+                            sum(CASE WHEN DurationLevelID != 0 THEN DurationLevelID END) as UsedPoints
+                            ,sum(CASE WHEN DurationLevelID = 0 THEN Duration END) as CustomizedMins
                         FROM TaskBody
                         WHERE TaskDate = @TaskDate
                     )
@@ -197,9 +197,9 @@ namespace WorkTrack
                     ;
 
                     UPDATE TaskBody
-                    SET Duration = CAST(DurationLevel * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate) AS INTEGER)
+                    SET Duration = CAST(durationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate) AS INTEGER)
                     WHERE
-                        DurationLevel != 0
+                        durationLevelID != 0
                         and TaskDate = @TaskDate
                     ;
                 """;

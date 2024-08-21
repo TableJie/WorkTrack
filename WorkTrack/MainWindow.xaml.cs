@@ -14,15 +14,12 @@ using static WorkTrack.InputTask;
 
 namespace WorkTrack
 {
-    
-
     public partial class MainWindow : Window
     {
-
         private TaskSearch _taskSearch;
         public DateTime TodayDate { get; set; }
         public ChartValues<double> TaskDurations { get; set; } = new ChartValues<double>();
-        public SeriesCollection SeriesCollection { get; set; }
+        public SeriesCollection SeriesCollection { get; set; } = new SeriesCollection();
 
         public MainWindow()
         {
@@ -37,16 +34,12 @@ namespace WorkTrack
             DatabaseInitializer dbInitializer = new DatabaseInitializer();
             dbInitializer.Initialize();
 
-            TaskDurations = new ChartValues<double>();
-            SeriesCollection = new SeriesCollection();
-
+            // 不再需要在建構函式中重新初始化 TaskDurations 和 SeriesCollection
             var defaultDate = DateTime.Today;
             InitializeStackedColumnChart(defaultDate);
-
         }
 
         #region Cd1_Bt
-
 
         public async Task InitializeStackedColumnChart(DateTime selectedDate)
         {
@@ -78,8 +71,6 @@ namespace WorkTrack
                 }
 
                 // 顯示空白時間的邏輯
-
-
                 var Emptyquery = "SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate";
                 var durations = await ExecuteQueryAsync<int>(Emptyquery, new { TaskDate = DateTime.Now.Date });
 
@@ -107,6 +98,7 @@ namespace WorkTrack
                 MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         private async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string query, object parameters = null)
         {
             try
@@ -122,11 +114,11 @@ namespace WorkTrack
             }
         }
 
-
         private void bt_OverTime_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.NavigationService.Navigate(new Page1_Task());
         }
+
         private void bt_CardAddTask_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.NavigationService.Navigate(new Page1_Task());
@@ -135,17 +127,12 @@ namespace WorkTrack
             var inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
             inputTaskWindow.ShowDialog();
         }
+
         private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.NavigationService.Navigate(new Page1_Task());
         }
 
         #endregion
-
-
-
-
     }
-
-
 }

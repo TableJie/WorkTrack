@@ -86,7 +86,7 @@ namespace WorkTrack
                         @"
                         CREATE TABLE IF NOT EXISTS DurationLevel (
                             DurationLevelID INTEGER PRIMARY KEY,
-                            DurationLevelName TEXT ,
+                            DurationLevelName TEXT
                         );",
                         @"
                         CREATE TABLE IF NOT EXISTS Calendar (

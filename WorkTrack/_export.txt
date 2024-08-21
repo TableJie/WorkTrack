@@ -58,15 +58,15 @@
                          materialDesign:TextFieldAssist.HasClearButton="True"
                 />
 
-            <ComboBox x:Name="ip_DurationLevel"
+            <ComboBox x:Name="ip_DurationLevelName"
                       Style="{StaticResource MaterialDesignFloatingHintComboBox}"
                       Width="{StaticResource FormElementWidth}"
                       Padding="{StaticResource FormElementPadding}"
                       Margin="{StaticResource FormElementMargin}"
-                      materialDesign:HintAssist.Hint="DurationLevel"
+                      materialDesign:HintAssist.Hint="DurationLevelName"
                       materialDesign:HintAssist.FloatingOffset="0,-12"
-                      SelectedValuePath="Points"
-                      SelectionChanged="ip_DurationLevel_SelectionChanged"
+                      SelectedValuePath="DurationLevelID"
+                      SelectionChanged="ip_DurationLevelName_SelectionChanged"
                       >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -106,7 +106,7 @@
                       materialDesign:HintAssist.Hint="UnitName"
                       materialDesign:HintAssist.FloatingOffset="0,-12"
                       SelectedValuePath="UnitID"
-                      SelectionChanged="ip_DurationLevel_SelectionChanged"
+                      SelectionChanged="ip_UnitName_SelectionChanged"
                       >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -133,7 +133,7 @@
                           Margin="{StaticResource FormElementMargin}"
                           materialDesign:HintAssist.Hint="ApplicationID"
                           materialDesign:HintAssist.FloatingOffset="0,-12"/>
-            
+
             <Button x:Name ="bt_Refresh"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Width="{StaticResource FormElementWidth}"
@@ -177,6 +177,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Data;
 
 namespace WorkTrack
 {
@@ -206,14 +207,13 @@ namespace WorkTrack
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            await LoadUnitNames();
-            await LoadDurationLevel();
+            await LoadOption();
 
             // ?????
             ip_TaskDate.SelectedDate = _taskBody.TaskDate != DateTime.MinValue ? _taskBody.TaskDate : DateTime.Today;
             ip_TaskName.Text = _taskBody.TaskName;
             ip_Describe.Text = _taskBody.Description;
-            ip_DurationLevel.SelectedValue = _taskBody.DurationLevel != 0 ? _taskBody.DurationLevel : ip_UnitName.Items[2];
+            ip_DurationLevelName.SelectedValue = _taskBody.DurationLevelID != 0 ? _taskBody.DurationLevelID : ip_DurationLevelName.Items[2];
             ip_Duration.Text = _taskBody.Duration.ToString();
             ip_UnitName.SelectedValue = _taskBody.UnitID != 0 ? _taskBody.UnitID : ip_UnitName.Items[0];
             ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
@@ -227,41 +227,29 @@ namespace WorkTrack
             }
         }
 
-        private async Task LoadUnitNames()
+        private async Task LoadOption()
         {
             try
             {
                 await using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
 
+                // ?? UnitNames ??
                 var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID, UnitName FROM Unit")).ToList();
                 unitNames.Add(new Unit { UnitID = 0, UnitName = "-Add-" });
-
                 ip_UnitName.ItemsSource = unitNames;
-                ip_UnitName.SelectedValue = _taskBody.UnitID != 0 ? _taskBody.UnitID : (object)unitNames.First().UnitID;
+                ip_UnitName.SelectedIndex = 0;
+
+                // ?? DurationLevels ??
+                var durationLevelNames = (await connection.QueryAsync<DurationLevel>("SELECT DurationLevelID, DurationLevelName FROM DurationLevel")).ToList();
+                ip_DurationLevelName.ItemsSource = durationLevelNames;
+                ip_DurationLevelName.SelectedIndex = 2;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load unit names: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"?????????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
 
-        private async Task LoadDurationLevel()
-        {
-            try
-            {
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                var durationLevels = (await connection.QueryAsync<DurationLevel>("SELECT DurationLevelName, Points FROM DurationLevel")).ToList();
-
-                ip_DurationLevel.ItemsSource = durationLevels;
-                ip_DurationLevel.SelectedValue = _taskBody.DurationLevel != 0 ? _taskBody.DurationLevel : "Medium";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load duration levels: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
 
         private void ip_UnitName_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -275,11 +263,11 @@ namespace WorkTrack
         }
         private async void UnitManagementWindow_Closed(object sender, EventArgs e)
         {
-            await LoadUnitNames(); // ??????UnitName??
+            await LoadOption(); // ??????UnitName??
         }
-        private void ip_DurationLevel_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ip_DurationLevelName_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ip_DurationLevel.SelectedItem is ComboBoxItem selectedItem)
+            if (ip_DurationLevelName.SelectedItem is ComboBoxItem selectedItem)
             {
                 ToggleDurationVisibility(selectedItem.Content.ToString());
             }
@@ -307,7 +295,7 @@ namespace WorkTrack
                 string taskID = ip_TaskID.Text;
                 string taskName = ip_TaskName.Text;
                 string description = ip_Describe.Text;
-                int durationLevel = (int)ip_DurationLevel.SelectedValue;
+                int durationLevelID = (int)ip_DurationLevelName.SelectedValue;
                 int? duration = string.IsNullOrEmpty(ip_Duration.Text) ? (int?)null : int.Parse(ip_Duration.Text);
                 int selectedUnitID = (int)ip_UnitName.SelectedValue;
                 string applicationID = ip_ApplicationID.Text;
@@ -316,15 +304,15 @@ namespace WorkTrack
                 if (string.IsNullOrEmpty(taskID))
                 {
                     var insertQuery = $$"""
-                        INSERT INTO TaskBody (TaskDate, TaskName, DurationLevel, Duration, Description, UnitID, ApplicationID)
-                        VALUES (@TaskDate, @TaskName, @DurationLevel, @Duration, @Description, @UnitID, @ApplicationID);
+                        INSERT INTO TaskBody (TaskDate, TaskName, DurationLevelID, Duration, Description, UnitID, ApplicationID)
+                        VALUES (@TaskDate, @TaskName, @DurationLevelID, @Duration, @Description, @UnitID, @ApplicationID);
                     """;
 
                     await connection.ExecuteAsync(insertQuery, new
                     {
                         TaskDate = taskDate,
                         TaskName = taskName,
-                        DurationLevel = durationLevel,
+                        DurationLevelID = durationLevelID,
                         Duration = duration,
                         Description = description,
                         UnitID = selectedUnitID,
@@ -335,7 +323,7 @@ namespace WorkTrack
                 {
                     var updateQuery = $$"""
                         UPDATE TaskBody
-                        SET TaskName = @TaskName, DurationLevel = @DurationLevel, Duration = @Duration, Description = @Description,
+                        SET TaskName = @TaskName, DurationLevelID = @DurationLevelID, Duration = @Duration, Description = @Description,
                             UnitID = @UnitID, ApplicationID = @ApplicationID
                         WHERE TaskID = @TaskID;
                     """;
@@ -343,7 +331,7 @@ namespace WorkTrack
                     await connection.ExecuteAsync(updateQuery, new
                     {
                         TaskName = taskName,
-                        DurationLevel = durationLevel,
+                        DurationLevelID = durationLevelID,
                         Duration = duration,
                         Description = description,
                         UnitID = selectedUnitID,
@@ -357,8 +345,8 @@ namespace WorkTrack
 
                     WITH CTE AS (
                         SELECT 
-                            sum(CASE WHEN DurationLevel != 0 THEN DurationLevel END) as UsedPoints
-                            ,sum(CASE WHEN DurationLevel = 0 THEN Duration END) as CustomizedMins
+                            sum(CASE WHEN DurationLevelID != 0 THEN DurationLevelID END) as UsedPoints
+                            ,sum(CASE WHEN DurationLevelID = 0 THEN Duration END) as CustomizedMins
                         FROM TaskBody
                         WHERE TaskDate = @TaskDate
                     )
@@ -371,9 +359,9 @@ namespace WorkTrack
                     ;
 
                     UPDATE TaskBody
-                    SET Duration = CAST(DurationLevel * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate) AS INTEGER)
+                    SET Duration = CAST(durationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate) AS INTEGER)
                     WHERE
-                        DurationLevel != 0
+                        durationLevelID != 0
                         and TaskDate = @TaskDate
                     ;
                 """;
@@ -393,7 +381,7 @@ namespace WorkTrack
             ip_TaskID.Clear();
             ip_TaskName.Clear();
             ip_Describe.Clear();
-            ip_DurationLevel.SelectedIndex = 2;
+            ip_DurationLevelName.SelectedIndex = 2;
             ip_UnitName.SelectedIndex = 0;
             ip_ApplicationID.SelectedIndex = 0;
 
@@ -417,5 +405,206 @@ namespace WorkTrack
 }
 
 This is InputTask.xaml.cs
+
+<Page x:Class="WorkTrack.Page1_Task"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:WorkTrack"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      FontFamily="TimeNewsRoman"
+      Title="Page1_Task">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid HorizontalAlignment="Stretch">
+        <Border Style="{StaticResource CardStyle}" Background="#F3F3F3">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="TaskList" Grid.Column="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Margin="5,0,0,0"
+                                />
+                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <DatePicker x:Name="ip_TaskDate"
+                                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                                    Width="80"
+                                    Height="30"
+                                    Margin="5,-10,5,0"
+                                    VerticalAlignment="Center"
+                                    materialDesign:HintAssist.Hint="TaskDate"
+                                    materialDesign:HintAssist.FloatingOffset="0,-12"
+                                    FirstDayOfWeek="Monday"
+                                    SelectedDateFormat="Short"
+                                    SelectedDateChanged="ip_TaskDate_SelectedDateChanged"
+                        />
+                        <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="ActionButton_Click" Tag="{x:Static local:TaskInitializationMode.Add}" Style="{StaticResource MaterialDesignFlatButton}">
+                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Image Source="/icon/add_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Viewbox>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <DataGrid x:Name="dt_TaskBody" Grid.Row="1"
+                            AutoGenerateColumns="False"
+                            CanUserAddRows="False"
+                            CanUserDeleteRows="False"
+                            IsReadOnly="True"
+                            SelectionUnit="FullRow"
+                            BorderThickness="0"
+                            Background="White"
+                            Margin="5"
+                            ColumnHeaderHeight="40"
+                            RowHeight="35"
+                            Style="{StaticResource MaterialDesignDataGrid}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="TaskName" Binding="{Binding TaskName}" Width="120" SortMemberPath="TaskName"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" SortMemberPath="Description"/>
+                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="*" SortMemberPath="Duration" />
+                        <DataGridTextColumn Header="UnitName" Binding="{Binding UnitName}" Width="*" SortMemberPath="UnitName"/>
+                        <DataGridTemplateColumn Header="Action" Width="*" >
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                        <Button x:Name="bt_TaskEdit" Click="ActionButton_Click" Tag ="Edit" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
+                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Image Source="/icon/file-edit.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Viewbox>
+                                        </Button>
+                                        <Button x:Name="bt_TaskCopy" Click="ActionButton_Click" Tag ="Copy" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
+                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Image Source="/icon/copy.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Viewbox>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
+
+This is Page1_Task.xaml
+
+using Microsoft.Data.Sqlite;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Dapper;
+using static WorkTrack.InputTask;
+
+namespace WorkTrack
+{
+    /// <summary>
+    /// Page1.xaml ?????
+    /// </summary>
+    public partial class Page1_Task : Page
+    {
+        public Page1_Task()
+        {
+            InitializeComponent();
+            ip_TaskDate.SelectedDateChanged -= ip_TaskDate_SelectedDateChanged; // ????????
+            ip_TaskDate.SelectedDate = DateTime.Today; // ??????????
+            DefaultSearch_TaskBody();
+            ip_TaskDate.SelectedDateChanged += ip_TaskDate_SelectedDateChanged; // ??????
+
+        }
+
+        public async Task DefaultSearch_TaskBody()
+        {
+            try
+            {
+                if (ip_TaskDate.SelectedDate is not DateTime selectedDate)
+                {
+                    MessageBox.Show("Please Select Date!", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var taskSearch = new TaskSearch();
+                var taskBodyData = await taskSearch.GetTasks(selectedDate.Date);
+
+                dt_TaskBody.ItemsSource = taskBodyData;
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load TaskBody: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ActionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button) return;
+
+            var mode = (TaskInitializationMode)button.Tag;
+            TaskBody task = mode == TaskInitializationMode.Add
+                ? new TaskBody { TaskDate = ip_TaskDate.SelectedDate ?? DateTime.Today }
+                : button.DataContext as TaskBody ?? new TaskBody { TaskDate = DateTime.Today };
+
+            if (mode == TaskInitializationMode.Add && task.TaskDate == DateTime.MinValue)
+            {
+                MessageBox.Show("Please Select Date!", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var inputTaskWindow = new InputTask(task, mode);
+            inputTaskWindow.ShowDialog();
+        }
+
+        private async void ip_TaskDate_SelectedDateChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            await DefaultSearch_TaskBody();
+
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                var selectedDate = ip_TaskDate.SelectedDate ?? DateTime.Today;
+
+                mainWindow.ChartDate.Text = selectedDate.ToString("yyyy-MM-dd");
+                await mainWindow.InitializeStackedColumnChart(selectedDate);
+            }
+        }
+
+    }
+
+}
+
+This is Page1_Task.xaml.cs
 
 Based on the above files, solve my requirements. Please answer in Traditional Chinese, prioritizing solutions that reduce system load, with maintainability as secondary. Responses should be clear, concise, and to the point. Since there are many different files, please first provide the file names and present the solutions in a before-and-after comparison format. For both the before and after content, only show the modified sections, no need to display everything. My requirement is:
