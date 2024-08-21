@@ -26,7 +26,7 @@ namespace WorkTrack
                 FROM
                     TaskBody p1
                     LEFT JOIN Unit t1 on p1.UnitID = t1.UnitID
-                    LEFT JOIN DurationLevel t2 on p1.DurationLevel = t2.Points
+                    LEFT JOIN DurationLevel t2 on p1.DurationLevelID = t2.DurationLevelID
                 WHERE TaskDate = @TaskDate
              """;
 

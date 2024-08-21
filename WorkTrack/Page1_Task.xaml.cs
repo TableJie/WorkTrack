@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Dapper;
+using static WorkTrack.InputTask;
 
 namespace WorkTrack
 {
@@ -36,88 +37,44 @@ namespace WorkTrack
         {
             try
             {
-                DateTime? selectedDate = ip_TaskDate.SelectedDate;
-
-                if (selectedDate == null)
+                if (ip_TaskDate.SelectedDate is not DateTime selectedDate)
                 {
-                    MessageBox.Show("請選擇日期。", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Please Select Date！", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
                 var taskSearch = new TaskSearch();
-                var taskBodyData = await taskSearch.GetTasks(selectedDate.Value.Date);
-
+                var taskBodyData = await taskSearch.GetTasks(selectedDate.Date);
 
                 dt_TaskBody.ItemsSource = taskBodyData;
 
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load task body: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Failed to load TaskBody: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        private void ActionButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Delete");
-        }
+            if (sender is not Button button) return;
 
-        private void EditButton_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            if (button == null) return;
+            var mode = (TaskInitializationMode)button.Tag;
+            TaskBody task = mode == TaskInitializationMode.Add
+                ? new TaskBody { TaskDate = ip_TaskDate.SelectedDate ?? DateTime.Today }
+                : button.DataContext as TaskBody ?? new TaskBody { TaskDate = DateTime.Today };
 
-            var selectedTask = button.DataContext as TaskBody;
-            if (selectedTask == null) return;
-
-            // 創建 InputTask 視窗並傳遞選中的 TaskBody 資料
-            InputTask inputTaskWindow = new InputTask(selectedTask);
-            inputTaskWindow.ShowDialog();
-        }
-
-        private void CopyButton_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            if (button == null) return;
-
-            var selectedTask = button.DataContext as TaskBody;
-            if (selectedTask == null) return;
-
-            // 創建新的 TaskBody 副本，保留其他屬性，但將 TaskID 設為 0 或 null
-            var newTask = new TaskBody
+            if (mode == TaskInitializationMode.Add && task.TaskDate == DateTime.MinValue)
             {
-                TaskID = 0,  // 或者設置為 null
-                TaskDate = selectedTask.TaskDate,
-                TaskName = selectedTask.TaskName,
-                DurationLevel = selectedTask.DurationLevel,
-                Duration = selectedTask.Duration,
-                Description = selectedTask.Description,
-                UnitID = selectedTask.UnitID,
-                ApplicationID = selectedTask.ApplicationID
-            };
-
-            // 創建 InputTask 視窗並傳遞新的 TaskBody 資料
-            InputTask inputTaskWindow = new InputTask(newTask);
-            inputTaskWindow.ShowDialog();
-        }
-
-        private void bt_TaskAdd_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedDate = ip_TaskDate.SelectedDate;
-            if (selectedDate == null)
-            {
-                MessageBox.Show("請選擇日期。", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please Select Date！", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // 傳遞一個新的 TaskBody 實例，並設置 TaskDate
-            var newTask = new TaskBody { TaskDate = selectedDate.Value };
-            InputTask inputTaskWindow = new InputTask(newTask);
+            var inputTaskWindow = new InputTask(task, mode);
             inputTaskWindow.ShowDialog();
         }
 
-        private async void ip_TaskDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        private async void ip_TaskDate_SelectedDateChanged(object? sender, SelectionChangedEventArgs e)
         {
             await DefaultSearch_TaskBody();
 
@@ -125,10 +82,8 @@ namespace WorkTrack
             {
                 var selectedDate = ip_TaskDate.SelectedDate ?? DateTime.Today;
 
-                    // 直接更新 TextBlock 的 Text 屬性
-                    mainWindow.ChartDate.Text = selectedDate.ToString("yyyy-MM-dd");
-                    await mainWindow.InitializeStackedColumnChart(selectedDate);
-
+                mainWindow.ChartDate.Text = selectedDate.ToString("yyyy-MM-dd");
+                await mainWindow.InitializeStackedColumnChart(selectedDate);
             }
         }
 

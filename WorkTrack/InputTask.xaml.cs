@@ -15,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Data;
 
 namespace WorkTrack
 {
@@ -23,108 +24,70 @@ namespace WorkTrack
     /// </summary>
     public partial class InputTask : Window
     {
-        private DateTime? _taskDate;
-        private TaskBody _taskBody;
+        private readonly TaskBody _taskBody;
+        private readonly bool _isCopyMode;
 
-        public InputTask(TaskBody taskBody = null)
+        public enum TaskInitializationMode
+        {
+            Add,    // 用於新增任務
+            Edit,   // 用於編輯現有任務
+            Copy    // 用於複製現有任務
+        }
+
+        public InputTask(TaskBody taskBody, TaskInitializationMode initializationMode)
         {
             InitializeComponent();
             _taskBody = taskBody;
-            _taskDate = taskBody?.TaskDate;
+            _isCopyMode = initializationMode == TaskInitializationMode.Copy;
 
             Loaded += MainWindow_Loaded;
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            ip_TaskDate.SelectedDate = _taskBody.TaskDate;
+            await LoadOption();
 
-            if (_taskBody.TaskID != 0)
+            // 通用初始化
+            ip_TaskDate.SelectedDate = _taskBody.TaskDate != DateTime.MinValue ? _taskBody.TaskDate : DateTime.Today;
+            ip_TaskName.Text = _taskBody.TaskName;
+            ip_Describe.Text = _taskBody.Description;
+            ip_DurationLevelName.SelectedValue = _taskBody.DurationLevelID != 0 ? _taskBody.DurationLevelID : ip_DurationLevelName.Items[2];
+            ip_Duration.Text = _taskBody.Duration.ToString();
+            ip_UnitName.SelectedValue = _taskBody.UnitID != 0 ? _taskBody.UnitID : ip_UnitName.Items[0];
+            ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
+
+            // 根據模式設定視窗標題和 TaskID 控件可見性
+            this.Title = _isCopyMode ? "Copy Task" : _taskBody.TaskID == 0 ? "Add Task" : "Change Task";
+            ip_TaskID.Visibility = _taskBody.TaskID == 0 || _isCopyMode ? Visibility.Collapsed : Visibility.Visible;
+            if (!_isCopyMode && _taskBody.TaskID != 0)
             {
-                // 設置控制項的值
-                ip_TaskDate.SelectedDate = _taskBody.TaskDate;
                 ip_TaskID.Text = _taskBody.TaskID.ToString();
-                ip_TaskName.Text = _taskBody.TaskName;
-                ip_Describe.Text = _taskBody.Description;
-                ip_DurationLevel.SelectedValue = _taskBody.DurationLevel;
-                ip_Duration.Text = _taskBody.Duration.ToString();
-                ip_UnitName.SelectedValue = _taskBody.UnitID;
-                ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
-
-                // 設定視窗標題為 "Change Task"
-                this.Title = "Change Task";
             }
-            else if (_taskBody.TaskID == 0 && !string.IsNullOrWhiteSpace(_taskBody.TaskName))
-            {
-                // TaskID 為 0 且 TaskName 不為空白，隱藏 TaskID 欄位
-                ip_TaskID.Visibility = Visibility.Collapsed;
-
-                // 設定視窗標題為 "Copy Task"
-                this.Title = "Copy Task";
-
-                // 設置其他控制項的值
-                ip_TaskDate.SelectedDate = _taskBody.TaskDate;
-                ip_TaskName.Text = _taskBody.TaskName;
-                ip_Describe.Text = _taskBody.Description;
-                ip_DurationLevel.SelectedValue = _taskBody.DurationLevel;
-                ip_Duration.Text = _taskBody.Duration.ToString();
-                ip_UnitName.SelectedValue = _taskBody.UnitID;
-                ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
-            }
-            else
-            {
-                // TaskID 為 0，隱藏 TaskID 欄位
-                ip_TaskID.Visibility = Visibility.Collapsed;
-
-                // 設定視窗標題為 "Add Task"
-                this.Title = "Add Task";
-            }
-
-            await LoadUnitNames();
-            await LoadDurationLevel();
         }
 
-        private async Task LoadUnitNames()
+        private async Task LoadOption()
         {
             try
             {
                 await using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
 
-                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID ,coalesce(UnitName,'') as UnitName FROM Unit")).ToList();
+                // 加載 UnitNames 資料
+                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID, UnitName FROM Unit")).ToList();
                 unitNames.Add(new Unit { UnitID = 0, UnitName = "-Add-" });
-
-                ip_UnitName.Items.Clear(); // 確保在設定 ItemsSource 前，清空現有項目
                 ip_UnitName.ItemsSource = unitNames;
-                ip_UnitName.SelectedIndex = unitNames.Any() ? 0 : -1;
+                ip_UnitName.SelectedIndex = 0;
+
+                // 加載 DurationLevels 資料
+                var durationLevelNames = (await connection.QueryAsync<DurationLevel>("SELECT DurationLevelID, DurationLevelName FROM DurationLevel")).ToList();
+                ip_DurationLevelName.ItemsSource = durationLevelNames;
+                ip_DurationLevelName.SelectedIndex = 2;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load unit names: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"加載選項時發生錯誤: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
 
-        private async Task LoadDurationLevel()
-        {
-            try
-            {
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                var durationNames = (await connection.QueryAsync<DurationLevel>("SELECT DurationLevelName, Points FROM DurationLevel")).ToList();
-
-                ip_DurationLevel.Items.Clear();
-                ip_DurationLevel.ItemsSource = durationNames;
-
-                if (durationNames.Count > 0)
-                {
-                    ip_DurationLevel.SelectedIndex = 2;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load unit names: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
 
         private void ip_UnitName_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -138,11 +101,11 @@ namespace WorkTrack
         }
         private async void UnitManagementWindow_Closed(object sender, EventArgs e)
         {
-            await LoadUnitNames(); // 更新主視窗的UnitName選項
+            await LoadOption(); // 更新主視窗的UnitName選項
         }
         private void ip_DurationLevel_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ip_DurationLevel.SelectedItem is ComboBoxItem selectedItem)
+            if (ip_DurationLevelName.SelectedItem is ComboBoxItem selectedItem)
             {
                 ToggleDurationVisibility(selectedItem.Content.ToString());
             }
@@ -170,7 +133,7 @@ namespace WorkTrack
                 string taskID = ip_TaskID.Text;
                 string taskName = ip_TaskName.Text;
                 string description = ip_Describe.Text;
-                int durationLevel = (int)ip_DurationLevel.SelectedValue;
+                int durationLevel = (int)ip_DurationLevelName.SelectedValue;
                 int? duration = string.IsNullOrEmpty(ip_Duration.Text) ? (int?)null : int.Parse(ip_Duration.Text);
                 int selectedUnitID = (int)ip_UnitName.SelectedValue;
                 string applicationID = ip_ApplicationID.Text;
@@ -216,9 +179,7 @@ namespace WorkTrack
                 }
 
                 var insertOrUpdateTaskHeader = $$"""
-                    INSERT OR IGNORE INTO TaskHeader (TaskDate) VALUES
-                       (@TaskDate)
-                    ;
+                   
 
                     WITH CTE AS (
                         SELECT 
@@ -258,7 +219,7 @@ namespace WorkTrack
             ip_TaskID.Clear();
             ip_TaskName.Clear();
             ip_Describe.Clear();
-            ip_DurationLevel.SelectedIndex = 2;
+            ip_DurationLevelName.SelectedIndex = 2;
             ip_UnitName.SelectedIndex = 0;
             ip_ApplicationID.SelectedIndex = 0;
 

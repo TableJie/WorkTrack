@@ -58,15 +58,15 @@
                          materialDesign:TextFieldAssist.HasClearButton="True"
                 />
 
-            <ComboBox x:Name="ip_DurationLevel"
+            <ComboBox x:Name="ip_DurationLevelName"
                       Style="{StaticResource MaterialDesignFloatingHintComboBox}"
                       Width="{StaticResource FormElementWidth}"
                       Padding="{StaticResource FormElementPadding}"
                       Margin="{StaticResource FormElementMargin}"
-                      materialDesign:HintAssist.Hint="DurationLevel"
+                      materialDesign:HintAssist.Hint="DurationLevelName"
                       materialDesign:HintAssist.FloatingOffset="0,-12"
-                      SelectedValuePath="Points"
-                      SelectionChanged="ip_DurationLevel_SelectionChanged"
+                      SelectedValuePath="DurationLevelID"
+                      SelectionChanged="ip_DurationLevelName_SelectionChanged"
                       >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -106,7 +106,7 @@
                       materialDesign:HintAssist.Hint="UnitName"
                       materialDesign:HintAssist.FloatingOffset="0,-12"
                       SelectedValuePath="UnitID"
-                      SelectionChanged="ip_DurationLevel_SelectionChanged"
+                      SelectionChanged="ip_UnitName_SelectionChanged"
                       >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -133,7 +133,7 @@
                           Margin="{StaticResource FormElementMargin}"
                           materialDesign:HintAssist.Hint="ApplicationID"
                           materialDesign:HintAssist.FloatingOffset="0,-12"/>
-            
+
             <Button x:Name ="bt_Refresh"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Width="{StaticResource FormElementWidth}"

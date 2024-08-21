@@ -66,6 +66,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="OverHours.xaml.cs" />
 
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -103,6 +104,15 @@
       <SubType>Code</SubType>
     </Compile>
 
+    <Page Include="OverHours.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="OverHours.xaml.cs">
+      <DependentUpon>InputTask.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+
     <Page Include="DataGrid.xaml"> 
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -128,6 +138,12 @@
     <Compile Include="TaskBody.cs" />
     
 
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="OverHours.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
   </ItemGroup>
 
 </Project>

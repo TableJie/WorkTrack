@@ -52,7 +52,7 @@
                                     SelectedDateFormat="Short"
                                     SelectedDateChanged="ip_TaskDate_SelectedDateChanged"
                         />
-                        <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="bt_TaskAdd_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                        <Button x:Name="bt_TaskAdd" Width="30" Padding="-5,0" Margin="0" Click="ActionButton_Click" Tag="Add" Style="{StaticResource MaterialDesignFlatButton}">
                             <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Image Source="/icon/add_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Viewbox>
@@ -81,19 +81,14 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                        <Button x:Name="bt_TaskEdit" Click="EditButton_Click" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Tag="{Binding TaskID}" Style="{StaticResource MaterialDesignFlatButton}" >
+                                        <Button x:Name="bt_TaskEdit" Click="ActionButton_Click" Tag ="Edit" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
                                             <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Image Source="/icon/file-edit.png" RenderOptions.BitmapScalingMode="HighQuality"/>
                                             </Viewbox>
                                         </Button>
-                                        <Button x:Name="bt_TaskCopy" Click="CopyButton_Click" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Tag="{Binding TaskID}" Style="{StaticResource MaterialDesignFlatButton}" >
+                                        <Button x:Name="bt_TaskCopy" Click="ActionButton_Click" Tag ="Copy" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
                                             <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Image Source="/icon/copy.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            </Viewbox>
-                                        </Button>
-                                        <Button x:Name="bt_TaskDelete" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="DeleteButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
-                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Image Source="/icon/cross-small.png" RenderOptions.BitmapScalingMode="HighQuality"/>
                                             </Viewbox>
                                         </Button>
                                     </StackPanel>

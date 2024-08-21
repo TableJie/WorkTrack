@@ -1,8 +1,2 @@
-Page1_Task.xaml.cs
-Page1_Task.xaml
-MainWindow.xaml
-MainWindow.xaml.cs
 InputTask.xaml
 InputTask.xaml.cs
-TaskSearch.cs
-DatabaseInitializer.cs

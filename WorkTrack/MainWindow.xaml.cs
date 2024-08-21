@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Navigation;
+using static WorkTrack.InputTask;
 
 namespace WorkTrack
 {
@@ -18,7 +19,7 @@ namespace WorkTrack
     public partial class MainWindow : Window
     {
 
-        private TaskSearch _taskSearch;  // TaskSearch 的實例
+        private TaskSearch _taskSearch;
         public DateTime TodayDate { get; set; }
         public ChartValues<double> TaskDurations { get; set; } = new ChartValues<double>();
         public SeriesCollection SeriesCollection { get; set; }
@@ -43,29 +44,8 @@ namespace WorkTrack
             InitializeStackedColumnChart(defaultDate);
 
         }
+
         #region Cd1_Bt
-        private void bt_OverTime_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.NavigationService.Navigate(new Page1_Task());
-        }
-
-        private void bt_CardAddTask_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.NavigationService.Navigate(new Page1_Task());
-
-            // 傳遞一個新的 TaskBody 實例，並設置 TaskDate
-            var newTask = new TaskBody { TaskDate = DateTime.Today };
-            InputTask inputTaskWindow = new InputTask(newTask);
-            inputTaskWindow.ShowDialog();
-        }
-
-        private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.NavigationService.Navigate(new Page1_Task());
-        }
-
-        #endregion
-
 
 
         public async Task InitializeStackedColumnChart(DateTime selectedDate)
@@ -82,7 +62,7 @@ namespace WorkTrack
                 foreach (var task in tasks)
                 {
                     taskCount++;
-                    pointsCount += task.DurationLevel;
+                    pointsCount += task.DurationLevelID;
 
                     SeriesCollection.Add(new StackedRowSeries
                     {
@@ -100,7 +80,7 @@ namespace WorkTrack
                 // 顯示空白時間的邏輯
 
 
-                var Emptyquery = "SELECT AvailableMins FROM TaskHeader WHERE TaskDate = @TaskDate";
+                var Emptyquery = "SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate";
                 var durations = await ExecuteQueryAsync<int>(Emptyquery, new { TaskDate = DateTime.Now.Date });
 
                 foreach (var duration in durations)
@@ -141,6 +121,28 @@ namespace WorkTrack
                 return Enumerable.Empty<T>();
             }
         }
+
+
+        private void bt_OverTime_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.NavigationService.Navigate(new Page1_Task());
+        }
+        private void bt_CardAddTask_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.NavigationService.Navigate(new Page1_Task());
+
+            var newTask = new TaskBody { TaskDate = DateTime.Today };
+            var inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
+            inputTaskWindow.ShowDialog();
+        }
+        private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.NavigationService.Navigate(new Page1_Task());
+        }
+
+        #endregion
+
+
 
 
     }

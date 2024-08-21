@@ -42,7 +42,7 @@ namespace WorkTrack
                             TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
                             TaskDate DATE NOT NULL,
                             TaskName TEXT NOT NULL,
-                            DurationLevel INTEGER,
+                            DurationLevelID INTEGER,
                             Duration INTEGER,
                             Description TEXT,
                             UnitID INTEGER,
@@ -85,8 +85,8 @@ namespace WorkTrack
                         );",
                         @"
                         CREATE TABLE IF NOT EXISTS DurationLevel (
-                            DurationLevelName TEXT PRIMARY KEY,
-                            Points INT NOT NULL
+                            DurationLevelID INTEGER PRIMARY KEY,
+                            DurationLevelName TEXT ,
                         );",
                         @"
                         CREATE TABLE IF NOT EXISTS Calendar (
@@ -112,13 +112,13 @@ namespace WorkTrack
                     var insertDataQuery = new[]
                     {
                         @"
-                        INSERT OR IGNORE INTO DurationLevel (DurationLevelName, Points) VALUES
-                            ('Tiny', 1),
-                            ('Small', 2),
-                            ('Medium', 3),
-                            ('Large', 4),
-                            ('Huge', 5),
-                            ('-Customize-', 0)
+                        INSERT OR IGNORE INTO DurationLevel (DurationLevelID, DurationLevelName) VALUES
+                            (1,'Tiny'),
+                            (2,'Small'),
+                            (3,'Medium'),
+                            (4,'Large'),
+                            (5,'Huge'),
+                            (9,'-Customize-')
                         ;",
                         @"
                         INSERT OR IGNORE INTO Unit (UnitName) VALUES
@@ -135,14 +135,13 @@ namespace WorkTrack
                         ;",
                         @"
                         WITH RECURSIVE CalendarGenerator AS (
-                            SELECT DATE('2020-03-01') AS CalendarDate
+                            SELECT DATE('2024-03-01') AS CalendarDate
                             UNION ALL
                             -- 遞歸產生每一天的日期
                             SELECT DATE(CalendarDate, '+1 day')
                             FROM CalendarGenerator
                             WHERE CalendarDate < DATE('2030-02-28')
-                        ),
-                        CalendarData AS (
+                        ),CalendarData AS (
                             SELECT 
                                 CalendarDate,
                                 CASE 
@@ -223,6 +222,21 @@ namespace WorkTrack
                     connection.Execute(createTriggerQuery);
 
                     Debug.WriteLine("所有資料表和觸發器已創建或已存在。");
+
+                    // 插入初始資料
+                    var insertTodayDateQuery = new[]
+                    {
+                        @"
+                         INSERT OR IGNORE INTO TaskHeader (TaskDate) VALUES
+                               (@TaskDate)
+                        ;",
+                      
+                    };
+
+                    foreach (var query in insertTodayDateQuery)
+                    {
+                        connection.Execute(query, new { TaskDate = DateTime.Today });
+                    }
                     connection.Close();
                 }
             }

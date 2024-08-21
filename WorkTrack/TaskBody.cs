@@ -9,15 +9,14 @@ namespace WorkTrack
     public class TaskBody
     {
         public int TaskID { get; set; }
-        public string TaskName { get; set; } = string.Empty; // 設置初始值
-        public string Description { get; set; } = string.Empty; // 設置初始值
-        public long Duration { get; set; }
-        public string UnitID { get; set; } = string.Empty; // 設置初始值
-        public string UnitName { get; set; } = string.Empty; // 設置初始值
-        public string ApplicationID { get; set; } = string.Empty; // 設置初始值
-        public int DurationLevel { get; set; } // 設置初始值
-        public String DurationLevelName { get; set; } = string.Empty; // 設置初始值
-        public int Points { get; set; } = 0;
+        public string TaskName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int DurationLevelID { get; set; }
+        public String DurationLevelName { get; set; } = string.Empty;
+        public int Duration { get; set; }
+        public int UnitID { get; set; }
+        public string UnitName { get; set; } = string.Empty;
+        public string ApplicationID { get; set; } = string.Empty;
         public bool DeleteFlag { get; set; }
         public DateTime TaskDate { get; set; }
     }
@@ -25,14 +24,14 @@ namespace WorkTrack
     public class Unit
     {
         public int UnitID { get; set; }
-        public string UnitName { get; set; } = string.Empty; // 設置初始值
+        public string UnitName { get; set; } = string.Empty;
     }
 
     public class DurationLevel
     {
     
-        public string DurationLevelName { get; set; }
-        public int Points { get; set; }
-    
+        public int DurationLevelID { get; set; }
+        public string DurationLevelName { get; set; } = string.Empty;
+
     }
 }
