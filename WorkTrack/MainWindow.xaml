@@ -48,13 +48,12 @@
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0">
                             <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                <Image Source="/icon/edit.png"
-                                               Width="20"
-                                               Height="20"
-                                               Margin="5,0,0,0"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <materialDesign:PackIcon Kind="ClipboardEditOutline"
+                                                         Width="20"
+                                                         Height="20"
+                                                         Margin="5,0,0,0"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
                                 <TextBlock Text="TaskView"
                                                Margin="5,0,0,0"
                                                HorizontalAlignment="Center"
@@ -141,20 +140,30 @@
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
                                 <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
-                                    <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Image Source="/icon/time-add_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                    </Viewbox>
+                                    <materialDesign:PackIcon Kind="ClockPlusOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="#008080" 
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"/>
                                 </Button>
                                 <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_CardAddTask_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
-                                    <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Image Source="/icon/add_cl.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                    </Viewbox>
+                                    <materialDesign:PackIcon Kind="ClipboardPlusOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="#008080" 
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"/>
                                 </Button>
                                 <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
-                                    <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Image Source="/icon/angle-circle-right_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                    </Viewbox>
+                                    <materialDesign:PackIcon Kind="ClipboardSearchOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="#008080" 
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"/>
                                 </Button>
+
                             </StackPanel>
                         </Grid>
                     </Grid>

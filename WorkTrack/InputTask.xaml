@@ -153,6 +153,11 @@
                         HorizontalAlignment="Center"
                         Content="Close"
                         />
+            <ToggleButton
+                      materialDesign:ToggleButtonAssist.OnContent="{materialDesign:PackIcon Kind=BookCancel}"
+                      Content="{materialDesign:PackIcon Kind=Book}"
+                      Style="{StaticResource MaterialDesignActionToggleButton}"
+            />
 
         </StackPanel>
     </Grid>
