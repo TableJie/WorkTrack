@@ -24,24 +24,66 @@ namespace WorkTrack
     public partial class InputTask : Window
     {
         private DateTime? _taskDate;
-        public InputTask(DateTime? taskDate = null)
+        private TaskBody _taskBody;
+
+        public InputTask(TaskBody taskBody = null)
         {
             InitializeComponent();
-            _taskDate = taskDate;
+            _taskBody = taskBody;
+            _taskDate = taskBody?.TaskDate;
 
-            // 訂閱 Loaded 事件
             Loaded += MainWindow_Loaded;
-
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            ip_TaskDate.SelectedDate = _taskBody.TaskDate;
 
-            ip_TaskDate.SelectedDate = _taskDate.Value;
+            if (_taskBody.TaskID != 0)
+            {
+                // 設置控制項的值
+                ip_TaskDate.SelectedDate = _taskBody.TaskDate;
+                ip_TaskID.Text = _taskBody.TaskID.ToString();
+                ip_TaskName.Text = _taskBody.TaskName;
+                ip_Describe.Text = _taskBody.Description;
+                ip_DurationLevel.SelectedValue = _taskBody.DurationLevel;
+                ip_Duration.Text = _taskBody.Duration.ToString();
+                ip_UnitName.SelectedValue = _taskBody.UnitID;
+                ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
+
+                // 設定視窗標題為 "Change Task"
+                this.Title = "Change Task";
+            }
+            else if (_taskBody.TaskID == 0 && !string.IsNullOrWhiteSpace(_taskBody.TaskName))
+            {
+                // TaskID 為 0 且 TaskName 不為空白，隱藏 TaskID 欄位
+                ip_TaskID.Visibility = Visibility.Collapsed;
+
+                // 設定視窗標題為 "Copy Task"
+                this.Title = "Copy Task";
+
+                // 設置其他控制項的值
+                ip_TaskDate.SelectedDate = _taskBody.TaskDate;
+                ip_TaskName.Text = _taskBody.TaskName;
+                ip_Describe.Text = _taskBody.Description;
+                ip_DurationLevel.SelectedValue = _taskBody.DurationLevel;
+                ip_Duration.Text = _taskBody.Duration.ToString();
+                ip_UnitName.SelectedValue = _taskBody.UnitID;
+                ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
+            }
+            else
+            {
+                // TaskID 為 0，隱藏 TaskID 欄位
+                ip_TaskID.Visibility = Visibility.Collapsed;
+
+                // 設定視窗標題為 "Add Task"
+                this.Title = "Add Task";
+            }
+
             await LoadUnitNames();
             await LoadDurationLevel();
-
         }
+
         private async Task LoadUnitNames()
         {
             try
@@ -49,16 +91,12 @@ namespace WorkTrack
                 await using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
 
-                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID, UnitName FROM Unit")).ToList();
+                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID ,coalesce(UnitName,'') as UnitName FROM Unit")).ToList();
                 unitNames.Add(new Unit { UnitID = 0, UnitName = "-Add-" });
 
                 ip_UnitName.Items.Clear(); // 確保在設定 ItemsSource 前，清空現有項目
                 ip_UnitName.ItemsSource = unitNames;
-
-                if (unitNames.Count > 0)
-                {
-                    ip_UnitName.SelectedIndex = 0;
-                }
+                ip_UnitName.SelectedIndex = unitNames.Any() ? 0 : -1;
             }
             catch (Exception ex)
             {
@@ -198,7 +236,7 @@ namespace WorkTrack
                     ;
 
                     UPDATE TaskBody
-                    SET Duration = DurationLevel * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate)
+                    SET Duration = CAST(DurationLevel * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate) AS INTEGER)
                     WHERE
                         DurationLevel != 0
                         and TaskDate = @TaskDate

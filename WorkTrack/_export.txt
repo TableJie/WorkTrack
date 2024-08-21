@@ -25,8 +25,10 @@ namespace WorkTrack
         public Page1_Task()
         {
             InitializeComponent();
-            ip_TaskDate.SelectedDate = DateTime.Today;
+            ip_TaskDate.SelectedDateChanged -= ip_TaskDate_SelectedDateChanged; // ????????
+            ip_TaskDate.SelectedDate = DateTime.Today; // ??????????
             DefaultSearch_TaskBody();
+            ip_TaskDate.SelectedDateChanged += ip_TaskDate_SelectedDateChanged; // ??????
 
         }
 
@@ -63,7 +65,15 @@ namespace WorkTrack
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Edit");
+            var button = sender as Button;
+            if (button == null) return;
+
+            var selectedTask = button.DataContext as TaskBody;
+            if (selectedTask == null) return;
+
+            // ?? InputTask ???????? TaskBody ??
+            InputTask inputTaskWindow = new InputTask(selectedTask);
+            inputTaskWindow.ShowDialog();
         }
 
         private void DetailButton_Click(object sender, RoutedEventArgs e)
@@ -74,7 +84,15 @@ namespace WorkTrack
         private void bt_TaskAdd_Click(object sender, RoutedEventArgs e)
         {
             var selectedDate = ip_TaskDate.SelectedDate;
-            InputTask inputTaskWindow = new InputTask(selectedDate);
+            if (selectedDate == null)
+            {
+                MessageBox.Show("??????", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // ?????? TaskBody ??,??? TaskDate
+            var newTask = new TaskBody { TaskDate = selectedDate.Value };
+            InputTask inputTaskWindow = new InputTask(newTask);
             inputTaskWindow.ShowDialog();
         }
 
@@ -86,13 +104,10 @@ namespace WorkTrack
             {
                 var selectedDate = ip_TaskDate.SelectedDate ?? DateTime.Today;
 
-                if (selectedDate.Date != DateTime.Today)
-                {
                     // ???? TextBlock ? Text ??
                     mainWindow.ChartDate.Text = selectedDate.ToString("yyyy-MM-dd");
-
                     await mainWindow.InitializeStackedColumnChart(selectedDate);
-                }
+
             }
         }
 
@@ -185,7 +200,7 @@ This is Page1_Task.xaml.cs
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                        <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Tag="{Binding TaskID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                        <Button x:Name="bt_TaskEdit" Click="EditButton_Click" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Tag="{Binding TaskID}" Style="{StaticResource MaterialDesignFlatButton}" >
                                             <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Image Source="/icon/file-edit.png" RenderOptions.BitmapScalingMode="HighQuality"/>
                                             </Viewbox>
@@ -689,7 +704,7 @@ This is MainWindow.xaml.cs
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:WorkTrack"
         mc:Ignorable="d"
-        Title="InputTask" Height="520" Width="300">
+        Title="InputTask" Height="520" Width="230">
     
     <Window.Resources>
         <ResourceDictionary>
@@ -701,9 +716,7 @@ This is MainWindow.xaml.cs
     </Window.Resources>
     
     <Grid>
-        <StackPanel x:Name="MainForm">
-
-            <TextBlock Text="Add Task" Margin="20,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" />
+        <StackPanel x:Name="MainForm" Margin="10,15">
 
             <DatePicker x:Name="ip_TaskDate"
                     Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
@@ -818,11 +831,12 @@ This is MainWindow.xaml.cs
                           Margin="{StaticResource FormElementMargin}"
                           materialDesign:HintAssist.Hint="ApplicationID"
                           materialDesign:HintAssist.FloatingOffset="0,-12"/>
+            
             <Button x:Name ="bt_Refresh"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Width="{StaticResource FormElementWidth}"
                         Padding="{StaticResource FormElementPadding}"
-                        Margin="{StaticResource FormElementMargin}"
+                        Margin="0,5,0,0"
                         materialDesign:ButtonAssist.CornerRadius="20"
                         HorizontalAlignment="Center"
                         Content="Refresh"
@@ -832,7 +846,7 @@ This is MainWindow.xaml.cs
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Width="{StaticResource FormElementWidth}"
                         Padding="{StaticResource FormElementPadding}"
-                        Margin="{StaticResource FormElementMargin}"
+                        Margin="0,5,0,0"
                         materialDesign:ButtonAssist.CornerRadius="20"
                         HorizontalAlignment="Center"
                         Content="Close"
@@ -870,24 +884,48 @@ namespace WorkTrack
     public partial class InputTask : Window
     {
         private DateTime? _taskDate;
-        public InputTask(DateTime? taskDate = null)
+        private TaskBody _taskBody;
+
+        public InputTask(TaskBody taskBody = null)
         {
             InitializeComponent();
-            _taskDate = taskDate;
+            _taskBody = taskBody;
+            _taskDate = taskBody?.TaskDate;
 
-            // ?? Loaded ??
             Loaded += MainWindow_Loaded;
-
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            ip_TaskDate.SelectedDate = _taskBody.TaskDate;
 
-            ip_TaskDate.SelectedDate = _taskDate.Value;
+            if (_taskBody.TaskID != 0)
+            {
+                // ???????
+                ip_TaskDate.SelectedDate = _taskBody.TaskDate;
+                ip_TaskID.Text = _taskBody.TaskID.ToString();
+                ip_TaskName.Text = _taskBody.TaskName;
+                ip_Describe.Text = _taskBody.Description;
+                ip_DurationLevel.SelectedValue = _taskBody.DurationLevel;
+                ip_Duration.Text = _taskBody.Duration.ToString();
+                ip_UnitName.SelectedValue = _taskBody.UnitID;
+                ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
+
+                // ??????? "Change Task"
+                this.Title = "Change Task";
+            }
+            else
+            {
+                // TaskID ? 0,?? TaskID ??
+                ip_TaskID.Visibility = Visibility.Collapsed;
+
+                // ??????? "Add Task"
+                this.Title = "Add Task";
+            }
             await LoadUnitNames();
             await LoadDurationLevel();
-
         }
+
         private async Task LoadUnitNames()
         {
             try
@@ -895,16 +933,12 @@ namespace WorkTrack
                 await using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
 
-                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID, UnitName FROM Unit")).ToList();
+                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID ,coalesce(UnitName,'') as UnitName FROM Unit")).ToList();
                 unitNames.Add(new Unit { UnitID = 0, UnitName = "-Add-" });
 
                 ip_UnitName.Items.Clear(); // ????? ItemsSource ?,??????
                 ip_UnitName.ItemsSource = unitNames;
-
-                if (unitNames.Count > 0)
-                {
-                    ip_UnitName.SelectedIndex = 0;
-                }
+                ip_UnitName.SelectedIndex = unitNames.Any() ? 0 : -1;
             }
             catch (Exception ex)
             {
@@ -1044,7 +1078,7 @@ namespace WorkTrack
                     ;
 
                     UPDATE TaskBody
-                    SET Duration = DurationLevel * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate)
+                    SET Duration = CAST(DurationLevel * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate) AS INTEGER)
                     WHERE
                         DurationLevel != 0
                         and TaskDate = @TaskDate
@@ -1279,15 +1313,9 @@ namespace WorkTrack
                             SET 
                                 TotalHours = NEW.OverHours + 8,
                                 TotalMins = (NEW.OverHours + 8) * 60,
-                                AvailableMins = (NEW.OverHours + 8) * 60 - NEW.CustomizedMins - NEW.UsedMins,
-                                BasicPoints = CASE 
-                                                WHEN NEW.UsedPoints != 0 THEN (TotalMins - NEW.CustomizedMins) / NEW.UsedPoints
-                                                ELSE 0
-                                             END,
-                                UsedMins = NEW.UsedPoints * CASE 
-                                                              WHEN NEW.UsedPoints != 0 THEN (TotalMins - NEW.CustomizedMins) / NEW.UsedPoints
-                                                              ELSE 0
-                                                            END
+                                BasicPoints = (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
+                                UsedMins = NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
+                                AvailableMins = TotalMins - NEW.CustomizedMins - NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0)
                             WHERE TaskDate = NEW.TaskDate;
                         END;
                     ";

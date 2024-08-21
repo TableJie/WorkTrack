@@ -133,15 +133,9 @@ namespace WorkTrack
                             SET 
                                 TotalHours = NEW.OverHours + 8,
                                 TotalMins = (NEW.OverHours + 8) * 60,
-                                AvailableMins = (NEW.OverHours + 8) * 60 - NEW.CustomizedMins - NEW.UsedMins,
-                                BasicPoints = CASE 
-                                                WHEN NEW.UsedPoints != 0 THEN (TotalMins - NEW.CustomizedMins) / NEW.UsedPoints
-                                                ELSE 0
-                                             END,
-                                UsedMins = NEW.UsedPoints * CASE 
-                                                              WHEN NEW.UsedPoints != 0 THEN (TotalMins - NEW.CustomizedMins) / NEW.UsedPoints
-                                                              ELSE 0
-                                                            END
+                                BasicPoints = (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
+                                UsedMins = NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
+                                AvailableMins = TotalMins - NEW.CustomizedMins - NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0)
                             WHERE TaskDate = NEW.TaskDate;
                         END;
                     ";

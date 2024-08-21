@@ -48,10 +48,22 @@ namespace WorkTrack
         {
             MainFrame.NavigationService.Navigate(new Page1_Task());
         }
+
+        private void bt_CardAddTask_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.NavigationService.Navigate(new Page1_Task());
+
+            // 傳遞一個新的 TaskBody 實例，並設置 TaskDate
+            var newTask = new TaskBody { TaskDate = DateTime.Today };
+            InputTask inputTaskWindow = new InputTask(newTask);
+            inputTaskWindow.ShowDialog();
+        }
+
         private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.NavigationService.Navigate(new Page1_Task());
         }
+
         #endregion
 
 
@@ -115,7 +127,6 @@ namespace WorkTrack
                 MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
         private async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string query, object parameters = null)
         {
             try
@@ -130,6 +141,7 @@ namespace WorkTrack
                 return Enumerable.Empty<T>();
             }
         }
+
 
     }
 

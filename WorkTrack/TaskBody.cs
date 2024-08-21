@@ -13,6 +13,7 @@ namespace WorkTrack
         public string Description { get; set; } = string.Empty; // 設置初始值
         public long Duration { get; set; }
         public string UnitID { get; set; } = string.Empty; // 設置初始值
+        public string UnitName { get; set; } = string.Empty; // 設置初始值
         public string ApplicationID { get; set; } = string.Empty; // 設置初始值
         public int DurationLevel { get; set; } // 設置初始值
         public String DurationLevelName { get; set; } = string.Empty; // 設置初始值
@@ -25,8 +26,6 @@ namespace WorkTrack
     {
         public int UnitID { get; set; }
         public string UnitName { get; set; } = string.Empty; // 設置初始值
-        public DateTime RegistDatetime { get; set; }
-        public bool DeleteFlag { get; set; }
     }
 
     public class DurationLevel

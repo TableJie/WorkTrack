@@ -6,7 +6,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:WorkTrack"
         mc:Ignorable="d"
-        Title="InputTask" Height="520" Width="300">
+        Title="InputTask" Height="480" Width="250">
     
     <Window.Resources>
         <ResourceDictionary>
@@ -18,9 +18,7 @@
     </Window.Resources>
     
     <Grid>
-        <StackPanel x:Name="MainForm">
-
-            <TextBlock Text="Add Task" Margin="20,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" />
+        <StackPanel x:Name="MainForm" Margin="10,15">
 
             <DatePicker x:Name="ip_TaskDate"
                     Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
@@ -135,11 +133,12 @@
                           Margin="{StaticResource FormElementMargin}"
                           materialDesign:HintAssist.Hint="ApplicationID"
                           materialDesign:HintAssist.FloatingOffset="0,-12"/>
+            
             <Button x:Name ="bt_Refresh"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Width="{StaticResource FormElementWidth}"
                         Padding="{StaticResource FormElementPadding}"
-                        Margin="{StaticResource FormElementMargin}"
+                        Margin="0,5,0,0"
                         materialDesign:ButtonAssist.CornerRadius="20"
                         HorizontalAlignment="Center"
                         Content="Refresh"
@@ -149,7 +148,7 @@
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Width="{StaticResource FormElementWidth}"
                         Padding="{StaticResource FormElementPadding}"
-                        Margin="{StaticResource FormElementMargin}"
+                        Margin="0,5,0,0"
                         materialDesign:ButtonAssist.CornerRadius="20"
                         HorizontalAlignment="Center"
                         Content="Close"

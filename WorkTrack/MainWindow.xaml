@@ -36,7 +36,8 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Style="{StaticResource CardStyle}" Grid.Column="0" Background="White"> <!--#7AB2B2-->
+                <Border Style="{StaticResource CardStyle}" Grid.Column="0" Background="White">
+                    <!--#7AB2B2-->
                     <!-- Card 1 Content -->
                     <Grid>
                         <Grid.RowDefinitions>
@@ -45,27 +46,34 @@
                             <RowDefinition Height="25"/>
                             <RowDefinition Height="60"/>
                         </Grid.RowDefinitions>
-                            <Grid Grid.Row="0">
-                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                    <Image Source="/icon/edit.png"
+                        <Grid Grid.Row="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                <Image Source="/icon/edit.png"
                                                Width="20"
                                                Height="20"
                                                Margin="5,0,0,0"
                                                HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="TaskView"
+                                               VerticalAlignment="Center"
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock Text="TaskView"
                                                Margin="5,0,0,0"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"
                                                FontSize="20"
                                                FontWeight="Bold"/>
-                                </StackPanel>
-                            </Grid>
-                            <Grid Grid.Row="1">
-                                <TextBlock x:Name="ChartDate" Text="{Binding TodayDate, StringFormat=' {0:yyyy-MM-dd}'}" FontSize="12" Margin="5,10,0,0"/>
-                            </Grid>
-                            <Grid Grid.Row="2">
-                                <StackPanel Orientation="Vertical">
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="12*"/>
+                                <ColumnDefinition Width="10*"/>
+                                <ColumnDefinition Width="7*"/>
+                                <ColumnDefinition Width="198*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="ChartDate" Text="{Binding TodayDate, StringFormat=' {0:yyyy-MM-dd}'}" FontSize="12" Margin="5,10,0,0" Grid.ColumnSpan="4"/>
+                        </Grid>
+                        <Grid Grid.Row="2">
+                            <StackPanel Orientation="Vertical">
                                 <lvc:CartesianChart MinWidth="100" Series="{Binding SeriesCollection}" Margin="0,-15,0,-10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                     <lvc:CartesianChart.AxisX>
                                         <lvc:Axis Title="" Labels="">
@@ -85,24 +93,24 @@
 
                                 </lvc:CartesianChart>
                             </StackPanel>
-                            </Grid>
-                            <Grid Grid.Row="3">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
+                        </Grid>
+                        <Grid Grid.Row="3">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                </Grid>
+                            </Grid>
                             <StackPanel Grid.Column="0" Orientation="Vertical">
-                                 <StackPanel Orientation="Horizontal" Height="20">
-                                     <TextBlock Text="Task Count :"
+                                <StackPanel Orientation="Horizontal" Height="20">
+                                    <TextBlock Text="Task Count :"
                                                         FontSize="11"
                                                         Foreground="Gray"
                                                         Margin="5,0,0,0"
                                                         FontWeight="Bold"
                                                         VerticalAlignment="Bottom"
                                                         />
-                                     <TextBlock x:Name="Card_Label1"
+                                    <TextBlock x:Name="Card_Label1"
                                                         Text=""
                                                         FontSize="15"
                                                         Foreground="DarkCyan"
@@ -110,7 +118,7 @@
                                                         FontWeight="Bold"
                                                         VerticalAlignment="Bottom"
                                                         />
-                                 </StackPanel>
+                                </StackPanel>
                                 <StackPanel Orientation="Horizontal" Height="20">
                                     <TextBlock Text="UsedPoints:"
                                                    FontSize="11"
@@ -130,22 +138,27 @@
                                 </StackPanel>
 
                             </StackPanel>
-                               
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                                        <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
-                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Image Source="/icon/time-add_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            </Viewbox>
-                                        </Button>
-                                        <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
-                                            <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Image Source="/icon/angle-circle-right_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            </Viewbox>
-                                        </Button>
-                                </StackPanel>
-                            </Grid>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                    <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Image Source="/icon/time-add_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Viewbox>
+                                </Button>
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_CardAddTask_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                    <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Image Source="/icon/add_cl.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Viewbox>
+                                </Button>
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                    <Viewbox Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Image Source="/icon/angle-circle-right_c.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Viewbox>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
-                    
+
                 </Border>
 
                 <Border Style="{StaticResource CardStyle}" Grid.Column="1" Background="#4D869C">
@@ -194,138 +207,7 @@
         </Grid>
 
         <Grid Grid.Column="1">
-            <StackPanel x:Name="MainForm">
 
-                <TextBlock Text="Task View" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Margin="0,10,0,0"/>
-
-                <DatePicker x:Name="ip_TaskDate"
-                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
-                    Width="180"
-                    Padding="0,5"
-                    Margin="5,10"
-                    materialDesign:HintAssist.Hint="TaskDate"
-                    materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
-                />
-
-
-                <TextBox x:Name="ip_TaskID"
-                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                         Width="{StaticResource FormElementWidth}"
-                         Padding="{StaticResource FormElementPadding}"
-                         Margin="{StaticResource FormElementMargin}"
-                         materialDesign:HintAssist.Hint="TaskID"
-                         materialDesign:HintAssist.FloatingOffset="0,-12"
-                />
-
-                <TextBox x:Name="ip_TaskName"
-                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                         Width="{StaticResource FormElementWidth}"
-                         Padding="{StaticResource FormElementPadding}"
-                         Margin="{StaticResource FormElementMargin}"
-                         materialDesign:HintAssist.Hint="TaskName"
-                         materialDesign:HintAssist.FloatingOffset="0,-12"
-                         materialDesign:TextFieldAssist.HasClearButton="True"
-                />
-
-                <TextBox x:Name="ip_Describe"
-                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                         Width="{StaticResource FormElementWidth}"
-                         Padding="{StaticResource FormElementPadding}"
-                         Margin="{StaticResource FormElementMargin}"
-                         materialDesign:HintAssist.Hint="Describe"
-                         materialDesign:HintAssist.FloatingOffset="0,-12"
-                         materialDesign:TextFieldAssist.HasClearButton="True"
-                />
-
-                <ComboBox x:Name="ip_DurationLevel"
-                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                          Width="{StaticResource FormElementWidth}"
-                          Padding="{StaticResource FormElementPadding}"
-                          Margin="{StaticResource FormElementMargin}"
-                          materialDesign:HintAssist.Hint="DurationLevel"
-                          materialDesign:HintAssist.FloatingOffset="0,-12"
-                          
-                          >
-                    <ComboBoxItem Content="Tiny" Tag="1" />
-                    <ComboBoxItem Content="Small" Tag="2" />
-                    <ComboBoxItem Content="Medium" Tag="3" />
-                    <ComboBoxItem Content="Large" Tag="4" />
-                    <ComboBoxItem Content="Huge" Tag="5" />
-                    <ComboBoxItem Content="-Customize-" Tag="6" FontWeight="Bold" Foreground="#4D869C" />
-                </ComboBox>
-
-
-                <TextBox x:Name="ip_Duration"
-                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                         Width="{StaticResource FormElementWidth}"
-                         Padding="{StaticResource FormElementPadding}"
-                         Margin="{StaticResource FormElementMargin}"
-                         materialDesign:HintAssist.Hint="Duration"
-                         materialDesign:HintAssist.FloatingOffset="0,-12"
-                         materialDesign:TextFieldAssist.HasClearButton="True"
-                         Visibility="Collapsed"
-                />
-
-                <ComboBox x:Name="ip_UnitName"
-                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                          Width="{StaticResource FormElementWidth}"
-                          Padding="{StaticResource FormElementPadding}"
-                          Margin="{StaticResource FormElementMargin}"
-                          materialDesign:HintAssist.Hint="UnitName"
-                          materialDesign:HintAssist.FloatingOffset="0,-12"
-                          >
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding}" Value="-Add-">
-                                                        <Setter Property="Foreground" Value="#4D869C" />
-                                                        <Setter Property="FontWeight" Value="Bold" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                </ComboBox>
-
-                <ComboBox x:Name="ip_ApplicationID"
-                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                          Width="{StaticResource FormElementWidth}"
-                          Padding="{StaticResource FormElementPadding}"
-                          Margin="{StaticResource FormElementMargin}"
-                          materialDesign:HintAssist.Hint="ApplicationID"
-                          materialDesign:HintAssist.FloatingOffset="0,-12"/>
-                <Button x:Name ="bt_Refresh"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Width="{StaticResource FormElementWidth}"
-                        Padding="{StaticResource FormElementPadding}"
-                        Margin="{StaticResource FormElementMargin}"
-                        materialDesign:ButtonAssist.CornerRadius="20"
-                        Content="Refresh"
-                        HorizontalAlignment="Left"/>
-                <Button x:Name ="bt_Exist"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Width="{StaticResource FormElementWidth}"
-                        Padding="{StaticResource FormElementPadding}"
-                        Margin="{StaticResource FormElementMargin}"
-                        materialDesign:ButtonAssist.CornerRadius="20"
-                        Content="Exist"
-                        HorizontalAlignment="Left"/>
-
-                <Button x:Name ="bt_Test"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Width="{StaticResource FormElementWidth}"
-                        Padding="{StaticResource FormElementPadding}"
-                        Margin="{StaticResource FormElementMargin}"
-                        materialDesign:ButtonAssist.CornerRadius="20"
-                        Content="Test"
-                        HorizontalAlignment="Left"
-                />
-            </StackPanel>
         </Grid>
     </Grid>
 </Window>

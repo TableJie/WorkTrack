@@ -48,8 +48,14 @@
     <Resource Include="icon\time-add_c.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="icon\add_cl.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="icon\copy.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
-
+  
   <ItemGroup>
 
     <Page Include="App.xaml">
@@ -120,6 +126,7 @@
     <Compile Include="DatabaseInitializer.cs" />
     <Compile Include="DeleteButtonOpacityConverter.cs" />
     <Compile Include="TaskBody.cs" />
+    
 
   </ItemGroup>
 

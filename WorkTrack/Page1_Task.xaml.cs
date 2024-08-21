@@ -65,18 +65,55 @@ namespace WorkTrack
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Edit");
+            var button = sender as Button;
+            if (button == null) return;
+
+            var selectedTask = button.DataContext as TaskBody;
+            if (selectedTask == null) return;
+
+            // 創建 InputTask 視窗並傳遞選中的 TaskBody 資料
+            InputTask inputTaskWindow = new InputTask(selectedTask);
+            inputTaskWindow.ShowDialog();
         }
 
-        private void DetailButton_Click(object sender, RoutedEventArgs e)
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Detail");
+            var button = sender as Button;
+            if (button == null) return;
+
+            var selectedTask = button.DataContext as TaskBody;
+            if (selectedTask == null) return;
+
+            // 創建新的 TaskBody 副本，保留其他屬性，但將 TaskID 設為 0 或 null
+            var newTask = new TaskBody
+            {
+                TaskID = 0,  // 或者設置為 null
+                TaskDate = selectedTask.TaskDate,
+                TaskName = selectedTask.TaskName,
+                DurationLevel = selectedTask.DurationLevel,
+                Duration = selectedTask.Duration,
+                Description = selectedTask.Description,
+                UnitID = selectedTask.UnitID,
+                ApplicationID = selectedTask.ApplicationID
+            };
+
+            // 創建 InputTask 視窗並傳遞新的 TaskBody 資料
+            InputTask inputTaskWindow = new InputTask(newTask);
+            inputTaskWindow.ShowDialog();
         }
 
         private void bt_TaskAdd_Click(object sender, RoutedEventArgs e)
         {
             var selectedDate = ip_TaskDate.SelectedDate;
-            InputTask inputTaskWindow = new InputTask(selectedDate);
+            if (selectedDate == null)
+            {
+                MessageBox.Show("請選擇日期。", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // 傳遞一個新的 TaskBody 實例，並設置 TaskDate
+            var newTask = new TaskBody { TaskDate = selectedDate.Value };
+            InputTask inputTaskWindow = new InputTask(newTask);
             inputTaskWindow.ShowDialog();
         }
 
