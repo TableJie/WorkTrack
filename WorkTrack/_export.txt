@@ -6,7 +6,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:WorkTrack"
         mc:Ignorable="d"
-        Title="InputTask" Height="480" Width="250">
+        Title="InputTask" Height="400" Width="250">
     
     <Window.Resources>
         <ResourceDictionary>
@@ -27,6 +27,7 @@
                     Margin="5,10"
                     materialDesign:HintAssist.Hint="TaskDate"
                     materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
+                    Visibility="Collapsed"
                 />
 
             <TextBox x:Name="ip_TaskID"
@@ -58,45 +59,50 @@
                          materialDesign:TextFieldAssist.HasClearButton="True"
                 />
 
-            <ComboBox x:Name="ip_DurationLevelName"
-                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                      Width="{StaticResource FormElementWidth}"
-                      Padding="{StaticResource FormElementPadding}"
-                      Margin="{StaticResource FormElementMargin}"
-                      materialDesign:HintAssist.Hint="DurationLevelName"
-                      materialDesign:HintAssist.FloatingOffset="0,-12"
-                      SelectedValuePath="DurationLevelID"
-                      SelectionChanged="ip_DurationLevelName_SelectionChanged"
-                      >
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding DurationLevelName}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customize-">
-                                            <Setter Property="Foreground" Value="#4D869C" />
-                                            <Setter Property="FontWeight" Value="Bold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+            <StackPanel Orientation="Horizontal" Margin="18,10,10,10">
 
+                <ComboBox x:Name="ip_DurationLevelName"
+                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                          Width="110"
+                          Padding="{StaticResource FormElementPadding}"
+                          Margin="0,0,0,5"
+                          materialDesign:HintAssist.Hint="DurationLevel"
+                          materialDesign:HintAssist.FloatingOffset="0,-12"
+                          SelectedValuePath="DurationLevelID"
+                          SelectionChanged="ip_DurationLevelName_SelectionChanged"
+                          >
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DurationLevelName}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customize-">
+                                                <Setter Property="Foreground" Value="#4D869C" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
 
-            <TextBox x:Name="ip_Duration"
+                <TextBox x:Name="ip_Duration"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                     Width="{StaticResource FormElementWidth}"
+                     Width="60"
                      Padding="{StaticResource FormElementPadding}"
-                     Margin="{StaticResource FormElementMargin}"
+                     Margin="10,0,0,5"
                      materialDesign:HintAssist.Hint="Duration"
                      materialDesign:HintAssist.FloatingOffset="0,-12"
                      materialDesign:TextFieldAssist.HasClearButton="True"
                      Visibility="Collapsed"
                 />
+
+            </StackPanel>
+
+
 
             <ComboBox x:Name="ip_UnitName"
                       Style="{StaticResource MaterialDesignFloatingHintComboBox}"
@@ -134,25 +140,41 @@
                           materialDesign:HintAssist.Hint="ApplicationID"
                           materialDesign:HintAssist.FloatingOffset="0,-12"/>
 
-            <Button x:Name ="bt_Refresh"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Width="{StaticResource FormElementWidth}"
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+
+
+                <Button x:Name ="bt_Close"
+                        Style="{StaticResource MaterialDesignFlatLightBgButton}"
+                        Background="{StaticResource LightGrayBrush}"
+                        Foreground="{StaticResource DarkGrayBlueBrush}"
+                        BorderThickness="0"
+                        Width="70"
                         Padding="{StaticResource FormElementPadding}"
-                        Margin="0,5,0,0"
-                        materialDesign:ButtonAssist.CornerRadius="20"
+                        Margin="10,20"
+                        materialDesign:ButtonAssist.CornerRadius="15"
+                        HorizontalAlignment="Center"
+                        Content="Close"
+
+                        Click="CloseButton_Click"
+                        />
+                
+                <Button x:Name ="bt_Refresh"
+                        Style="{StaticResource MaterialDesignFlatDarkBgButton}"
+                        Background="{StaticResource PrimaryBrush}"
+                        Foreground="{StaticResource WhiteBrush}"
+                        BorderThickness="0"
+                        Width="70"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="10,20"
+                        materialDesign:ButtonAssist.CornerRadius="15"
                         HorizontalAlignment="Center"
                         Content="Refresh"
                         Click="RefreshButton_Click"
                         />
-            <Button x:Name ="bt_Close"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Width="{StaticResource FormElementWidth}"
-                        Padding="{StaticResource FormElementPadding}"
-                        Margin="0,5,0,0"
-                        materialDesign:ButtonAssist.CornerRadius="20"
-                        HorizontalAlignment="Center"
-                        Content="Close"
-                        />
+
+                
+            </StackPanel>
+
 
         </StackPanel>
     </Grid>
@@ -203,6 +225,7 @@ namespace WorkTrack
             _isCopyMode = initializationMode == TaskInitializationMode.Copy;
 
             Loaded += MainWindow_Loaded;
+            ip_TaskName.Focus();
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -252,6 +275,22 @@ namespace WorkTrack
 
         }
 
+
+        private void ip_DurationLevelName_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ip_DurationLevelName.SelectedIndex == 5) 
+            {
+                ip_Duration.Visibility = Visibility.Visible;
+                ip_DurationLevelName.Width = 110;
+                ip_Duration.Focus();
+                ip_Duration.SelectAll();
+            }
+            else
+            {
+                ip_Duration.Visibility = Visibility.Collapsed;
+                ip_DurationLevelName.Width = 180;
+            }
+        }
         private void ip_UnitName_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ip_UnitName.SelectedItem != null && ip_UnitName.SelectedItem.ToString() == "-Add-")
@@ -265,24 +304,7 @@ namespace WorkTrack
         {
             await LoadOption(); // ??????UnitName??
         }
-        private void ip_DurationLevelName_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ip_DurationLevelName.SelectedItem is ComboBoxItem selectedItem)
-            {
-                ToggleDurationVisibility(selectedItem.Content.ToString());
-            }
-        }
-        private void ToggleDurationVisibility(string durationLevel)
-        {
-            if (durationLevel == "-Customize-")
-            {
-                ip_Duration.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                ip_Duration.Visibility = Visibility.Collapsed;
-            }
-        }
+
 
         private async Task RefreshTaskBodyAsync()
         {
@@ -376,6 +398,12 @@ namespace WorkTrack
         }
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(ip_TaskName.Text))
+            {
+                MessageBox.Show("???????!", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             await RefreshTaskBodyAsync();
 
             ip_TaskID.Clear();
@@ -397,6 +425,11 @@ namespace WorkTrack
                     await page1Task.DefaultSearch_TaskBody(); // ?? Page1_Task ? DataGrid
                 }
             }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close(); // ??????
         }
 
     }
@@ -513,13 +546,13 @@ This is InputTask.xaml.cs
                                         </Button>
                                         <ToggleButton Margin="5,0,0,0" Width="20" Height="20" Background="Transparent" Style="{StaticResource MaterialDesignActionToggleButton}" 
                                                       IsChecked="{Binding DeleteFlag}" 
-                                                      Checked="ToggleButton_Checked" 
-                                                      Unchecked="ToggleButton_Unchecked">
+                                                      Checked="ToggleButton_CheckedOrUnchecked" 
+                                                      Unchecked="ToggleButton_CheckedOrUnchecked">
                                             <materialDesign:ToggleButtonAssist.OnContent>
-                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20" Foreground="Gray" ToolTip="Alive"/>
+                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" ToolTip="Alive"/>
                                             </materialDesign:ToggleButtonAssist.OnContent>
                                             <ToggleButton.Content>
-                                                <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="Black" ToolTip="Delete"/>
+                                                <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="{StaticResource ComplementaryBrush}" ToolTip="Delete"/>
                                             </ToggleButton.Content>
                                         </ToggleButton>
 
@@ -539,22 +572,13 @@ This is Page1_Task.xaml
 
 using Microsoft.Data.Sqlite;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Controls.Primitives;
 using Dapper;
 using static WorkTrack.InputTask;
-using System.Windows.Controls.Primitives; // ??????????
 
 namespace WorkTrack
 {
@@ -617,8 +641,14 @@ namespace WorkTrack
                 return;
             }
 
-            var inputTaskWindow = new InputTask(task, mode);
+            var inputTaskWindow = new InputTask(task, mode)
+            {
+                Left = Application.Current.MainWindow.Left + Application.Current.MainWindow.Width, // ??????????????
+                Top = Application.Current.MainWindow.Top + 100 // ?????????????? 100
+            };
+
             inputTaskWindow.ShowDialog();
+
         }
 
         private async void ip_TaskDate_SelectedDateChanged(object? sender, SelectionChangedEventArgs e)
@@ -634,21 +664,25 @@ namespace WorkTrack
             }
         }
 
-        private async void ToggleButton_Checked(object sender, RoutedEventArgs e)
+        private async void ToggleButton_CheckedOrUnchecked(object sender, RoutedEventArgs e)
         {
             if (sender is ToggleButton toggleButton && toggleButton.DataContext is TaskBody task)
             {
-                task.DeleteFlag = false;
-                await UpdateDeleteFlagInDatabase(task.TaskID, true);
-            }
-        }
+                bool deleteFlag = toggleButton.IsChecked == false;
+                task.DeleteFlag = deleteFlag;
 
-        private async void ToggleButton_Unchecked(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleButton toggleButton && toggleButton.DataContext is TaskBody task)
-            {
-                task.DeleteFlag = true;
-                await UpdateDeleteFlagInDatabase(task.TaskID, false);
+                try
+                {
+                    await UpdateDeleteFlagInDatabase(task.TaskID, deleteFlag);
+
+                    // ?????????????
+                    string message = deleteFlag ? "???? Task" : "???? Task";
+                    MessageBox.Show(message, "????", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"?????????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
@@ -667,6 +701,7 @@ namespace WorkTrack
                 MessageBox.Show($"?????????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
 
     }
@@ -927,12 +962,7 @@ namespace WorkTrack
         public MainWindow()
         {
             InitializeComponent();
-
-            Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.Console()
-            .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
-            .CreateLogger();
+            LogConfiguration.Initialize(); // ???????
 
             Log.Information("MainWindow initialized.");
 
@@ -1052,7 +1082,9 @@ namespace WorkTrack
             MainFrame.NavigationService.Navigate(new Page1_Task());
 
             var newTask = new TaskBody { TaskDate = DateTime.Today };
-            var inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
+            InputTask inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
+            inputTaskWindow.Left = this.Width - this.Left ; // ??????????????
+            inputTaskWindow.Top = this.Top + 100; // ??????????
             inputTaskWindow.ShowDialog();
         }
 
@@ -1071,35 +1103,18 @@ using Serilog;
 
 namespace WorkTrack
 {
-    public static class Program
+    public static class LogConfiguration
     {
-        public static void Main(string[] args)
+        public static void Initialize()
         {
-            try
-            {
-                Log.Information("Application Starting");
-                CreateHostBuilder(args).Build().Run();
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Application Start-up failed");
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information() // ??? Information ??
+                .WriteTo.Console()
+                .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7) // ???? 7 ????
+                .CreateLogger();
         }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .UseSerilog() // ? Serilog ???????
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
     }
 }
-
 This is Serilog.cs
 
 

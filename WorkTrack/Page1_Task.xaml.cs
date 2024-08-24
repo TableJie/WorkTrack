@@ -116,13 +116,16 @@ namespace WorkTrack
 
         private async Task UpdateDeleteFlagInDatabase(int taskId, bool deleteFlag)
         {
+
+            bool InputDeleteFlag = !deleteFlag;
+
             try
             {
                 using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
 
                 string query = "UPDATE TaskBody SET DeleteFlag = @DeleteFlag WHERE TaskID = @TaskID";
-                await connection.ExecuteAsync(query, new { DeleteFlag = deleteFlag, TaskID = taskId });
+                await connection.ExecuteAsync(query, new { DeleteFlag = InputDeleteFlag, TaskID = taskId });
             }
             catch (Exception ex)
             {

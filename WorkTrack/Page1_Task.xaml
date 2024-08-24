@@ -108,10 +108,10 @@
                                                       Checked="ToggleButton_CheckedOrUnchecked" 
                                                       Unchecked="ToggleButton_CheckedOrUnchecked">
                                             <materialDesign:ToggleButtonAssist.OnContent>
-                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" ToolTip="Alive"/>
+                                                <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="{StaticResource ComplementaryBrush}" ToolTip="Delete"/>
                                             </materialDesign:ToggleButtonAssist.OnContent>
                                             <ToggleButton.Content>
-                                                <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="{StaticResource ComplementaryBrush}" ToolTip="Delete"/>
+                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" ToolTip="Alive"/>
                                             </ToggleButton.Content>
                                         </ToggleButton>
 
