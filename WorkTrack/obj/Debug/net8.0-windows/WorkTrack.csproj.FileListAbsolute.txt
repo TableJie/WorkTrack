@@ -10,7 +10,6 @@ C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\InputTa
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\OverHours.g.cs
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\UnitManagement.g.cs
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\App.g.cs
-C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\WorkTrack_MarkupCompile.cache
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\WorkTrack_MarkupCompile.lref
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\WorkTrack.exe
@@ -69,3 +68,13 @@ C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\refint\
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\WorkTrack.pdb
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\WorkTrack.genruntimeconfig.cache
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\obj\Debug\net8.0-windows\ref\WorkTrack.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Microsoft.Extensions.DependencyModel.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Serilog.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Serilog.AspNetCore.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Serilog.Extensions.Hosting.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Serilog.Extensions.Logging.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Serilog.Formatting.Compact.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Serilog.Settings.Configuration.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Serilog.Sinks.Console.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Serilog.Sinks.Debug.dll
+C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Serilog.Sinks.File.dll

@@ -23,7 +23,6 @@
                 <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/base.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <local:DeleteButtonOpacityConverter x:Key="DeleteButtonOpacityConverter" />
 
             <sys:Double x:Key="FormElementWidth">180</sys:Double>
             <sys:Double x:Key="FormElementHeight">24</sys:Double>

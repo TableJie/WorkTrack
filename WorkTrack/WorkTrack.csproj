@@ -18,6 +18,7 @@
     <PackageReference Include="MaterialDesignThemes" Version="5.1.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.7" />
     <PackageReference Include="SQLite" Version="3.13.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -133,7 +134,6 @@
 
     <Compile Include="TaskSearch.cs" />
     <Compile Include="DatabaseInitializer.cs" />
-    <Compile Include="DeleteButtonOpacityConverter.cs" />
     <Compile Include="TaskBody.cs" />
     
 

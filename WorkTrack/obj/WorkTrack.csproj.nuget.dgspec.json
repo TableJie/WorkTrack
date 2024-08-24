@@ -77,6 +77,10 @@
             "SQLite": {
               "target": "Package",
               "version": "[3.13.0, )"
+            },
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[*, )"
             }
           },
           "imports": [

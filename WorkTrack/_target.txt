@@ -2,3 +2,7 @@ InputTask.xaml
 InputTask.xaml.cs
 Page1_Task.xaml
 Page1_Task.xaml.cs
+MainWindow.xaml
+MainWindow.xaml.cs
+Serilog.cs
+DatabaseInitializer.cs

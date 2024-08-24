@@ -139,7 +139,7 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click"  Style="{StaticResource MaterialDesignFlatButton}">
                                     <materialDesign:PackIcon Kind="ClockPlusOutline" 
                                                              Width="20" 
                                                              Height="20" 
@@ -147,7 +147,7 @@
                                                              HorizontalAlignment="Center" 
                                                              VerticalAlignment="Center"/>
                                 </Button>
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_CardAddTask_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_CardAddTask_Click" Style="{StaticResource MaterialDesignFlatButton}">
                                     <materialDesign:PackIcon Kind="ClipboardPlusOutline" 
                                                              Width="20" 
                                                              Height="20" 
@@ -155,7 +155,7 @@
                                                              HorizontalAlignment="Center" 
                                                              VerticalAlignment="Center"/>
                                 </Button>
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click"  Style="{StaticResource MaterialDesignFlatButton}">
                                     <materialDesign:PackIcon Kind="ClipboardSearchOutline" 
                                                              Width="20" 
                                                              Height="20" 

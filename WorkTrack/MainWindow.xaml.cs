@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using static WorkTrack.InputTask;
+using Serilog;
 
 namespace WorkTrack
 {
@@ -25,16 +26,34 @@ namespace WorkTrack
         {
             InitializeComponent();
 
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Console()
+            .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+            .CreateLogger();
+
+            Log.Information("MainWindow initialized.");
+
             _taskSearch = new TaskSearch();  // 初始化 TaskSearch
             DataContext = this;
             TodayDate = DateTime.Now;
 
+            Log.Information("Navigating to Page0_Welcome.");
             MainFrame.NavigationService.Navigate(new Page0_Welcome());
 
-            DatabaseInitializer dbInitializer = new DatabaseInitializer();
-            dbInitializer.Initialize();
+            try
+            {
+                Log.Information("Initializing database.");
+                DatabaseInitializer dbInitializer = new DatabaseInitializer();
+                dbInitializer.Initialize();
+                Log.Information("Database initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to initialize database.");
+                MessageBox.Show($"Database initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
-            // 不再需要在建構函式中重新初始化 TaskDurations 和 SeriesCollection
             var defaultDate = DateTime.Today;
             InitializeStackedColumnChart(defaultDate);
         }
@@ -47,7 +66,9 @@ namespace WorkTrack
 
             try
             {
+                Log.Information("Fetching tasks for {SelectedDate}", selectedDate);
                 var tasks = await _taskSearch.GetTasks(selectedDate);  // 從 TaskSearch 獲取當天的任務資料
+                Log.Information("Fetched {TaskCount} tasks.", tasks.Count());
 
                 int taskCount = 0;
                 int pointsCount = 0;
@@ -95,6 +116,7 @@ namespace WorkTrack
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Failed to load task durations for {SelectedDate}.", selectedDate);
                 MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -103,12 +125,16 @@ namespace WorkTrack
         {
             try
             {
+                Log.Information("Executing query: {Query}", query);
                 await using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
-                return await connection.QueryAsync<T>(query, parameters);
+                var result = await connection.QueryAsync<T>(query, parameters);
+                Log.Information("Query executed successfully.");
+                return result;
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Failed to execute query: {Query}", query);
                 MessageBox.Show($"Failed to execute query: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return Enumerable.Empty<T>();
             }
