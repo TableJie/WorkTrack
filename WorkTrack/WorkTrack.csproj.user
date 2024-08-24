@@ -7,9 +7,6 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="OverHours.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="Page0_Welcome.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -22,9 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="InputTask.xaml">
-      <SubType>Designer</SubType>
-    </None>
-    <None Update="OverHours.xaml">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>

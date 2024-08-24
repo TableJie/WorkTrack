@@ -1,21 +1,12 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Controls.Primitives;
 using Dapper;
 using static WorkTrack.InputTask;
-using System.Windows.Controls.Primitives; // 確保命名空間引用正確
 
 namespace WorkTrack
 {
@@ -78,8 +69,14 @@ namespace WorkTrack
                 return;
             }
 
-            var inputTaskWindow = new InputTask(task, mode);
+            var inputTaskWindow = new InputTask(task, mode)
+            {
+                Left = Application.Current.MainWindow.Left + Application.Current.MainWindow.Width, // 設置子視窗顯示在主視窗的右側
+                Top = Application.Current.MainWindow.Top + 100 // 垂直位置相對於主視窗往下移動 100
+            };
+
             inputTaskWindow.ShowDialog();
+
         }
 
         private async void ip_TaskDate_SelectedDateChanged(object? sender, SelectionChangedEventArgs e)

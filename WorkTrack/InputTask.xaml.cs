@@ -90,6 +90,22 @@ namespace WorkTrack
 
         }
 
+
+        private void ip_DurationLevelName_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ip_DurationLevelName.SelectedIndex == 5) 
+            {
+                ip_Duration.Visibility = Visibility.Visible;
+                ip_DurationLevelName.Width = 110;
+                ip_Duration.Focus();
+                ip_Duration.SelectAll();
+            }
+            else
+            {
+                ip_Duration.Visibility = Visibility.Collapsed;
+                ip_DurationLevelName.Width = 180;
+            }
+        }
         private void ip_UnitName_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ip_UnitName.SelectedItem != null && ip_UnitName.SelectedItem.ToString() == "-Add-")
@@ -103,24 +119,7 @@ namespace WorkTrack
         {
             await LoadOption(); // 更新主視窗的UnitName選項
         }
-        private void ip_DurationLevelName_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ip_DurationLevelName.SelectedItem is ComboBoxItem selectedItem)
-            {
-                ToggleDurationVisibility(selectedItem.Content.ToString());
-            }
-        }
-        private void ToggleDurationVisibility(string durationLevel)
-        {
-            if (durationLevel == "-Customize-")
-            {
-                ip_Duration.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                ip_Duration.Visibility = Visibility.Collapsed;
-            }
-        }
+
 
         private async Task RefreshTaskBodyAsync()
         {
@@ -235,6 +234,11 @@ namespace WorkTrack
                     await page1Task.DefaultSearch_TaskBody(); // 更新 Page1_Task 的 DataGrid
                 }
             }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close(); // 關閉當前視窗
         }
 
     }

@@ -816,7 +816,7 @@ This is Page1_Task.xaml.cs
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click"  Style="{StaticResource MaterialDesignFlatButton}">
                                     <materialDesign:PackIcon Kind="ClockPlusOutline" 
                                                              Width="20" 
                                                              Height="20" 
@@ -824,7 +824,7 @@ This is Page1_Task.xaml.cs
                                                              HorizontalAlignment="Center" 
                                                              VerticalAlignment="Center"/>
                                 </Button>
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_CardAddTask_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_CardAddTask_Click" Style="{StaticResource MaterialDesignFlatButton}">
                                     <materialDesign:PackIcon Kind="ClipboardPlusOutline" 
                                                              Width="20" 
                                                              Height="20" 
@@ -832,7 +832,7 @@ This is Page1_Task.xaml.cs
                                                              HorizontalAlignment="Center" 
                                                              VerticalAlignment="Center"/>
                                 </Button>
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}">
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click"  Style="{StaticResource MaterialDesignFlatButton}">
                                     <materialDesign:PackIcon Kind="ClipboardSearchOutline" 
                                                              Width="20" 
                                                              Height="20" 
@@ -913,6 +913,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using static WorkTrack.InputTask;
+using Serilog;
 
 namespace WorkTrack
 {
@@ -927,16 +928,34 @@ namespace WorkTrack
         {
             InitializeComponent();
 
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Console()
+            .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+            .CreateLogger();
+
+            Log.Information("MainWindow initialized.");
+
             _taskSearch = new TaskSearch();  // ??? TaskSearch
             DataContext = this;
             TodayDate = DateTime.Now;
 
+            Log.Information("Navigating to Page0_Welcome.");
             MainFrame.NavigationService.Navigate(new Page0_Welcome());
 
-            DatabaseInitializer dbInitializer = new DatabaseInitializer();
-            dbInitializer.Initialize();
+            try
+            {
+                Log.Information("Initializing database.");
+                DatabaseInitializer dbInitializer = new DatabaseInitializer();
+                dbInitializer.Initialize();
+                Log.Information("Database initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to initialize database.");
+                MessageBox.Show($"Database initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
-            // ??????????????? TaskDurations ? SeriesCollection
             var defaultDate = DateTime.Today;
             InitializeStackedColumnChart(defaultDate);
         }
@@ -949,7 +968,9 @@ namespace WorkTrack
 
             try
             {
+                Log.Information("Fetching tasks for {SelectedDate}", selectedDate);
                 var tasks = await _taskSearch.GetTasks(selectedDate);  // ? TaskSearch ?????????
+                Log.Information("Fetched {TaskCount} tasks.", tasks.Count());
 
                 int taskCount = 0;
                 int pointsCount = 0;
@@ -997,6 +1018,7 @@ namespace WorkTrack
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Failed to load task durations for {SelectedDate}.", selectedDate);
                 MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -1005,12 +1027,16 @@ namespace WorkTrack
         {
             try
             {
+                Log.Information("Executing query: {Query}", query);
                 await using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
-                return await connection.QueryAsync<T>(query, parameters);
+                var result = await connection.QueryAsync<T>(query, parameters);
+                Log.Information("Query executed successfully.");
+                return result;
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Failed to execute query: {Query}", query);
                 MessageBox.Show($"Failed to execute query: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return Enumerable.Empty<T>();
             }
@@ -1043,38 +1069,35 @@ This is MainWindow.xaml.cs
 
 using Serilog;
 
-public static class Program
+namespace WorkTrack
 {
-    public static void Main(string[] args)
+    public static class Program
     {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.Console()
-            .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
-            .CreateLogger();
-
-        try
+        public static void Main(string[] args)
         {
-            Log.Information("Application Starting");
-            CreateHostBuilder(args).Build().Run();
-        }
-        catch (Exception ex)
-        {
-            Log.Fatal(ex, "Application Start-up failed");
-        }
-        finally
-        {
-            Log.CloseAndFlush();
-        }
-    }
-
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .UseSerilog() // ? Serilog ???????
-            .ConfigureWebHostDefaults(webBuilder =>
+            try
             {
-                webBuilder.UseStartup<Startup>();
-            });
+                Log.Information("Application Starting");
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Application Start-up failed");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .UseSerilog() // ? Serilog ???????
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+    }
 }
 
 This is Serilog.cs
@@ -1084,6 +1107,7 @@ using System.Diagnostics;
 using System.IO;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using Serilog;
 
 namespace WorkTrack
 {
@@ -1105,7 +1129,7 @@ namespace WorkTrack
                     {
                         Directory.CreateDirectory(directoryPath);
                     }
-                    Debug.WriteLine($"???????: {fullPath}");
+                    Log.Information("???????: {FullPath}", fullPath);
 
 
                     using (var connection = new SqliteConnection($"Data Source={fullPath};"))
@@ -1308,17 +1332,17 @@ namespace WorkTrack
                     connection.Open();
 
                     var insertTodayDateQuery = @"
-                INSERT OR IGNORE INTO TaskHeader (TaskDate) VALUES
-                    (@TaskDate)
-            ";
+                        INSERT OR IGNORE INTO TaskHeader (TaskDate) VALUES
+                        (@TaskDate)
+                    ";
 
                     connection.Execute(insertTodayDateQuery, new { TaskDate = DateTime.Today });
-                    Debug.WriteLine("?????????");
+                    Log.Information("?????????");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"???????????: {ex.Message}");
+                Log.Error(ex, "???????????");
             }
         }
     }

@@ -6,7 +6,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:WorkTrack"
         mc:Ignorable="d"
-        Title="InputTask" Height="480" Width="250">
+        Title="InputTask" Height="400" Width="250">
     
     <Window.Resources>
         <ResourceDictionary>
@@ -27,6 +27,7 @@
                     Margin="5,10"
                     materialDesign:HintAssist.Hint="TaskDate"
                     materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
+                    Visibility="Collapsed"
                 />
 
             <TextBox x:Name="ip_TaskID"
@@ -58,45 +59,50 @@
                          materialDesign:TextFieldAssist.HasClearButton="True"
                 />
 
-            <ComboBox x:Name="ip_DurationLevelName"
-                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                      Width="{StaticResource FormElementWidth}"
-                      Padding="{StaticResource FormElementPadding}"
-                      Margin="{StaticResource FormElementMargin}"
-                      materialDesign:HintAssist.Hint="DurationLevelName"
-                      materialDesign:HintAssist.FloatingOffset="0,-12"
-                      SelectedValuePath="DurationLevelID"
-                      SelectionChanged="ip_DurationLevelName_SelectionChanged"
-                      >
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding DurationLevelName}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customize-">
-                                            <Setter Property="Foreground" Value="#4D869C" />
-                                            <Setter Property="FontWeight" Value="Bold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+            <StackPanel Orientation="Horizontal" Margin="18,10,10,10">
 
+                <ComboBox x:Name="ip_DurationLevelName"
+                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                          Width="110"
+                          Padding="{StaticResource FormElementPadding}"
+                          Margin="0,0,0,5"
+                          materialDesign:HintAssist.Hint="DurationLevel"
+                          materialDesign:HintAssist.FloatingOffset="0,-12"
+                          SelectedValuePath="DurationLevelID"
+                          SelectionChanged="ip_DurationLevelName_SelectionChanged"
+                          >
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DurationLevelName}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customize-">
+                                                <Setter Property="Foreground" Value="#4D869C" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
 
-            <TextBox x:Name="ip_Duration"
+                <TextBox x:Name="ip_Duration"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                     Width="{StaticResource FormElementWidth}"
+                     Width="60"
                      Padding="{StaticResource FormElementPadding}"
-                     Margin="{StaticResource FormElementMargin}"
+                     Margin="10,0,0,5"
                      materialDesign:HintAssist.Hint="Duration"
                      materialDesign:HintAssist.FloatingOffset="0,-12"
                      materialDesign:TextFieldAssist.HasClearButton="True"
                      Visibility="Collapsed"
                 />
+
+            </StackPanel>
+
+
 
             <ComboBox x:Name="ip_UnitName"
                       Style="{StaticResource MaterialDesignFloatingHintComboBox}"
@@ -134,25 +140,34 @@
                           materialDesign:HintAssist.Hint="ApplicationID"
                           materialDesign:HintAssist.FloatingOffset="0,-12"/>
 
-            <Button x:Name ="bt_Refresh"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Width="{StaticResource FormElementWidth}"
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+
+
+                <Button x:Name ="bt_Close"
+                        Style="{StaticResource MaterialDesignFlatLightBgButton}"
+                        Width="70"
                         Padding="{StaticResource FormElementPadding}"
-                        Margin="0,5,0,0"
-                        materialDesign:ButtonAssist.CornerRadius="20"
+                        Margin="5,20"
+                        materialDesign:ButtonAssist.CornerRadius="10"
+                        HorizontalAlignment="Center"
+                        Content="Close"
+                        Click="CloseButton_Click"
+                        />
+                
+                <Button x:Name ="bt_Refresh"
+                        Style="{StaticResource MaterialDesignFlatDarkBgButton}"
+                        Width="70"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="5,20"
+                        materialDesign:ButtonAssist.CornerRadius="10"
                         HorizontalAlignment="Center"
                         Content="Refresh"
                         Click="RefreshButton_Click"
                         />
-            <Button x:Name ="bt_Close"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Width="{StaticResource FormElementWidth}"
-                        Padding="{StaticResource FormElementPadding}"
-                        Margin="0,5,0,0"
-                        materialDesign:ButtonAssist.CornerRadius="20"
-                        HorizontalAlignment="Center"
-                        Content="Close"
-                        />
+
+                
+            </StackPanel>
+
 
         </StackPanel>
     </Grid>
