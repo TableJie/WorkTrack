@@ -30,8 +30,36 @@
             <Thickness x:Key="FormElementMargin">0,10</Thickness>
             <Thickness x:Key="FormElementPadding">0,5</Thickness>
 
-            
-            
+
+            <Color x:Key="PrimaryColor">#008080</Color>
+            <Color x:Key="ComplementaryColor">#800000</Color>
+            <Color x:Key="DarkTeal">#004D4D</Color>
+            <Color x:Key="LightTeal">#66CCCC</Color>
+            <Color x:Key="Gold">#FFD700</Color>
+            <Color x:Key="LightGray">#F0F0F0</Color>
+            <Color x:Key="DarkGrayBlue">#2C3E50</Color>
+            <Color x:Key="WhiteColor">#FFFFFF</Color>
+
+            <!-- 定义刷子资源 -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+            <SolidColorBrush x:Key="ComplementaryBrush" Color="{StaticResource ComplementaryColor}" />
+            <SolidColorBrush x:Key="DarkTealBrush" Color="{StaticResource DarkTeal}" />
+            <SolidColorBrush x:Key="LightTealBrush" Color="{StaticResource LightTeal}" />
+            <SolidColorBrush x:Key="GoldBrush" Color="{StaticResource Gold}" />
+            <SolidColorBrush x:Key="LightGrayBrush" Color="{StaticResource LightGray}" />
+            <SolidColorBrush x:Key="DarkGrayBlueBrush" Color="{StaticResource DarkGrayBlue}" />
+            <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}" />
+
+            <!--
+            背景：#F0F0F0 （Light Gray）或 #FFFFFF （White）
+            主要按鈕或強調元素：#008080 （Teal）
+            次要按鈕或邊框：#004D4D （Dark Teal）
+            警示或強調按鈕：#800000 （Maroon）
+            高亮元素：#FFD700 （Gold）
+            文本顏色：#2C3E50 （Dark Gray-Blue）
+            -->
+
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

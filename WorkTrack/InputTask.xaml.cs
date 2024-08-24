@@ -41,6 +41,7 @@ namespace WorkTrack
             _isCopyMode = initializationMode == TaskInitializationMode.Copy;
 
             Loaded += MainWindow_Loaded;
+            ip_TaskName.Focus();
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -213,6 +214,12 @@ namespace WorkTrack
         }
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(ip_TaskName.Text))
+            {
+                MessageBox.Show("请填写任务名称！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             await RefreshTaskBodyAsync();
 
             ip_TaskID.Clear();

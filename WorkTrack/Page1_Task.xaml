@@ -105,13 +105,13 @@
                                         </Button>
                                         <ToggleButton Margin="5,0,0,0" Width="20" Height="20" Background="Transparent" Style="{StaticResource MaterialDesignActionToggleButton}" 
                                                       IsChecked="{Binding DeleteFlag}" 
-                                                      Checked="ToggleButton_Checked" 
-                                                      Unchecked="ToggleButton_Unchecked">
+                                                      Checked="ToggleButton_CheckedOrUnchecked" 
+                                                      Unchecked="ToggleButton_CheckedOrUnchecked">
                                             <materialDesign:ToggleButtonAssist.OnContent>
-                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20" Foreground="Gray" ToolTip="Alive"/>
+                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" ToolTip="Alive"/>
                                             </materialDesign:ToggleButtonAssist.OnContent>
                                             <ToggleButton.Content>
-                                                <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="Black" ToolTip="Delete"/>
+                                                <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="{StaticResource ComplementaryBrush}" ToolTip="Delete"/>
                                             </ToggleButton.Content>
                                         </ToggleButton>
 

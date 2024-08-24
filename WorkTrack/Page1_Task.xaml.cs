@@ -92,21 +92,25 @@ namespace WorkTrack
             }
         }
 
-        private async void ToggleButton_Checked(object sender, RoutedEventArgs e)
+        private async void ToggleButton_CheckedOrUnchecked(object sender, RoutedEventArgs e)
         {
             if (sender is ToggleButton toggleButton && toggleButton.DataContext is TaskBody task)
             {
-                task.DeleteFlag = false;
-                await UpdateDeleteFlagInDatabase(task.TaskID, true);
-            }
-        }
+                bool deleteFlag = toggleButton.IsChecked == false;
+                task.DeleteFlag = deleteFlag;
 
-        private async void ToggleButton_Unchecked(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleButton toggleButton && toggleButton.DataContext is TaskBody task)
-            {
-                task.DeleteFlag = true;
-                await UpdateDeleteFlagInDatabase(task.TaskID, false);
+                try
+                {
+                    await UpdateDeleteFlagInDatabase(task.TaskID, deleteFlag);
+
+                    // 根據操作結果顯示相應的通知
+                    string message = deleteFlag ? "已刪除此 Task" : "已恢復此 Task";
+                    MessageBox.Show(message, "操作成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"更新刪除標誌時出錯: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
@@ -125,6 +129,7 @@ namespace WorkTrack
                 MessageBox.Show($"更新刪除標誌時出錯: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
 
     }
