@@ -1,14 +1,14 @@
 TaskPage.xaml
 TaskPage.xaml.cs
-TaskViewModel.cs
+TaskViewModel-1.cs
 Commands.cs
 WorkTrack.csproj
 MainWindow.xaml
 App.xaml
 App.xaml.cs
 DatabaseInitializer.cs
-InputTask.xaml
-InputTask.xaml.cs
+TaskInput.xaml
+TaskInput.xaml.cs
 MainWindow.xaml
 MainWindow.xaml.cs
 Serilog.cs

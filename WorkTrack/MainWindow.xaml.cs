@@ -49,8 +49,7 @@ namespace WorkTrack
                 MessageBox.Show($"Database initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            var defaultDate = DateTime.Today;
-            InitializeStackedColumnChart(defaultDate);
+            _ = InitializeStackedColumnChart(DateTime.Today);
         }
 
         #region Cd1_Bt

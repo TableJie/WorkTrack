@@ -2,16 +2,17 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:WorkTrack"
+      xmlns:viewmodel="clr-namespace:WorkTrack.ViewModel"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       mc:Ignorable="d">
 
     <Page.DataContext>
-        <local:TaskViewModel />
+        <viewmodel:TaskViewModel />
     </Page.DataContext>
 
-    <Grid HorizontalAlignment="Stretch">
+        <Grid HorizontalAlignment="Stretch">
         <Border Style="{StaticResource CardStyle}" Background="#F3F3F3">
             <Grid>
                 <Grid.RowDefinitions>
@@ -119,6 +120,7 @@
 This file is: TaskPage.xaml
 
 using System.Windows.Controls;
+using WorkTrack.ViewModel;
 
 namespace WorkTrack
 {
@@ -127,6 +129,7 @@ namespace WorkTrack
         public TaskPage()
         {
             InitializeComponent();
+            this.DataContext = new WorkTrack.ViewModel.TaskViewModel();
         }
     }
 }
@@ -136,17 +139,20 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using Serilog;
 using static WorkTrack.InputTask;
 
-namespace WorkTrack
+namespace WorkTrack.ViewModel
 {
     public class TaskViewModel : INotifyPropertyChanged
     {
         private readonly ILogger _logger;
+
+
 
         // Properties
         private DateTime? _selectedDate;
@@ -170,17 +176,20 @@ namespace WorkTrack
             get => _taskBodyCollection;
             set
             {
-                _taskBodyCollection = value;
-                OnPropertyChanged(nameof(TaskBodyCollection));
+                if (_taskBodyCollection != value)
+                {
+                    _taskBodyCollection = value;
+                    OnPropertyChanged(nameof(TaskBodyCollection));
+                }
             }
         }
 
         // Commands
-        public ICommand LoadTasksCommand { get; }
-        public ICommand AddTaskCommand { get; }
-        public ICommand EditTaskCommand { get; }
-        public ICommand CopyTaskCommand { get; }
-        public ICommand ToggleTaskDeleteCommand { get; }
+        public AsyncRelayCommand LoadTasksCommand { get; }
+        public RelayCommand AddTaskCommand { get; }
+        public RelayCommand<Task> EditTaskCommand { get; }
+        public RelayCommand<Task> CopyTaskCommand { get; }
+        public AsyncRelayCommand<Task> ToggleTaskDeleteCommand { get; }
 
         public TaskViewModel(ILogger? logger = null)
         {
@@ -266,7 +275,7 @@ namespace WorkTrack
             catch (Exception ex)
             {
                 _logger.Error(ex, "Error occurred while editing task: {TaskId}", task.TaskID);
-                
+                MessageBox.Show($"????:{ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -348,7 +357,7 @@ namespace WorkTrack
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
-This file is: TaskViewModel.cs
+This file is: TaskViewModel-1.cs
 
 using System;
 using System.Threading.Tasks;
@@ -396,7 +405,10 @@ namespace WorkTrack
 
         public override bool CanExecute(object? parameter)
         {
-            return !_isExecuting && (_canExecute?.Invoke() ?? true);
+            if (_isExecuting)
+                return false;
+
+            return _canExecute?.Invoke() ?? true;
         }
 
         public override void Execute(object? parameter)
@@ -548,45 +560,19 @@ This file is: Commands.cs
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <EnableDefaultPageItems>false</EnableDefaultPageItems>
   </PropertyGroup>
-
-  <ItemGroup>
-    <!-- ???? -->
-    <Compile Include="App.xaml.cs" DependentUpon="App.xaml" />
-    <Compile Include="DatabaseInitializer.cs" />
-    <Compile Include="InputTask.xaml.cs" DependentUpon="InputTask.xaml" />
-    <Compile Include="MainWindow.xaml.cs" DependentUpon="MainWindow.xaml" />
-    <Compile Include="Serilog.cs" />
-    <Compile Include="Task.cs" />
-    <Compile Include="TaskPage.xaml.cs" DependentUpon="TaskPage.xaml" />
-    <Compile Include="TaskSearch.cs" />
-    <Compile Include="TaskViewModel.cs" />
-    <Compile Include="UnitManagement.xaml.cs" DependentUpon="UnitManagement.xaml" />
-    <Compile Include="WelcomePage.xaml.cs" DependentUpon="WelcomePage.xaml" />
-    
-    <!-- XAML ?? -->
-    <Page Include="App.xaml" />
-    <Page Include="DataGrid.xaml" />
-    <Page Include="Elements.xaml" />
-    <Page Include="InputTask.xaml" />
-    <Page Include="MainWindow.xaml" />
-    <Page Include="TaskPage.xaml" />
-    <Page Include="UnitManagement.xaml" />
-    <Page Include="WelcomePage.xaml" />
-  </ItemGroup>
 
   <ItemGroup>
     <!-- NuGet ??? -->
     <PackageReference Include="MaterialDesignThemes" Version="4.5.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.0" />
     <PackageReference Include="Dapper" Version="2.0.123" />
-    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog" Version="4.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
   </ItemGroup>
@@ -597,6 +583,10 @@ This file is: Commands.cs
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- ???? -->
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -604,6 +594,7 @@ This file is: Commands.cs
   </ItemGroup>
 
 </Project>
+
 This file is: WorkTrack.csproj
 
 <Window x:Class="WorkTrack.MainWindow"
@@ -1360,7 +1351,7 @@ This file is: DatabaseInitializer.cs
     </Grid>
 </Window>
 
-This file is: InputTask.xaml
+This file is: TaskInput.xaml
 
 using Dapper;
 using LiveCharts.Wpf;
@@ -1580,11 +1571,19 @@ namespace WorkTrack
         {
             if (string.IsNullOrWhiteSpace(ip_TaskName.Text))
             {
-                MessageBox.Show("???????!", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Input TaskName", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             await RefreshTaskBodyAsync();
+
+            // ?? MainFrame.Content ? TaskPage
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow?.MainFrame.Content is TaskPage taskPage)
+            {
+                var taskViewModel = taskPage.DataContext as WorkTrack.ViewModel.TaskViewModel;
+                taskViewModel?.LoadTasksCommand.Execute(null); // ?? ViewModel ? Command ?????
+            }
 
             ip_TaskID.Clear();
             ip_TaskName.Clear();
@@ -1592,20 +1591,8 @@ namespace WorkTrack
             ip_DurationLevelName.SelectedIndex = 2;
             ip_UnitName.SelectedIndex = 0;
             ip_ApplicationID.SelectedIndex = 0;
-
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            if (mainWindow != null)
-            {
-                var selectedDate = ip_TaskDate.SelectedDate ?? DateTime.Now;
-                await mainWindow.InitializeStackedColumnChart(selectedDate);
-
-
-                if (mainWindow.MainFrame.Content is TaskPage page1Task)
-                {
-                    await page1Task.DefaultSearch_TaskBody(); // ?? Page1_Task ? DataGrid
-                }
-            }
         }
+
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1617,7 +1604,7 @@ namespace WorkTrack
 
 }
 
-This file is: InputTask.xaml.cs
+This file is: TaskInput.xaml.cs
 
 <Window x:Class="WorkTrack.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -1895,8 +1882,7 @@ namespace WorkTrack
                 MessageBox.Show($"Database initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            var defaultDate = DateTime.Today;
-            InitializeStackedColumnChart(defaultDate);
+            _ = InitializeStackedColumnChart(DateTime.Today);
         }
 
         #region Cd1_Bt
@@ -2009,6 +1995,9 @@ namespace WorkTrack
 This file is: MainWindow.xaml.cs
 
 using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+using System;
 
 namespace WorkTrack
 {
@@ -2018,12 +2007,21 @@ namespace WorkTrack
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information() // ??? Information ??
-                .WriteTo.Console()
+                .WriteTo.Console() // ?????????
                 .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7) // ???? 7 ????
                 .CreateLogger();
         }
     }
+
+    public class ConsoleSink : ILogEventSink
+    {
+        public void Emit(LogEvent logEvent)
+        {
+            Console.WriteLine(logEvent.RenderMessage());
+        }
+    }
 }
+
 This file is: Serilog.cs
 
 using System;

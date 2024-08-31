@@ -13,15 +13,11 @@
     <Compile Update="TaskPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="InputTask.xaml.cs">
+    <Compile Update="TaskInput.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <None Update="InputTask.xaml">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Page Update="Elements.xaml">
       <SubType>Designer</SubType>

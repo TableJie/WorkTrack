@@ -44,7 +44,10 @@ namespace WorkTrack
 
         public override bool CanExecute(object? parameter)
         {
-            return !_isExecuting && (_canExecute?.Invoke() ?? true);
+            if (_isExecuting)
+                return false;
+
+            return _canExecute?.Invoke() ?? true;
         }
 
         public override void Execute(object? parameter)

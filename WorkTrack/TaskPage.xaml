@@ -2,16 +2,17 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:WorkTrack"
+      xmlns:viewmodel="clr-namespace:WorkTrack.ViewModel"
       xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       mc:Ignorable="d">
 
     <Page.DataContext>
-        <local:TaskViewModel />
+        <viewmodel:TaskViewModel />
     </Page.DataContext>
 
-    <Grid HorizontalAlignment="Stretch">
+        <Grid HorizontalAlignment="Stretch">
         <Border Style="{StaticResource CardStyle}" Background="#F3F3F3">
             <Grid>
                 <Grid.RowDefinitions>

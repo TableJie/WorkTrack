@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using WorkTrack.ViewModel;
 
 namespace WorkTrack
 {
@@ -7,6 +8,7 @@ namespace WorkTrack
         public TaskPage()
         {
             InitializeComponent();
+            this.DataContext = new WorkTrack.ViewModel.TaskViewModel();
         }
     }
 }
