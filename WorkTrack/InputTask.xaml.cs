@@ -24,7 +24,7 @@ namespace WorkTrack
     /// </summary>
     public partial class InputTask : Window
     {
-        private readonly TaskBody _taskBody;
+        private readonly Task _taskBody;
         private readonly bool _isCopyMode;
 
         public enum TaskInitializationMode
@@ -34,7 +34,7 @@ namespace WorkTrack
             Copy    // 用於複製現有任務
         }
 
-        public InputTask(TaskBody taskBody, TaskInitializationMode initializationMode)
+        public InputTask(Task taskBody, TaskInitializationMode initializationMode)
         {
             InitializeComponent();
             _taskBody = taskBody;
@@ -66,7 +66,7 @@ namespace WorkTrack
             }
         }
 
-        private async Task LoadOption()
+        private async System.Threading.Tasks.Task LoadOption()
         {
             try
             {
@@ -122,7 +122,7 @@ namespace WorkTrack
         }
 
 
-        private async Task RefreshTaskBodyAsync()
+        private async System.Threading.Tasks.Task RefreshTaskBodyAsync()
         {
             try
             {

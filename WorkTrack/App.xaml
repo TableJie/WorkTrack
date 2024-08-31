@@ -50,6 +50,20 @@
             <SolidColorBrush x:Key="DarkGrayBlueBrush" Color="{StaticResource DarkGrayBlue}" />
             <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}" />
 
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="5"/>
+                <Setter Property="BorderBrush" Value="#CCCCCC"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Margin" Value="10"/>
+                <Setter Property="Padding" Value="10"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="Black" Direction="315" ShadowDepth="5" BlurRadius="10" Opacity="0.5"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <!--
             背景：#F0F0F0 （Light Gray）或 #FFFFFF （White）
             主要按鈕或強調元素：#008080 （Teal）

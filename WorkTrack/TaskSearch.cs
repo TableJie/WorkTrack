@@ -16,7 +16,7 @@ namespace WorkTrack
     public class TaskSearch
     {
 
-        public async Task<List<TaskBody>> GetTasks(DateTime taskDate)
+        public async Task<List<Task>> GetTasks(DateTime taskDate)
         {
             var query = """
                 SELECT
@@ -33,10 +33,10 @@ namespace WorkTrack
             await using var connection = new SqliteConnection(App.ConnectionString);
             await connection.OpenAsync();
 
-            return (await connection.QueryAsync<TaskBody>(query, new { TaskDate = taskDate })).ToList();
+            return (await connection.QueryAsync<Task>(query, new { TaskDate = taskDate })).ToList();
         }
 
-        public async Task UpdateTaskBodyAsync(TaskBody taskBody)
+        public async System.Threading.Tasks.Task UpdateTaskBodyAsync(Task taskBody)
         {
             await using var connection = new SqliteConnection(App.ConnectionString);
             await connection.OpenAsync();

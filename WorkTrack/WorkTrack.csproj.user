@@ -7,10 +7,10 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Page0_Welcome.xaml.cs">
+    <Compile Update="WelcomePage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Page1_Task.xaml.cs">
+    <Compile Update="TaskPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="InputTask.xaml.cs">
@@ -29,10 +29,10 @@
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Page0_Welcome.xaml">
+    <Page Update="WelcomePage.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Page1_Task.xaml">
+    <Page Update="TaskPage.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

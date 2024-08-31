@@ -77,21 +77,21 @@
       <SubType>Code</SubType>
     </Compile>
 
-    <Page Include="Page0_Welcome.xaml">
+    <Page Include="WelcomePage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Page0_Welcome.xaml.cs">
-      <DependentUpon>Page0_Welcome.xaml</DependentUpon>
+    <Compile Include="WelcomePage.xaml.cs">
+      <DependentUpon>WelcomePage.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
 
-    <Page Include="Page1_Task.xaml">
+    <Page Include="TaskPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Page1_Task.xaml.cs">
-      <DependentUpon>Page1_Task.xaml</DependentUpon>
+    <Compile Include="TaskPage.xaml.cs">
+      <DependentUpon>TaskPage.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
 
@@ -125,8 +125,11 @@
 
     <Compile Include="TaskSearch.cs" />
     <Compile Include="DatabaseInitializer.cs" />
-    <Compile Include="TaskBody.cs" />
+    <Compile Include="Task.cs" />
     <Compile Include="Serilog.cs" />    
+    <Compile Include="TaskViewModel.cs" />
+    <Compile Include="RelayCommand.cs" />
+    <Compile Include="AsyncRelayCommand.cs" />
 
   </ItemGroup>
 

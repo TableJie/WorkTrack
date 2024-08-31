@@ -55,7 +55,7 @@ namespace WorkTrack
 
         #region Cd1_Bt
 
-        public async Task InitializeStackedColumnChart(DateTime selectedDate)
+        public async System.Threading.Tasks.Task InitializeStackedColumnChart(DateTime selectedDate)
         {
             SeriesCollection.Clear();
 
@@ -144,7 +144,7 @@ namespace WorkTrack
         {
             MainFrame.NavigationService.Navigate(new Page1_Task());
 
-            var newTask = new TaskBody { TaskDate = DateTime.Today };
+            var newTask = new Task { TaskDate = DateTime.Today };
             InputTask inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
             inputTaskWindow.Left = this.Width - this.Left ; // 設置子視窗顯示在主視窗的右側
             inputTaskWindow.Top = this.Top + 100; // 垂直位置與主視窗對齊
