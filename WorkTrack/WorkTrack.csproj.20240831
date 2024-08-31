@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 編譯項目 -->
+    <Compile Include="App.xaml.cs" DependentUpon="App.xaml" />
+    <Compile Include="DatabaseInitializer.cs" />
+    <Compile Include="InputTask.xaml.cs" DependentUpon="InputTask.xaml" />
+    <Compile Include="MainWindow.xaml.cs" DependentUpon="MainWindow.xaml" />
+    <Compile Include="Serilog.cs" />
+    <Compile Include="Task.cs" />
+    <Compile Include="TaskPage.xaml.cs" DependentUpon="TaskPage.xaml" />
+    <Compile Include="TaskSearch.cs" />
+    <Compile Include="TaskViewModel.cs" />
+    <Compile Include="UnitManagement.xaml.cs" DependentUpon="UnitManagement.xaml" />
+    <Compile Include="WelcomePage.xaml.cs" DependentUpon="WelcomePage.xaml" />
+    
+    <!-- XAML 頁面 -->
+    <Page Include="App.xaml" />
+    <Page Include="DataGrid.xaml" />
+    <Page Include="Elements.xaml" />
+    <Page Include="InputTask.xaml" />
+    <Page Include="MainWindow.xaml" />
+    <Page Include="TaskPage.xaml" />
+    <Page Include="UnitManagement.xaml" />
+    <Page Include="WelcomePage.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- NuGet 包引用 -->
+    <PackageReference Include="MaterialDesignThemes" Version="4.5.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.0" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 資源文件 -->
+    <Resource Include="Resources\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 內容文件 -->
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
