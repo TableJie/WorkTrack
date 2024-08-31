@@ -144,7 +144,7 @@ namespace WorkTrack {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/WorkTrack;component/inputtask.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/WorkTrack;V1.0.0.0;component/inputtask.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\InputTask.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

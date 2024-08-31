@@ -137,12 +137,12 @@ namespace WorkTrack
 
         private void bt_OverTime_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.NavigationService.Navigate(new Page1_Task());
+            MainFrame.NavigationService.Navigate(new TaskPage());
         }
 
         private void bt_CardAddTask_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.NavigationService.Navigate(new Page1_Task());
+            MainFrame.NavigationService.Navigate(new TaskPage());
 
             var newTask = new Task { TaskDate = DateTime.Today };
             InputTask inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
@@ -153,7 +153,7 @@ namespace WorkTrack
 
         private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.NavigationService.Navigate(new Page1_Task());
+            MainFrame.NavigationService.Navigate(new TaskPage());
         }
 
         #endregion

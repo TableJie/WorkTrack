@@ -95,7 +95,7 @@ namespace WorkTrack {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/WorkTrack;component/unitmanagement.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/WorkTrack;V1.0.0.0;component/unitmanagement.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\UnitManagement.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

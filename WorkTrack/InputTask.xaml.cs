@@ -236,7 +236,7 @@ namespace WorkTrack
                 await mainWindow.InitializeStackedColumnChart(selectedDate);
 
 
-                if (mainWindow.MainFrame.Content is Page1_Task page1Task)
+                if (mainWindow.MainFrame.Content is TaskPage page1Task)
                 {
                     await page1Task.DefaultSearch_TaskBody(); // 更新 Page1_Task 的 DataGrid
                 }
