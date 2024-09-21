@@ -10,6 +10,6 @@ Elements.xaml
 Page1_Task.xaml.cs
 Page1_Task.xaml
 WorkTrack.csporj
-InputTask.xaml
-InputTask.xaml.cs
+TaskInput.xaml
+TaskInput.xaml.cs
 WorkTrack.csproj

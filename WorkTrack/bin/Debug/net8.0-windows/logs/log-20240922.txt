@@ -1,0 +1,144 @@
+2024-09-22 00:39:50.145 +08:00 [INF] MainWindow initialized.
+2024-09-22 00:39:50.208 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 00:39:50.224 +08:00 [INF] Initializing database.
+2024-09-22 00:39:50.942 +08:00 [INF] 今日日期登入完成。
+2024-09-22 00:39:50.944 +08:00 [INF] Database initialized successfully.
+2024-09-22 00:39:50.948 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 00:39:51.020 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 00:39:51.023 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 00:39:51.030 +08:00 [INF] Query executed successfully.
+2024-09-22 00:50:58.981 +08:00 [INF] MainWindow initialized.
+2024-09-22 00:50:59.052 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 00:50:59.058 +08:00 [INF] Initializing database.
+2024-09-22 00:50:59.201 +08:00 [INF] 今日日期登入完成。
+2024-09-22 00:50:59.204 +08:00 [INF] Database initialized successfully.
+2024-09-22 00:50:59.208 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 00:50:59.270 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 00:50:59.273 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 00:50:59.279 +08:00 [INF] Query executed successfully.
+2024-09-22 00:52:57.799 +08:00 [INF] MainWindow initialized.
+2024-09-22 00:52:57.991 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 00:52:58.001 +08:00 [INF] Initializing database.
+2024-09-22 00:52:58.277 +08:00 [INF] 今日日期登入完成。
+2024-09-22 00:52:58.280 +08:00 [INF] Database initialized successfully.
+2024-09-22 00:52:58.284 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 00:52:58.377 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 00:52:58.380 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 00:52:58.390 +08:00 [INF] Query executed successfully.
+2024-09-22 00:53:19.680 +08:00 [INF] MainWindow initialized.
+2024-09-22 00:53:19.802 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 00:53:19.810 +08:00 [INF] Initializing database.
+2024-09-22 00:53:20.050 +08:00 [INF] 今日日期登入完成。
+2024-09-22 00:53:20.053 +08:00 [INF] Database initialized successfully.
+2024-09-22 00:53:20.059 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 00:53:20.131 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 00:53:20.134 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 00:53:20.142 +08:00 [INF] Query executed successfully.
+2024-09-22 00:55:49.281 +08:00 [INF] MainWindow initialized.
+2024-09-22 00:55:49.386 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 00:55:49.396 +08:00 [INF] Initializing database.
+2024-09-22 00:55:49.641 +08:00 [INF] 今日日期登入完成。
+2024-09-22 00:55:49.644 +08:00 [INF] Database initialized successfully.
+2024-09-22 00:55:49.650 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 00:55:49.717 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 00:55:49.720 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 00:55:49.727 +08:00 [INF] Query executed successfully.
+2024-09-22 00:58:09.495 +08:00 [INF] MainWindow initialized.
+2024-09-22 00:58:09.610 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 00:58:09.619 +08:00 [INF] Initializing database.
+2024-09-22 00:58:09.856 +08:00 [INF] 今日日期登入完成。
+2024-09-22 00:58:09.859 +08:00 [INF] Database initialized successfully.
+2024-09-22 00:58:09.867 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 00:58:09.948 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 00:58:09.951 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 00:58:09.960 +08:00 [INF] Query executed successfully.
+2024-09-22 01:00:40.759 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:00:40.852 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:00:40.858 +08:00 [INF] Initializing database.
+2024-09-22 01:00:41.077 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:00:41.080 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:00:41.085 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:00:41.156 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:00:41.158 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:00:41.166 +08:00 [INF] Query executed successfully.
+2024-09-22 01:26:30.532 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:26:30.615 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:26:30.621 +08:00 [INF] Initializing database.
+2024-09-22 01:26:30.779 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:26:30.781 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:26:30.786 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:26:30.853 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:26:30.856 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:26:30.862 +08:00 [INF] Query executed successfully.
+2024-09-22 01:26:54.410 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:26:54.537 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:26:54.545 +08:00 [INF] Initializing database.
+2024-09-22 01:26:55.238 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:26:55.243 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:26:55.250 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:26:55.342 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:26:55.345 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:26:55.353 +08:00 [INF] Query executed successfully.
+2024-09-22 01:32:52.608 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:32:52.674 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:32:52.679 +08:00 [INF] Initializing database.
+2024-09-22 01:32:52.789 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:32:52.791 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:32:52.795 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:32:52.849 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:32:52.853 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:32:52.861 +08:00 [INF] Query executed successfully.
+2024-09-22 01:34:00.367 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:34:00.443 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:34:00.449 +08:00 [INF] Initializing database.
+2024-09-22 01:34:00.571 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:34:00.574 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:34:00.581 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:34:00.644 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:34:00.647 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:34:00.653 +08:00 [INF] Query executed successfully.
+2024-09-22 01:34:42.908 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:34:42.994 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:34:42.999 +08:00 [INF] Initializing database.
+2024-09-22 01:34:43.123 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:34:43.127 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:34:43.133 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:34:43.198 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:34:43.201 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:34:43.207 +08:00 [INF] Query executed successfully.
+2024-09-22 01:35:43.976 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:35:44.042 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:35:44.047 +08:00 [INF] Initializing database.
+2024-09-22 01:35:44.155 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:35:44.157 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:35:44.162 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:35:44.211 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:35:44.213 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:35:44.220 +08:00 [INF] Query executed successfully.
+2024-09-22 01:36:13.195 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:36:13.286 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:36:13.292 +08:00 [INF] Initializing database.
+2024-09-22 01:36:13.434 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:36:13.438 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:36:13.444 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:36:13.502 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:36:13.506 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:36:13.514 +08:00 [INF] Query executed successfully.
+2024-09-22 01:36:44.866 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:36:44.956 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:36:44.963 +08:00 [INF] Initializing database.
+2024-09-22 01:36:45.099 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:36:45.101 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:36:45.108 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:36:45.168 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:36:45.172 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:36:45.179 +08:00 [INF] Query executed successfully.
+2024-09-22 01:37:16.423 +08:00 [INF] MainWindow initialized.
+2024-09-22 01:37:16.538 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-22 01:37:16.546 +08:00 [INF] Initializing database.
+2024-09-22 01:37:16.716 +08:00 [INF] 今日日期登入完成。
+2024-09-22 01:37:16.721 +08:00 [INF] Database initialized successfully.
+2024-09-22 01:37:16.729 +08:00 [INF] Fetching tasks for "2024-09-22T00:00:00.0000000+08:00"
+2024-09-22 01:37:16.801 +08:00 [INF] Fetched 0 tasks.
+2024-09-22 01:37:16.804 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
+2024-09-22 01:37:16.813 +08:00 [INF] Query executed successfully.

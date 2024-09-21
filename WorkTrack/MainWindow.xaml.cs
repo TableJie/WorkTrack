@@ -10,7 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Navigation;
-using static WorkTrack.InputTask;
+using static WorkTrack.TaskInput;
 using Serilog;
 
 namespace WorkTrack
@@ -137,6 +137,10 @@ namespace WorkTrack
         private void bt_OverTime_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.NavigationService.Navigate(new TaskPage());
+            OverTimeInput overTimeInputWindow = new OverTimeInput();
+            overTimeInputWindow.Left = this.Width - this.Left; // 設置子視窗顯示在主視窗的右側
+            overTimeInputWindow.Top = this.Top + 100; // 垂直位置與主視窗對齊
+            overTimeInputWindow.ShowDialog();
         }
 
         private void bt_CardAddTask_Click(object sender, RoutedEventArgs e)
@@ -144,10 +148,10 @@ namespace WorkTrack
             MainFrame.NavigationService.Navigate(new TaskPage());
 
             var newTask = new Task { TaskDate = DateTime.Today };
-            InputTask inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
-            inputTaskWindow.Left = this.Width - this.Left ; // 設置子視窗顯示在主視窗的右側
-            inputTaskWindow.Top = this.Top + 100; // 垂直位置與主視窗對齊
-            inputTaskWindow.ShowDialog();
+            TaskInput TaskInputWindow = new TaskInput(newTask, TaskInitializationMode.Add);
+            TaskInputWindow.Left = this.Width - this.Left ; // 設置子視窗顯示在主視窗的右側
+            TaskInputWindow.Top = this.Top + 100; // 垂直位置與主視窗對齊
+            TaskInputWindow.ShowDialog();
         }
 
         private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)

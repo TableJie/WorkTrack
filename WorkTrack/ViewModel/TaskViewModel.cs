@@ -7,7 +7,7 @@ using System.Windows.Input;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using Serilog;
-using static WorkTrack.InputTask;
+using static WorkTrack.TaskInput;
 
 namespace WorkTrack.ViewModel
 {
@@ -101,8 +101,8 @@ namespace WorkTrack.ViewModel
             {
                 _logger.Information("Adding new task");
                 var newTask = new Task { TaskDate = SelectedDate ?? DateTime.Today };
-                var inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
-                if (inputTaskWindow.ShowDialog() == true)
+                var TaskInputWindow = new TaskInput(newTask, TaskInitializationMode.Add);
+                if (TaskInputWindow.ShowDialog() == true)
                 {
                     TaskBodyCollection?.Add(newTask);
                     _logger.Information("New task added successfully");
@@ -126,8 +126,8 @@ namespace WorkTrack.ViewModel
             try
             {
                 _logger.Information("Editing task: {TaskId}", task.TaskID);
-                var inputTaskWindow = new InputTask(task, TaskInitializationMode.Edit);
-                if (inputTaskWindow.ShowDialog() == true)
+                var TaskInputWindow = new TaskInput(task, TaskInitializationMode.Edit);
+                if (TaskInputWindow.ShowDialog() == true)
                 {
                     // Refresh the collection to reflect changes
                     var index = TaskBodyCollection?.IndexOf(task) ?? -1;
@@ -166,8 +166,8 @@ namespace WorkTrack.ViewModel
                     ApplicationID = task.ApplicationID,
                     TaskDate = task.TaskDate
                 };
-                var inputTaskWindow = new InputTask(copyTask, TaskInitializationMode.Copy);
-                if (inputTaskWindow.ShowDialog() == true)
+                var TaskInputWindow = new TaskInput(copyTask, TaskInitializationMode.Copy);
+                if (TaskInputWindow.ShowDialog() == true)
                 {
                     TaskBodyCollection?.Add(copyTask);
                     _logger.Information("Task copied successfully");

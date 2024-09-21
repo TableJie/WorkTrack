@@ -12,7 +12,7 @@
     <!-- 編譯項目 -->
     <Compile Include="App.xaml.cs" DependentUpon="App.xaml" />
     <Compile Include="DatabaseInitializer.cs" />
-    <Compile Include="InputTask.xaml.cs" DependentUpon="InputTask.xaml" />
+    <Compile Include="TaskInput.xaml.cs" DependentUpon="TaskInput.xaml" />
     <Compile Include="MainWindow.xaml.cs" DependentUpon="MainWindow.xaml" />
     <Compile Include="Serilog.cs" />
     <Compile Include="Task.cs" />
@@ -26,7 +26,7 @@
     <Page Include="App.xaml" />
     <Page Include="DataGrid.xaml" />
     <Page Include="Elements.xaml" />
-    <Page Include="InputTask.xaml" />
+    <Page Include="TaskInput.xaml" />
     <Page Include="MainWindow.xaml" />
     <Page Include="TaskPage.xaml" />
     <Page Include="UnitManagement.xaml" />

@@ -1,616 +1,13 @@
-<Page x:Class="WorkTrack.TaskPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:local="clr-namespace:WorkTrack"
-      xmlns:viewmodel="clr-namespace:WorkTrack.ViewModel"
-      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      mc:Ignorable="d">
-
-    <Page.DataContext>
-        <viewmodel:TaskViewModel />
-    </Page.DataContext>
-
-        <Grid HorizontalAlignment="Stretch">
-        <Border Style="{StaticResource CardStyle}" Background="#F3F3F3">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="40" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="TaskList" Grid.Column="0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Margin="5,0,0,0"
-                                />
-                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                        <DatePicker SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
-                                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
-                                    Width="90"
-                                    Height="30"
-                                    Margin="5,-10,5,0"
-                                    VerticalAlignment="Center"
-                                    materialDesign:HintAssist.Hint="TaskDate"
-                                    materialDesign:HintAssist.FloatingOffset="0,-12"
-                                    FirstDayOfWeek="Monday"
-                                    SelectedDateFormat="Short"
-                        />
-                        <Button Command="{Binding AddTaskCommand}" Width="30" Padding="-5,0" Margin="0" Style="{StaticResource MaterialDesignFlatButton}">
-                            <materialDesign:PackIcon Kind="ClipboardPlusOutline" 
-                                                     Width="20" 
-                                                     Height="20" 
-                                                     Foreground="#008080" 
-                                                     HorizontalAlignment="Center" 
-                                                     VerticalAlignment="Center"/>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-
-                <DataGrid ItemsSource="{Binding TaskBodyCollection}" Grid.Row="1"
-                            AutoGenerateColumns="False"
-                            CanUserAddRows="False"
-                            CanUserDeleteRows="False"
-                            IsReadOnly="True"
-                            SelectionUnit="FullRow"
-                            BorderThickness="0"
-                            Background="White"
-                            Margin="5"
-                            ColumnHeaderHeight="40"
-                            RowHeight="35"
-                            Style="{StaticResource MaterialDesignDataGrid}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="TaskName" Binding="{Binding TaskName}" Width="120" SortMemberPath="TaskName"/>
-                        <DataGridTextColumn Header="UnitName" Binding="{Binding UnitName}" Width="*" SortMemberPath="UnitName"/>
-                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="*" SortMemberPath="Duration" />
-                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" SortMemberPath="Description"/>
-                        <DataGridTemplateColumn Header="Action" Width="*" >
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="-5">
-                                        <Button x:Name="bt_TaskEdit" Command="{Binding DataContext.EditTaskCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding}" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
-                                            <materialDesign:PackIcon Kind="ClipboardEditOutline" 
-                                                             Width="20" 
-                                                             Height="20" 
-                                                             Foreground="Gray" 
-                                                             HorizontalAlignment="Center" 
-                                                             VerticalAlignment="Center"
-                                                             ToolTip="Edit"/>
-                                        </Button>
-                                        <Button x:Name="bt_TaskCopy" Command="{Binding DataContext.CopyTaskCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding}" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
-                                            <materialDesign:PackIcon Kind="ClipboardMultipleOutline" 
-                                                             Width="20" 
-                                                             Height="20" 
-                                                             Foreground="Gray"
-                                                             HorizontalAlignment="Center" 
-                                                             VerticalAlignment="Center"
-                                                             ToolTip="Copy"/>
-                                        </Button>
-                                        <ToggleButton Margin="5,0,0,0" Width="20" Height="20" Background="Transparent" Style="{StaticResource MaterialDesignActionToggleButton}" 
-                                                      IsChecked="{Binding DeleteFlag}" 
-                                                      Command="{Binding DataContext.ToggleTaskDeleteCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                      CommandParameter="{Binding}">
-                                            <materialDesign:ToggleButtonAssist.OnContent>
-                                                <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="{StaticResource ComplementaryBrush}" ToolTip="Delete"/>
-                                            </materialDesign:ToggleButtonAssist.OnContent>
-                                            <ToggleButton.Content>
-                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" ToolTip="Alive"/>
-                                            </ToggleButton.Content>
-                                        </ToggleButton>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-        </Border>
-    </Grid>
-</Page>
-This file is: TaskPage.xaml
-
-using System.Windows.Controls;
-using WorkTrack.ViewModel;
-
-namespace WorkTrack
-{
-    public partial class TaskPage : Page
-    {
-        public TaskPage()
-        {
-            InitializeComponent();
-            this.DataContext = new WorkTrack.ViewModel.TaskViewModel();
-        }
-    }
-}
-This file is: TaskPage.xaml.cs
-
-using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-using Dapper;
-using Microsoft.Data.Sqlite;
-using Serilog;
-using static WorkTrack.InputTask;
-
-namespace WorkTrack.ViewModel
-{
-    public class TaskViewModel : INotifyPropertyChanged
-    {
-        private readonly ILogger _logger;
-
-
-
-        // Properties
-        private DateTime? _selectedDate;
-        public DateTime? SelectedDate
-        {
-            get => _selectedDate;
-            set
-            {
-                if (_selectedDate != value)
-                {
-                    _selectedDate = value;
-                    OnPropertyChanged(nameof(SelectedDate));
-                    LoadTasksCommand.Execute(null);
-                }
-            }
-        }
-
-        private ObservableCollection<Task>? _taskBodyCollection;
-        public ObservableCollection<Task>? TaskBodyCollection
-        {
-            get => _taskBodyCollection;
-            set
-            {
-                if (_taskBodyCollection != value)
-                {
-                    _taskBodyCollection = value;
-                    OnPropertyChanged(nameof(TaskBodyCollection));
-                }
-            }
-        }
-
-        // Commands
-        public AsyncRelayCommand LoadTasksCommand { get; }
-        public RelayCommand AddTaskCommand { get; }
-        public RelayCommand<Task> EditTaskCommand { get; }
-        public RelayCommand<Task> CopyTaskCommand { get; }
-        public AsyncRelayCommand<Task> ToggleTaskDeleteCommand { get; }
-
-        public TaskViewModel(ILogger? logger = null)
-        {
-            _logger = logger ?? Log.Logger;
-            LoadTasksCommand = new AsyncRelayCommand(LoadTasksAsync);
-            AddTaskCommand = new RelayCommand(AddTask);
-            EditTaskCommand = new RelayCommand<Task>(EditTask);
-            CopyTaskCommand = new RelayCommand<Task>(CopyTask);
-            ToggleTaskDeleteCommand = new AsyncRelayCommand<Task>(ToggleTaskDeleteAsync);
-            SelectedDate = DateTime.Today;
-            _taskBodyCollection = new ObservableCollection<Task>();
-        }
-
-        private async System.Threading.Tasks.Task LoadTasksAsync()
-        {
-            try
-            {
-                _logger.Information("Loading tasks for date: {Date}", SelectedDate);
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                var taskSearch = new TaskSearch();
-                if (SelectedDate.HasValue)
-                {
-                    var taskBodyData = await taskSearch.GetTasks(SelectedDate.Value.Date);
-                    TaskBodyCollection = new ObservableCollection<Task>(taskBodyData);
-                    _logger.Information("Loaded {Count} tasks", TaskBodyCollection.Count);
-                }
-                else
-                {
-                    _logger.Warning("SelectedDate is null. Unable to load tasks.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Failed to load tasks");
-            }
-        }
-
-        private void AddTask()
-        {
-            try
-            {
-                _logger.Information("Adding new task");
-                var newTask = new Task { TaskDate = SelectedDate ?? DateTime.Today };
-                var inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
-                if (inputTaskWindow.ShowDialog() == true)
-                {
-                    TaskBodyCollection?.Add(newTask);
-                    _logger.Information("New task added successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while adding new task");
-                
-            }
-        }
-
-        private void EditTask(Task? task)
-        {
-            if (task == null)
-            {
-                _logger.Warning("Attempted to edit null task");
-                return;
-            }
-
-            try
-            {
-                _logger.Information("Editing task: {TaskId}", task.TaskID);
-                var inputTaskWindow = new InputTask(task, TaskInitializationMode.Edit);
-                if (inputTaskWindow.ShowDialog() == true)
-                {
-                    // Refresh the collection to reflect changes
-                    var index = TaskBodyCollection?.IndexOf(task) ?? -1;
-                    if (index != -1 && TaskBodyCollection != null)
-                    {
-                        TaskBodyCollection[index] = task;
-                    }
-                    _logger.Information("Task edited successfully: {TaskId}", task.TaskID);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while editing task: {TaskId}", task.TaskID);
-                MessageBox.Show($"????:{ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void CopyTask(Task? task)
-        {
-            if (task == null)
-            {
-                _logger.Warning("Attempted to copy null task");
-                return;
-            }
-
-            try
-            {
-                _logger.Information("Copying task: {TaskId}", task.TaskID);
-                var copyTask = new Task
-                {
-                    TaskName = task.TaskName,
-                    Description = task.Description,
-                    DurationLevelID = task.DurationLevelID,
-                    Duration = task.Duration,
-                    UnitID = task.UnitID,
-                    ApplicationID = task.ApplicationID,
-                    TaskDate = task.TaskDate
-                };
-                var inputTaskWindow = new InputTask(copyTask, TaskInitializationMode.Copy);
-                if (inputTaskWindow.ShowDialog() == true)
-                {
-                    TaskBodyCollection?.Add(copyTask);
-                    _logger.Information("Task copied successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while copying task: {TaskId}", task.TaskID);
-                
-            }
-        }
-
-        private async System.Threading.Tasks.Task ToggleTaskDeleteAsync(Task? task)
-        {
-            if (task == null)
-            {
-                _logger.Warning("Attempted to toggle delete on null task");
-                return;
-            }
-
-            try
-            {
-                _logger.Information("Toggling delete flag for task: {TaskId}", task.TaskID);
-                task.DeleteFlag = !task.DeleteFlag;
-
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                const string query = "UPDATE TaskBody SET DeleteFlag = @DeleteFlag WHERE TaskID = @TaskID";
-                await connection.ExecuteAsync(query, new { task.DeleteFlag, task.TaskID });
-
-                // Refresh the collection to reflect changes
-                var index = TaskBodyCollection?.IndexOf(task) ?? -1;
-                if (index != -1 && TaskBodyCollection != null)
-                {
-                    TaskBodyCollection[index] = task;
-                }
-
-                _logger.Information("Delete flag toggled successfully for task: {TaskId}", task.TaskID);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while toggling delete flag for task: {TaskId}", task.TaskID);
-                // Revert the change in the local object
-                task.DeleteFlag = !task.DeleteFlag;
-                
-            }
-        }
-
-        // INotifyPropertyChanged implementation
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-}
-This file is: TaskViewModel-1.cs
-
-using System;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using Serilog;
-
-namespace WorkTrack
-{
-    public abstract class BaseRelayCommand : ICommand
-    {
-        protected readonly ILogger _logger;
-        protected bool _isExecuting;
-
-        protected BaseRelayCommand(ILogger? logger)
-        {
-            _logger = logger ?? Log.Logger;
-        }
-
-        public event EventHandler? CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
-        }
-
-        public abstract bool CanExecute(object? parameter);
-        public abstract void Execute(object? parameter);
-
-        protected void RaiseCanExecuteChanged()
-        {
-            CommandManager.InvalidateRequerySuggested();
-        }
-    }
-
-    public class RelayCommand : BaseRelayCommand
-    {
-        private readonly Action _execute;
-        private readonly Func<bool>? _canExecute;
-
-        public RelayCommand(Action execute, Func<bool>? canExecute = null, ILogger? logger = null)
-            : base(logger)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public override bool CanExecute(object? parameter)
-        {
-            if (_isExecuting)
-                return false;
-
-            return _canExecute?.Invoke() ?? true;
-        }
-
-        public override void Execute(object? parameter)
-        {
-            if (!CanExecute(parameter))
-                return;
-
-            _isExecuting = true;
-            try
-            {
-                _execute();
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while executing command");
-                // Instead of rethrowing, we'll just log the error
-            }
-            finally
-            {
-                _isExecuting = false;
-                RaiseCanExecuteChanged();
-            }
-        }
-    }
-
-    public class RelayCommand<T> : BaseRelayCommand
-    {
-        private readonly Action<T?> _execute;
-        private readonly Func<T?, bool>? _canExecute;
-
-        public RelayCommand(Action<T?> execute, Func<T?, bool>? canExecute = null, ILogger? logger = null)
-            : base(logger)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public override bool CanExecute(object? parameter)
-        {
-            return !_isExecuting && (_canExecute?.Invoke((T?)parameter) ?? true);
-        }
-
-        public override void Execute(object? parameter)
-        {
-            if (!CanExecute(parameter))
-                return;
-
-            _isExecuting = true;
-            try
-            {
-                _execute((T?)parameter);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while executing command");
-                // Instead of rethrowing, we'll just log the error
-            }
-            finally
-            {
-                _isExecuting = false;
-                RaiseCanExecuteChanged();
-            }
-        }
-    }
-
-    public class AsyncRelayCommand : BaseRelayCommand
-    {
-        private readonly Func<System.Threading.Tasks.Task> _execute;
-        private readonly Func<bool>? _canExecute;
-
-        public AsyncRelayCommand(Func<System.Threading.Tasks.Task> execute, Func<bool>? canExecute = null, ILogger? logger = null)
-            : base(logger)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public override bool CanExecute(object? parameter)
-        {
-            return !_isExecuting && (_canExecute?.Invoke() ?? true);
-        }
-
-        public override async void Execute(object? parameter)
-        {
-            if (!CanExecute(parameter))
-                return;
-
-            _isExecuting = true;
-            try
-            {
-                await _execute();
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while executing async command");
-                // Instead of rethrowing, we'll just log the error
-            }
-            finally
-            {
-                _isExecuting = false;
-                RaiseCanExecuteChanged();
-            }
-        }
-    }
-
-    public class AsyncRelayCommand<T> : BaseRelayCommand
-    {
-        private readonly Func<T?, System.Threading.Tasks.Task> _execute;
-        private readonly Func<T?, bool>? _canExecute;
-
-        public AsyncRelayCommand(Func<T?, System.Threading.Tasks.Task> execute, Func<T?, bool>? canExecute = null, ILogger? logger = null)
-            : base(logger)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public override bool CanExecute(object? parameter)
-        {
-            return !_isExecuting && (_canExecute?.Invoke((T?)parameter) ?? true);
-        }
-
-        public override async void Execute(object? parameter)
-        {
-            if (!CanExecute(parameter))
-                return;
-
-            _isExecuting = true;
-            try
-            {
-                await _execute((T?)parameter);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while executing async command");
-                // Instead of rethrowing, we'll just log the error
-            }
-            finally
-            {
-                _isExecuting = false;
-                RaiseCanExecuteChanged();
-            }
-        }
-    }
-}
-This file is: Commands.cs
-
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <!-- NuGet ??? -->
-    <PackageReference Include="MaterialDesignThemes" Version="4.5.0" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.0" />
-    <PackageReference Include="Dapper" Version="2.0.123" />
-    <PackageReference Include="Serilog" Version="4.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- ???? -->
-    <Resource Include="Resources\**\*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="appsettings.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- ???? -->
-    <Content Include="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-</Project>
-
-This file is: WorkTrack.csproj
-
-<Window x:Class="WorkTrack.MainWindow"
+<Window x:Class="WorkTrack.OverTimeInput"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WorkTrack"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        xmlns:local="clr-namespace:WorkTrack"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000"
-        WindowStartupLocation="CenterScreen"
-        Background="White"
-        FontFamily="Calibri"
-        >
+        Title="OverTimeInput" Height="420" Width="250">
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -619,700 +16,129 @@ This file is: WorkTrack.csproj
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="200" />
-        </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0" >
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="390"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0" HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Border Style="{StaticResource CardStyle}" Grid.Column="0" Background="White">
-                    <!--#7AB2B2-->
-                    <!-- Card 1 Content -->
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="60"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
-                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                <materialDesign:PackIcon Kind="ClipboardEditOutline"
-                                                         Width="20"
-                                                         Height="20"
-                                                         Margin="5,0,0,0"
-                                                         HorizontalAlignment="Center"
-                                                         VerticalAlignment="Center"/>
-                                <TextBlock Text="TaskView"
-                                               Margin="5,0,0,0"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               FontSize="20"
-                                               FontWeight="Bold"/>
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="12*"/>
-                                <ColumnDefinition Width="10*"/>
-                                <ColumnDefinition Width="7*"/>
-                                <ColumnDefinition Width="198*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock x:Name="ChartDate" Text="{Binding TodayDate, StringFormat=' {0:yyyy-MM-dd}'}" FontSize="12" Margin="5,10,0,0" Grid.ColumnSpan="4"/>
-                        </Grid>
-                        <Grid Grid.Row="2">
-                            <StackPanel Orientation="Vertical">
-                                <lvc:CartesianChart MinWidth="100" Series="{Binding SeriesCollection}" Margin="0,-15,0,-10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                    <lvc:CartesianChart.AxisX>
-                                        <lvc:Axis Title="" Labels="">
-                                            <lvc:Axis.Separator>
-                                                <lvc:Separator StrokeThickness="0"/>
-                                            </lvc:Axis.Separator>
-                                        </lvc:Axis>
-                                    </lvc:CartesianChart.AxisX>
 
-                                    <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="" Labels="">
-                                            <lvc:Axis.Separator>
-                                                <lvc:Separator StrokeThickness="0"/>
-                                            </lvc:Axis.Separator>
-                                        </lvc:Axis>
-                                    </lvc:CartesianChart.AxisY>
-
-                                </lvc:CartesianChart>
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="3">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                            </Grid>
-                            <StackPanel Grid.Column="0" Orientation="Vertical">
-                                <StackPanel Orientation="Horizontal" Height="20">
-                                    <TextBlock Text="Task Count :"
-                                                        FontSize="11"
-                                                        Foreground="Gray"
-                                                        Margin="5,0,0,0"
-                                                        FontWeight="Bold"
-                                                        VerticalAlignment="Bottom"
-                                                        />
-                                    <TextBlock x:Name="Card_Label1"
-                                                        Text=""
-                                                        FontSize="15"
-                                                        Foreground="DarkCyan"
-                                                        Margin="5,0,0,0"
-                                                        FontWeight="Bold"
-                                                        VerticalAlignment="Bottom"
-                                                        />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Height="20">
-                                    <TextBlock Text="UsedPoints:"
-                                                   FontSize="11"
-                                                   Foreground="Gray"
-                                                   Margin="5,0,0,0"
-                                                   FontWeight="Bold"
-                                                   VerticalAlignment="Bottom"
-                                                   />
-                                    <TextBlock x:Name="Card_Label2"
-                                                   Text=""
-                                                   FontSize="15"
-                                                   Foreground="DarkCyan"
-                                                   Margin="5,0,0,0"
-                                                   FontWeight="Bold"
-                                                   VerticalAlignment="Bottom"
-                                                   />
-                                </StackPanel>
-
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click"  Style="{StaticResource MaterialDesignFlatButton}">
-                                    <materialDesign:PackIcon Kind="ClockPlusOutline" 
-                                                             Width="20" 
-                                                             Height="20" 
-                                                             Foreground="#008080" 
-                                                             HorizontalAlignment="Center" 
-                                                             VerticalAlignment="Center"/>
-                                </Button>
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_CardAddTask_Click" Style="{StaticResource MaterialDesignFlatButton}">
-                                    <materialDesign:PackIcon Kind="ClipboardPlusOutline" 
-                                                             Width="20" 
-                                                             Height="20" 
-                                                             Foreground="#008080" 
-                                                             HorizontalAlignment="Center" 
-                                                             VerticalAlignment="Center"/>
-                                </Button>
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click"  Style="{StaticResource MaterialDesignFlatButton}">
-                                    <materialDesign:PackIcon Kind="ClipboardSearchOutline" 
-                                                             Width="20" 
-                                                             Height="20" 
-                                                             Foreground="#008080" 
-                                                             HorizontalAlignment="Center" 
-                                                             VerticalAlignment="Center"/>
-                                </Button>
-
-                            </StackPanel>
-                        </Grid>
-                    </Grid>
-
-                </Border>
-
-                <Border Style="{StaticResource CardStyle}" Grid.Column="1" Background="#4D869C">
-                    <!-- Card 2 Content -->
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="300"/>
-                            <RowDefinition Height="20"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
-                            <StackPanel Orientation="Horizontal">
-                                <Image Source="/icon/edit.png"
-                                               Width="20"
-                                               Height="20"
-                                               Margin="10,0,0,0"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
-                                <TextBlock Text="TaskView"
-                                               Margin="5,0,0,0"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               FontSize="20"
-                                               FontWeight="Bold"/>
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="1">
-
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <Border Style="{StaticResource CardStyle}" Grid.Column="2" Background="#CDE8E5">
-                    <!-- Card 3 Content -->
-                    <StackPanel>
-                        <TextBlock Text="Index 3" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"/>
-                        <TextBlock Text="" />
-                        <TextBlock Text="Index 3 Content" HorizontalAlignment="Left" VerticalAlignment="Center"  FontSize="10"/>
-                    </StackPanel>
-                </Border>
-
-            </Grid>
-
-            <Frame x:Name="MainFrame" Grid.Row="1" HorizontalAlignment="Stretch" NavigationUIVisibility="Hidden"/>
-
-        </Grid>
-
-        <Grid Grid.Column="1">
-
-        </Grid>
-    </Grid>
-</Window>
-
-This file is: MainWindow.xaml
-
-<Application x:Class="WorkTrack.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:local="clr-namespace:WorkTrack"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             StartupUri="MainWindow.xaml">
-    <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Teal" SecondaryColor="Lime" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
-                <!--Select colors, options are metrial, metro, orange, blue, black and white-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Colors/black.xaml" /> 
-
-                <!--Select size, options are small, medium and large-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Size/s.xaml" />
-
-                <!--Select weight, options are light, normal and bold-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Weight/light.xaml" />
-
-                <!--Also add the base theme, this is required always-->
-                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/base.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-
-
-            <sys:Double x:Key="FormElementWidth">180</sys:Double>
-            <sys:Double x:Key="FormElementHeight">24</sys:Double>
-            
-            <Thickness x:Key="FormElementMargin">0,10</Thickness>
-            <Thickness x:Key="FormElementPadding">0,5</Thickness>
-
-
-            <Color x:Key="PrimaryColor">#008080</Color>
-            <Color x:Key="ComplementaryColor">#800000</Color>
-            <Color x:Key="DarkTeal">#004D4D</Color>
-            <Color x:Key="LightTeal">#66CCCC</Color>
-            <Color x:Key="Gold">#FFD700</Color>
-            <Color x:Key="LightGray">#F0F0F0</Color>
-            <Color x:Key="DarkGrayBlue">#2C3E50</Color>
-            <Color x:Key="WhiteColor">#FFFFFF</Color>
-
-            <!-- ?????? -->
-            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
-            <SolidColorBrush x:Key="ComplementaryBrush" Color="{StaticResource ComplementaryColor}" />
-            <SolidColorBrush x:Key="DarkTealBrush" Color="{StaticResource DarkTeal}" />
-            <SolidColorBrush x:Key="LightTealBrush" Color="{StaticResource LightTeal}" />
-            <SolidColorBrush x:Key="GoldBrush" Color="{StaticResource Gold}" />
-            <SolidColorBrush x:Key="LightGrayBrush" Color="{StaticResource LightGray}" />
-            <SolidColorBrush x:Key="DarkGrayBlueBrush" Color="{StaticResource DarkGrayBlue}" />
-            <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}" />
-
-            <Style x:Key="CardStyle" TargetType="Border">
-                <Setter Property="CornerRadius" Value="5"/>
-                <Setter Property="BorderBrush" Value="#CCCCCC"/>
-                <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="Margin" Value="10"/>
-                <Setter Property="Padding" Value="10"/>
-                <Setter Property="Effect">
-                    <Setter.Value>
-                        <DropShadowEffect Color="Black" Direction="315" ShadowDepth="5" BlurRadius="10" Opacity="0.5"/>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <!--
-            ??:#F0F0F0 (Light Gray)? #FFFFFF (White)
-            ?????????:#008080 (Teal)
-            ???????:#004D4D (Dark Teal)
-            ???????:#800000 (Maroon)
-            ????:#FFD700 (Gold)
-            ????:#2C3E50 (Dark Gray-Blue)
-            -->
-
-
-        </ResourceDictionary>
-    </Application.Resources>
-</Application>
-
-This file is: App.xaml
-
-using System.Configuration;
-using System.Data;
-using System.Windows;
-
-namespace WorkTrack
-{
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
-    {
-        public static readonly string ConnectionString = "Data Source=Database/app.db";
-    }
-
-}
-
-This file is: App.xaml.cs
-
-
-using System.Diagnostics;
-using System.IO;
-using Dapper;
-using Microsoft.Data.Sqlite;
-using Serilog;
-
-namespace WorkTrack
-{
-    public class DatabaseInitializer
-    {
-        private readonly string DatabasePath = "Database/app.db"; // ????????DatabasePath???readonly
-
-        public void Initialize()
-        {
-            try
-            {
-                string fullPath = Path.Combine(Directory.GetCurrentDirectory(), DatabasePath);
-
-                if (!File.Exists(fullPath))
-                {
-                    // ????????
-                    string directoryPath = Path.GetDirectoryName(fullPath);
-                    if (directoryPath != null)
-                    {
-                        Directory.CreateDirectory(directoryPath);
-                    }
-                    Log.Information("???????: {FullPath}", fullPath);
-
-
-                    using (var connection = new SqliteConnection($"Data Source={fullPath};"))
-                    {
-                        connection.Open();
-
-                        var createTableQueries = new[]
-                        {
-                            @"
-                            CREATE TABLE IF NOT EXISTS TaskBody (
-                                TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                TaskDate DATE NOT NULL,
-                                TaskName TEXT NOT NULL,
-                                DurationLevelID INTEGER,
-                                Duration INTEGER,
-                                Description TEXT,
-                                UnitID INTEGER,
-                                ApplicationID INTEGER,
-                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                DeleteFlag BOOLEAN DEFAULT 0
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS Application (
-                                ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                ApplicationName TEXT,
-                                ApplicationSubName TEXT,
-                                ApplicationStatus TEXT,
-                                ApplicationDatetime DATETIME,
-                                PCDFlag BOOLEAN DEFAULT 0,
-                                UnitID INTEGER,
-                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                DeleteFlag BOOLEAN DEFAULT 0
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS Unit (
-                                UnitID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                UnitName TEXT,
-                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                DeleteFlag BOOLEAN DEFAULT 0
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS TaskHeader (
-                                TaskDate DATE PRIMARY KEY,
-                                OverHours REAL DEFAULT 0,
-                                TotalHours REAL DEFAULT 8,
-                                TotalMins REAL DEFAULT 480,
-                                CustomizedMins REAL DEFAULT 0,
-                                UsedPoints INT DEFAULT 0,
-                                BasicPoints INT DEFAULT 0,
-                                UsedMins REAL DEFAULT 0,
-                                AvailableMins REAL DEFAULT 480,
-                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                DeleteFlag BOOLEAN DEFAULT 0
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS DurationLevel (
-                                DurationLevelID INTEGER PRIMARY KEY,
-                                DurationLevelName TEXT
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS Calendar (
-                                CalendarDate DATE PRIMARY KEY,            
-                                Year TEXT NOT NULL,                       
-                                YearMonth TEXT NOT NULL,                   
-                                YearHalf TEXT NOT NULL,                    
-                                YearQuarter TEXT NOT NULL,                 
-                                YearMonthSequence INTEGER NOT NULL,        
-                                YearQuarterSequence INTEGER NOT NULL,      
-                                YearHalfSequence INTEGER NOT NULL,         
-                                WorkDayFlag BOOLEAN NOT NULL,              
-                                WeeklySequenceMonthly INTEGER NOT NULL     
-                            );"
-                        };
-
-                        foreach (var query in createTableQueries)
-                        {
-                            connection.Execute(query);
-                        }
-
-                        // ??????
-                        var insertDataQuery = new[]
-                        {
-                            @"
-                            INSERT OR IGNORE INTO DurationLevel (DurationLevelID, DurationLevelName) VALUES
-                                (1,'Tiny'),
-                                (2,'Small'),
-                                (3,'Medium'),
-                                (4,'Large'),
-                                (5,'Huge'),
-                                (9,'-Customize-')
-                            ;",
-                            @"
-                            INSERT OR IGNORE INTO Unit (UnitName) VALUES
-                                ('IMD'),
-                                ('FA'),
-                                ('APP'),
-                                ('MECT'),
-                                ('METRO'),
-                                ('CSO'),
-                                ('CSM'),
-                                ('AC'),
-                                ('AR'),
-                                ('PCD')
-                            ;",
-                            @"
-                            WITH RECURSIVE CalendarGenerator AS (
-                                SELECT DATE('2024-03-01') AS CalendarDate
-                                UNION ALL
-                                -- ??????????
-                                SELECT DATE(CalendarDate, '+1 day')
-                                FROM CalendarGenerator
-                                WHERE CalendarDate < DATE('2030-02-28')
-                            ),CalendarData AS (
-                                SELECT 
-                                    CalendarDate,
-                                    CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
-                                        THEN STRFTIME('%Y', CalendarDate)
-                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
-                                    END AS Year,
-                                    CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
-                                        THEN STRFTIME('%Y', CalendarDate) || '/' || STRFTIME('%m', CalendarDate)
-                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year')) || '/' || STRFTIME('%m', CalendarDate)
-                                    END AS YearMonth,
-                                    CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-1H'
-                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-2H'
-                                    END AS YearHalf,
-                                    CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 5 THEN STRFTIME('%Y', CalendarDate) || '-1Q'
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 6 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-2Q'
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 9 AND 11 THEN STRFTIME('%Y', CalendarDate) || '-3Q'
-                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-4Q'
-                                    END AS YearQuarter,
-                                    ROW_NUMBER() OVER (ORDER BY CalendarDate) AS YearMonthSequence,
-                                    ROW_NUMBER() OVER (PARTITION BY CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
-                                        THEN STRFTIME('%Y', CalendarDate)
-                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
-                                    END, CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 5 THEN 1
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 6 AND 8 THEN 2
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 9 AND 11 THEN 3
-                                        ELSE 4
-                                    END ORDER BY CalendarDate) AS YearQuarterSequence,
-                                    ROW_NUMBER() OVER (PARTITION BY CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
-                                        THEN STRFTIME('%Y', CalendarDate)
-                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1?'))
-                                    END, CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 8 THEN 1
-                                        ELSE 2
-                                    END ORDER BY CalendarDate) AS YearHalfSequence,
-                                    CASE 
-                                        WHEN STRFTIME('%w', CalendarDate) IN ('0', '6') THEN False -- ??(0)???(6)??????
-                                        ELSE True -- ??????????
-                                    END AS WorkDayFlag,
-                                    ROW_NUMBER() OVER (PARTITION BY STRFTIME('%Y-%W', CalendarDate) ORDER BY CalendarDate) AS WeeklySequenceMonthly
-                                FROM 
-                                    CalendarGenerator
-                            )
-                            INSERT INTO Calendar
-                            SELECT *
-                            FROM CalendarData
-                            ;",
-                        };
-
-                        foreach (var query in insertDataQuery)
-                        {
-                            connection.Execute(query);
-                        }
-
-
-                        var createTriggerQuery = @"
-                            CREATE TRIGGER IF NOT EXISTS update_TaskHeader_Values
-                            AFTER UPDATE OF OverHours, CustomizedMins, UsedPoints ON TaskHeader
-                            FOR EACH ROW
-                            BEGIN
-                                UPDATE TaskHeader
-                                SET 
-                                    TotalHours = NEW.OverHours + 8,
-                                    TotalMins = (NEW.OverHours + 8) * 60,
-                                    BasicPoints = (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
-                                    UsedMins = NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
-                                    AvailableMins = TotalMins - NEW.CustomizedMins - NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0)
-                                WHERE TaskDate = NEW.TaskDate;
-                            END;
-                        ";
-
-                        connection.Execute(createTriggerQuery);
-                        Debug.WriteLine("?????????????");
-                    }
-                }
-
-
-                // ???????,????????,???????? TaskHeader
-                using (var connection = new SqliteConnection($"Data Source={fullPath};"))
-                {
-                    connection.Open();
-
-                    var insertTodayDateQuery = @"
-                        INSERT OR IGNORE INTO TaskHeader (TaskDate) VALUES
-                        (@TaskDate)
-                    ";
-
-                    connection.Execute(insertTodayDateQuery, new { TaskDate = DateTime.Today });
-                    Log.Information("?????????");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "???????????");
-            }
-        }
-    }
-}
-This file is: DatabaseInitializer.cs
-
-<Window x:Class="WorkTrack.InputTask"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:local="clr-namespace:WorkTrack"
-        mc:Ignorable="d"
-        Title="InputTask" Height="400" Width="250">
-    
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Elements.xaml"/>
-                <ResourceDictionary Source="DataGrid.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
-    
     <Grid>
         <StackPanel x:Name="MainForm" Margin="10,15">
 
             <DatePicker x:Name="ip_TaskDate"
                     Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
                     Width="180"
-                    Padding="0,5"
+                    Padding="0,3"
                     Margin="5,10"
                     materialDesign:HintAssist.Hint="TaskDate"
                     materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
                     Visibility="Collapsed"
-                />
+            />
+            <StackPanel  Orientation="Vertical" Margin="18,-5,10,10">
+                <Label Content="You'd like to keep working until ..." Margin="0" FontSize="10" FontWeight="Bold" ></Label>
 
-            <TextBox x:Name="ip_TaskID"
-                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                         Width="{StaticResource FormElementWidth}"
-                         Padding="{StaticResource FormElementPadding}"
-                         Margin="{StaticResource FormElementMargin}"
-                         materialDesign:HintAssist.Hint="TaskID"
-                         materialDesign:HintAssist.FloatingOffset="0,-12"
-                />
-
-            <TextBox x:Name="ip_TaskName"
-                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                         Width="{StaticResource FormElementWidth}"
-                         Padding="{StaticResource FormElementPadding}"
-                         Margin="{StaticResource FormElementMargin}"
-                         materialDesign:HintAssist.Hint="TaskName"
-                         materialDesign:HintAssist.FloatingOffset="0,-12"
-                         materialDesign:TextFieldAssist.HasClearButton="True"
-                />
-
-            <TextBox x:Name="ip_Describe"
-                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                         Width="{StaticResource FormElementWidth}"
-                         Padding="{StaticResource FormElementPadding}"
-                         Margin="{StaticResource FormElementMargin}"
-                         materialDesign:HintAssist.Hint="Describe"
-                         materialDesign:HintAssist.FloatingOffset="0,-12"
-                         materialDesign:TextFieldAssist.HasClearButton="True"
-                />
-
-            <StackPanel Orientation="Horizontal" Margin="18,10,10,10">
-
-                <ComboBox x:Name="ip_DurationLevelName"
-                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                          Width="110"
-                          Padding="{StaticResource FormElementPadding}"
-                          Margin="0,0,0,5"
-                          materialDesign:HintAssist.Hint="DurationLevel"
-                          materialDesign:HintAssist.FloatingOffset="0,-12"
-                          SelectedValuePath="DurationLevelID"
-                          SelectionChanged="ip_DurationLevelName_SelectionChanged"
-                          >
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding DurationLevelName}">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customize-">
-                                                <Setter Property="Foreground" Value="#4D869C" />
-                                                <Setter Property="FontWeight" Value="Bold" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
+                <ComboBox x:Name="ip_OverTimeHours"
+                              Style="{StaticResource MaterialDesignComboBox}"
+                              Width="{StaticResource FormElementWidth}"
+                              Padding="{StaticResource FormElementPadding}"
+                              materialDesign:HintAssist.Hint="Please choose a time"
+                              materialDesign:HintAssist.FloatingOffset="0,-12"
+                              SelectionChanged="ip_OverTimeHours_SelectionChanged">
+                        <ComboBoxItem Content="~ 18:30"/>
+                        <ComboBoxItem Content="~ 19:00"/>
+                        <ComboBoxItem Content="~ 19:30"/>
+                        <ComboBoxItem Content="~ 20:00"/>
+                        <ComboBoxItem Content="~ 20:30"/>
+                        <ComboBoxItem Content="~ 21:00"/>
+                        <ComboBoxItem Content="~ 21:30"/>
+                        <ComboBoxItem Content="~ 22:00"/>
                 </ComboBox>
-
-                <TextBox x:Name="ip_Duration"
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                     Width="60"
-                     Padding="{StaticResource FormElementPadding}"
-                     Margin="10,0,0,5"
-                     materialDesign:HintAssist.Hint="Duration"
-                     materialDesign:HintAssist.FloatingOffset="0,-12"
-                     materialDesign:TextFieldAssist.HasClearButton="True"
-                     Visibility="Collapsed"
-                />
-
             </StackPanel>
+            
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Height="246">
+                <StackPanel  x:Name="pn_Task" Orientation="Vertical" Margin="18,0,10,10" Visibility="Collapsed">
+
+                    <Label Content="About Your Plan" Margin="0" FontSize="10" FontWeight="Bold" ></Label>
 
 
+                    <TextBox x:Name="ip_TaskName1"
+                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                             Width="{StaticResource FormElementWidth}"
+                             Padding="{StaticResource FormElementPadding}"
+                             materialDesign:HintAssist.Hint="18:00 - 18:30"
+                             materialDesign:HintAssist.FloatingOffset="0,-12"
+                             Text="HI"
+                    />
 
-            <ComboBox x:Name="ip_UnitName"
-                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                      Width="{StaticResource FormElementWidth}"
-                      Padding="{StaticResource FormElementPadding}"
-                      Margin="{StaticResource FormElementMargin}"
-                      materialDesign:HintAssist.Hint="UnitName"
-                      materialDesign:HintAssist.FloatingOffset="0,-12"
-                      SelectedValuePath="UnitID"
-                      SelectionChanged="ip_UnitName_SelectionChanged"
-                      >
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding UnitName}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding UnitName}" Value="-Add-">
-                                            <Setter Property="Foreground" Value="#4D869C" />
-                                            <Setter Property="FontWeight" Value="Bold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+                    <TextBox x:Name="ip_TaskName2"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Width="{StaticResource FormElementWidth}"
+                                 Padding="{StaticResource FormElementPadding}"
+                                 Margin="0,3"
+                                 materialDesign:HintAssist.Hint="18:30 - 19:00"
+                                 materialDesign:HintAssist.FloatingOffset="0,-12"
+                                 Text="HI"
+                    />
 
-            <ComboBox x:Name="ip_ApplicationID"
-                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                          Width="{StaticResource FormElementWidth}"
-                          Padding="{StaticResource FormElementPadding}"
-                          Margin="{StaticResource FormElementMargin}"
-                          materialDesign:HintAssist.Hint="ApplicationID"
-                          materialDesign:HintAssist.FloatingOffset="0,-12"/>
+                    <TextBox x:Name="ip_TaskName3"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Width="{StaticResource FormElementWidth}"
+                                 Padding="{StaticResource FormElementPadding}"
+                                 Margin="0,3"
+                                 materialDesign:HintAssist.Hint="19:00 - 19:30"
+                                 materialDesign:HintAssist.FloatingOffset="0,-12"
+                                 Visibility="Collapsed"
+                    />
+
+                    <TextBox x:Name="ip_TaskName4"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Width="{StaticResource FormElementWidth}"
+                                 Padding="{StaticResource FormElementPadding}"
+                                 Margin="0,3"
+                                 materialDesign:HintAssist.Hint="19:30 - 20:00"
+                                 materialDesign:HintAssist.FloatingOffset="0,-12"
+                                 Visibility="Collapsed"
+                    />
+
+                    <TextBox x:Name="ip_TaskName5"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Width="{StaticResource FormElementWidth}"
+                                 Padding="{StaticResource FormElementPadding}"
+                                 Margin="0,3"
+                                 materialDesign:HintAssist.Hint="20:00 - 20:30"
+                                 materialDesign:HintAssist.FloatingOffset="0,-12"
+                                 Visibility="Collapsed"
+                    />
+
+                    <TextBox x:Name="ip_TaskName6"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Width="{StaticResource FormElementWidth}"
+                                 Padding="{StaticResource FormElementPadding}"
+                                 Margin="0,3"
+                                 materialDesign:HintAssist.Hint="20:30 - 21:00"
+                                 materialDesign:HintAssist.FloatingOffset="0,-12"
+                                 Visibility="Collapsed"
+                    />
+
+                    <TextBox x:Name="ip_TaskName7"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Width="{StaticResource FormElementWidth}"
+                                 Padding="{StaticResource FormElementPadding}"
+                                 Margin="0,3"
+                                 materialDesign:HintAssist.Hint="21:00 - 21:30"
+                                 materialDesign:HintAssist.FloatingOffset="0,-12"
+                                 Visibility="Collapsed"
+                    />
+
+                    <TextBox x:Name="ip_TaskName8"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Width="{StaticResource FormElementWidth}"
+                                 Padding="{StaticResource FormElementPadding}"
+                                 Margin="0,3"
+                                 materialDesign:HintAssist.Hint="21:30 - 22:00"
+                                 materialDesign:HintAssist.FloatingOffset="0,-12"
+                                 Visibility="Collapsed"
+                    />
+                </StackPanel>
+            </ScrollViewer>
+            
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-
 
                 <Button x:Name ="bt_Close"
                         Style="{StaticResource MaterialDesignFlatLightBgButton}"
@@ -1325,10 +151,9 @@ This file is: DatabaseInitializer.cs
                         materialDesign:ButtonAssist.CornerRadius="15"
                         HorizontalAlignment="Center"
                         Content="Close"
-
                         Click="CloseButton_Click"
                         />
-                
+
                 <Button x:Name ="bt_Refresh"
                         Style="{StaticResource MaterialDesignFlatDarkBgButton}"
                         Background="{StaticResource PrimaryBrush}"
@@ -1343,7 +168,7 @@ This file is: DatabaseInitializer.cs
                         Click="RefreshButton_Click"
                         />
 
-                
+
             </StackPanel>
 
 
@@ -1351,7 +176,7 @@ This file is: DatabaseInitializer.cs
     </Grid>
 </Window>
 
-This file is: TaskInput.xaml
+This file is: OverTimeInput.xaml
 
 using Dapper;
 using LiveCharts.Wpf;
@@ -1374,746 +199,58 @@ using System.Data;
 
 namespace WorkTrack
 {
-    /// <summary>
-    /// InputTask.xaml ?????
-    /// </summary>
-    public partial class InputTask : Window
+    public partial class OverTimeInput : Window
     {
-        private readonly Task _taskBody;
-        private readonly bool _isCopyMode;
 
-        public enum TaskInitializationMode
-        {
-            Add,    // ??????
-            Edit,   // ????????
-            Copy    // ????????
-        }
-
-        public InputTask(Task taskBody, TaskInitializationMode initializationMode)
+        public OverTimeInput()  // ??????
         {
             InitializeComponent();
-            _taskBody = taskBody;
-            _isCopyMode = initializationMode == TaskInitializationMode.Copy;
-
-            Loaded += MainWindow_Loaded;
-            ip_TaskName.Focus();
         }
 
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private void ip_OverTimeHours_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            await LoadOption();
 
-            // ?????
-            ip_TaskDate.SelectedDate = _taskBody.TaskDate != DateTime.MinValue ? _taskBody.TaskDate : DateTime.Today;
-            ip_TaskName.Text = _taskBody.TaskName;
-            ip_Describe.Text = _taskBody.Description;
-            ip_DurationLevelName.SelectedValue = _taskBody.DurationLevelID != 0 ? _taskBody.DurationLevelID : ip_DurationLevelName.Items[2];
-            ip_Duration.Text = _taskBody.Duration.ToString();
-            ip_UnitName.SelectedValue = _taskBody.UnitID != 0 ? _taskBody.UnitID : ip_UnitName.Items[0];
-            ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
-
-            // ??????????? TaskID ?????
-            this.Title = _isCopyMode ? "Copy Task" : _taskBody.TaskID == 0 ? "Add Task" : "Change Task";
-            ip_TaskID.Visibility = _taskBody.TaskID == 0 || _isCopyMode ? Visibility.Collapsed : Visibility.Visible;
-            if (!_isCopyMode && _taskBody.TaskID != 0)
+            if (ip_OverTimeHours.SelectedItem == null)
             {
-                ip_TaskID.Text = _taskBody.TaskID.ToString();
-            }
-        }
-
-        private async System.Threading.Tasks.Task LoadOption()
-        {
-            try
-            {
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                // ?? UnitNames ??
-                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID, UnitName FROM Unit")).ToList();
-                unitNames.Add(new Unit { UnitID = 0, UnitName = "-Add-" });
-                ip_UnitName.ItemsSource = unitNames;
-                ip_UnitName.SelectedIndex = 0;
-
-                // ?? DurationLevels ??
-                var durationLevelNames = (await connection.QueryAsync<DurationLevel>("SELECT DurationLevelID, DurationLevelName FROM DurationLevel")).ToList();
-                ip_DurationLevelName.ItemsSource = durationLevelNames;
-                ip_DurationLevelName.SelectedIndex = 2;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"?????????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-        }
-
-
-        private void ip_DurationLevelName_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ip_DurationLevelName.SelectedIndex == 5) 
-            {
-                ip_Duration.Visibility = Visibility.Visible;
-                ip_DurationLevelName.Width = 110;
-                ip_Duration.Focus();
-                ip_Duration.SelectAll();
-            }
-            else
-            {
-                ip_Duration.Visibility = Visibility.Collapsed;
-                ip_DurationLevelName.Width = 180;
-            }
-        }
-        private void ip_UnitName_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ip_UnitName.SelectedItem != null && ip_UnitName.SelectedItem.ToString() == "-Add-")
-            {
-                UnitManagement unitManagementWindow = new UnitManagement();
-                unitManagementWindow.Closed += UnitManagementWindow_Closed;
-                unitManagementWindow.ShowDialog();
-            }
-        }
-        private async void UnitManagementWindow_Closed(object sender, EventArgs e)
-        {
-            await LoadOption(); // ??????UnitName??
-        }
-
-
-        private async System.Threading.Tasks.Task RefreshTaskBodyAsync()
-        {
-            try
-            {
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                DateTime? taskDate = ip_TaskDate.SelectedDate;
-                string taskID = ip_TaskID.Text;
-                string taskName = ip_TaskName.Text;
-                string description = ip_Describe.Text;
-                int durationLevelID = (int)ip_DurationLevelName.SelectedValue;
-                int? duration = string.IsNullOrEmpty(ip_Duration.Text) ? (int?)null : int.Parse(ip_Duration.Text);
-                int selectedUnitID = (int)ip_UnitName.SelectedValue;
-                string applicationID = ip_ApplicationID.Text;
-
-
-                if (string.IsNullOrEmpty(taskID))
-                {
-                    var insertQuery = $$"""
-                        INSERT INTO TaskBody (TaskDate, TaskName, DurationLevelID, Duration, Description, UnitID, ApplicationID)
-                        VALUES (@TaskDate, @TaskName, @DurationLevelID, @Duration, @Description, @UnitID, @ApplicationID);
-                    """;
-
-                    await connection.ExecuteAsync(insertQuery, new
-                    {
-                        TaskDate = taskDate,
-                        TaskName = taskName,
-                        DurationLevelID = durationLevelID,
-                        Duration = duration,
-                        Description = description,
-                        UnitID = selectedUnitID,
-                        ApplicationID = applicationID,
-                    });
-                }
-                else
-                {
-                    var updateQuery = $$"""
-                        UPDATE TaskBody
-                        SET TaskName = @TaskName, DurationLevelID = @DurationLevelID, Duration = @Duration, Description = @Description,
-                            UnitID = @UnitID, ApplicationID = @ApplicationID
-                        WHERE TaskID = @TaskID;
-                    """;
-
-                    await connection.ExecuteAsync(updateQuery, new
-                    {
-                        TaskName = taskName,
-                        DurationLevelID = durationLevelID,
-                        Duration = duration,
-                        Description = description,
-                        UnitID = selectedUnitID,
-                        ApplicationID = applicationID,
-                        TaskID = taskID
-                    });
-                }
-
-                var insertOrUpdateTaskHeader = $$"""
-                   
-
-                    WITH CTE AS (
-                        SELECT 
-                            sum(CASE WHEN DurationLevelID != 0 THEN DurationLevelID END) as UsedPoints
-                            ,sum(CASE WHEN DurationLevelID = 0 THEN Duration END) as CustomizedMins
-                        FROM TaskBody
-                        WHERE TaskDate = @TaskDate
-                    )
-                    UPDATE TaskHeader
-                    SET
-                        UsedPoints = coalesce(CTE.UsedPoints, 0)
-                        ,CustomizedMins = coalesce(CTE.CustomizedMins, 0)
-                    FROM CTE
-                    WHERE TaskHeader.TaskDate = @TaskDate
-                    ;
-
-                    UPDATE TaskBody
-                    SET Duration = CAST(durationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate) AS INTEGER)
-                    WHERE
-                        durationLevelID != 0
-                        and TaskDate = @TaskDate
-                    ;
-                """;
-
-                await connection.ExecuteAsync(insertOrUpdateTaskHeader, new{TaskDate = taskDate});
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to update task body: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-        }
-        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(ip_TaskName.Text))
-            {
-                MessageBox.Show("Input TaskName", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            await RefreshTaskBodyAsync();
-
-            // ?? MainFrame.Content ? TaskPage
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            if (mainWindow?.MainFrame.Content is TaskPage taskPage)
+            if (ip_OverTimeHours.SelectedItem is ComboBoxItem selectedItem)
             {
-                var taskViewModel = taskPage.DataContext as WorkTrack.ViewModel.TaskViewModel;
-                taskViewModel?.LoadTasksCommand.Execute(null); // ?? ViewModel ? Command ?????
-            }
+                string selectedText = selectedItem.Content.ToString();
+                int selectedIndex = ip_OverTimeHours.Items.IndexOf(selectedItem);  // ?? ComboBox ? index ??????
 
-            ip_TaskID.Clear();
-            ip_TaskName.Clear();
-            ip_Describe.Clear();
-            ip_DurationLevelName.SelectedIndex = 2;
-            ip_UnitName.SelectedIndex = 0;
-            ip_ApplicationID.SelectedIndex = 0;
+                for (int i = 0; i < pn_Task.Children.Count; i++)
+                {
+                    if (i < selectedIndex + 1)  // ????? index ????? TextBox
+                    {
+                        ((TextBox)pn_Task.Children[i]).Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        ((TextBox)pn_Task.Children[i]).Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
         }
 
+        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close(); // ??????
+        }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             this.Close(); // ??????
         }
 
+
     }
+
 
 
 }
 
-This file is: TaskInput.xaml.cs
-
-<Window x:Class="WorkTrack.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WorkTrack"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000"
-        WindowStartupLocation="CenterScreen"
-        Background="White"
-        FontFamily="Calibri"
-        >
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Elements.xaml"/>
-                <ResourceDictionary Source="DataGrid.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="200" />
-        </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0" >
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="390"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0" HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Border Style="{StaticResource CardStyle}" Grid.Column="0" Background="White">
-                    <!--#7AB2B2-->
-                    <!-- Card 1 Content -->
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="25"/>
-                            <RowDefinition Height="60"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
-                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                <materialDesign:PackIcon Kind="ClipboardEditOutline"
-                                                         Width="20"
-                                                         Height="20"
-                                                         Margin="5,0,0,0"
-                                                         HorizontalAlignment="Center"
-                                                         VerticalAlignment="Center"/>
-                                <TextBlock Text="TaskView"
-                                               Margin="5,0,0,0"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               FontSize="20"
-                                               FontWeight="Bold"/>
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="12*"/>
-                                <ColumnDefinition Width="10*"/>
-                                <ColumnDefinition Width="7*"/>
-                                <ColumnDefinition Width="198*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock x:Name="ChartDate" Text="{Binding TodayDate, StringFormat=' {0:yyyy-MM-dd}'}" FontSize="12" Margin="5,10,0,0" Grid.ColumnSpan="4"/>
-                        </Grid>
-                        <Grid Grid.Row="2">
-                            <StackPanel Orientation="Vertical">
-                                <lvc:CartesianChart MinWidth="100" Series="{Binding SeriesCollection}" Margin="0,-15,0,-10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                    <lvc:CartesianChart.AxisX>
-                                        <lvc:Axis Title="" Labels="">
-                                            <lvc:Axis.Separator>
-                                                <lvc:Separator StrokeThickness="0"/>
-                                            </lvc:Axis.Separator>
-                                        </lvc:Axis>
-                                    </lvc:CartesianChart.AxisX>
-
-                                    <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="" Labels="">
-                                            <lvc:Axis.Separator>
-                                                <lvc:Separator StrokeThickness="0"/>
-                                            </lvc:Axis.Separator>
-                                        </lvc:Axis>
-                                    </lvc:CartesianChart.AxisY>
-
-                                </lvc:CartesianChart>
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="3">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                            </Grid>
-                            <StackPanel Grid.Column="0" Orientation="Vertical">
-                                <StackPanel Orientation="Horizontal" Height="20">
-                                    <TextBlock Text="Task Count :"
-                                                        FontSize="11"
-                                                        Foreground="Gray"
-                                                        Margin="5,0,0,0"
-                                                        FontWeight="Bold"
-                                                        VerticalAlignment="Bottom"
-                                                        />
-                                    <TextBlock x:Name="Card_Label1"
-                                                        Text=""
-                                                        FontSize="15"
-                                                        Foreground="DarkCyan"
-                                                        Margin="5,0,0,0"
-                                                        FontWeight="Bold"
-                                                        VerticalAlignment="Bottom"
-                                                        />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Height="20">
-                                    <TextBlock Text="UsedPoints:"
-                                                   FontSize="11"
-                                                   Foreground="Gray"
-                                                   Margin="5,0,0,0"
-                                                   FontWeight="Bold"
-                                                   VerticalAlignment="Bottom"
-                                                   />
-                                    <TextBlock x:Name="Card_Label2"
-                                                   Text=""
-                                                   FontSize="15"
-                                                   Foreground="DarkCyan"
-                                                   Margin="5,0,0,0"
-                                                   FontWeight="Bold"
-                                                   VerticalAlignment="Bottom"
-                                                   />
-                                </StackPanel>
-
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click"  Style="{StaticResource MaterialDesignFlatButton}">
-                                    <materialDesign:PackIcon Kind="ClockPlusOutline" 
-                                                             Width="20" 
-                                                             Height="20" 
-                                                             Foreground="#008080" 
-                                                             HorizontalAlignment="Center" 
-                                                             VerticalAlignment="Center"/>
-                                </Button>
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_CardAddTask_Click" Style="{StaticResource MaterialDesignFlatButton}">
-                                    <materialDesign:PackIcon Kind="ClipboardPlusOutline" 
-                                                             Width="20" 
-                                                             Height="20" 
-                                                             Foreground="#008080" 
-                                                             HorizontalAlignment="Center" 
-                                                             VerticalAlignment="Center"/>
-                                </Button>
-                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click"  Style="{StaticResource MaterialDesignFlatButton}">
-                                    <materialDesign:PackIcon Kind="ClipboardSearchOutline" 
-                                                             Width="20" 
-                                                             Height="20" 
-                                                             Foreground="#008080" 
-                                                             HorizontalAlignment="Center" 
-                                                             VerticalAlignment="Center"/>
-                                </Button>
-
-                            </StackPanel>
-                        </Grid>
-                    </Grid>
-
-                </Border>
-
-                <Border Style="{StaticResource CardStyle}" Grid.Column="1" Background="#4D869C">
-                    <!-- Card 2 Content -->
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="300"/>
-                            <RowDefinition Height="20"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
-                            <StackPanel Orientation="Horizontal">
-                                <Image Source="/icon/edit.png"
-                                               Width="20"
-                                               Height="20"
-                                               Margin="10,0,0,0"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
-                                <TextBlock Text="TaskView"
-                                               Margin="5,0,0,0"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               FontSize="20"
-                                               FontWeight="Bold"/>
-                            </StackPanel>
-                        </Grid>
-                        <Grid Grid.Row="1">
-
-                        </Grid>
-                    </Grid>
-                </Border>
-
-                <Border Style="{StaticResource CardStyle}" Grid.Column="2" Background="#CDE8E5">
-                    <!-- Card 3 Content -->
-                    <StackPanel>
-                        <TextBlock Text="Index 3" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"/>
-                        <TextBlock Text="" />
-                        <TextBlock Text="Index 3 Content" HorizontalAlignment="Left" VerticalAlignment="Center"  FontSize="10"/>
-                    </StackPanel>
-                </Border>
-
-            </Grid>
-
-            <Frame x:Name="MainFrame" Grid.Row="1" HorizontalAlignment="Stretch" NavigationUIVisibility="Hidden"/>
-
-        </Grid>
-
-        <Grid Grid.Column="1">
-
-        </Grid>
-    </Grid>
-</Window>
-
-This file is: MainWindow.xaml
-
-using Dapper;
-using LiveCharts;
-using LiveCharts.Wpf;
-using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Navigation;
-using static WorkTrack.InputTask;
-using Serilog;
-
-namespace WorkTrack
-{
-    public partial class MainWindow : Window
-    {
-        private TaskSearch _taskSearch;
-        public DateTime TodayDate { get; set; }
-        public ChartValues<double> TaskDurations { get; set; } = new ChartValues<double>();
-        public SeriesCollection SeriesCollection { get; set; } = new SeriesCollection();
-
-        public MainWindow()
-        {
-            InitializeComponent();
-            LogConfiguration.Initialize(); // ???????
-
-            Log.Information("MainWindow initialized.");
-
-            _taskSearch = new TaskSearch();  // ??? TaskSearch
-            DataContext = this;
-            TodayDate = DateTime.Now;
-
-            Log.Information("Navigating to Page0_Welcome.");
-            MainFrame.NavigationService.Navigate(new Page0_Welcome());
-
-            try
-            {
-                Log.Information("Initializing database.");
-                DatabaseInitializer dbInitializer = new DatabaseInitializer();
-                dbInitializer.Initialize();
-                Log.Information("Database initialized successfully.");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to initialize database.");
-                MessageBox.Show($"Database initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-            _ = InitializeStackedColumnChart(DateTime.Today);
-        }
-
-        #region Cd1_Bt
-
-        public async System.Threading.Tasks.Task InitializeStackedColumnChart(DateTime selectedDate)
-        {
-            SeriesCollection.Clear();
-
-            try
-            {
-                Log.Information("Fetching tasks for {SelectedDate}", selectedDate);
-                var tasks = await _taskSearch.GetTasks(selectedDate);  // ? TaskSearch ?????????
-                Log.Information("Fetched {TaskCount} tasks.", tasks.Count());
-
-                int taskCount = 0;
-                int pointsCount = 0;
-
-                foreach (var task in tasks)
-                {
-                    taskCount++;
-                    pointsCount += task.DurationLevelID;
-
-                    SeriesCollection.Add(new StackedRowSeries
-                    {
-                        Values = new ChartValues<double> { task.Duration },
-                        StackMode = StackMode.Values,
-                        DataLabels = true,
-                        Fill = Brushes.Teal,
-                        Stroke = Brushes.White,
-                        StrokeThickness = 0.5,
-                        MaxRowHeight = 20,
-                        Title = task.TaskName
-                    });
-                }
-
-                // ?????????
-                var Emptyquery = "SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate";
-                var durations = await ExecuteQueryAsync<int>(Emptyquery, new { TaskDate = DateTime.Now.Date });
-
-                foreach (var duration in durations)
-                {
-                    SeriesCollection.Add(new StackedRowSeries
-                    {
-                        Values = new ChartValues<double> { duration },
-                        StackMode = StackMode.Values,
-                        DataLabels = true,
-                        Fill = Brushes.Gray,
-                        Stroke = Brushes.White,
-                        StrokeThickness = 0.5,
-                        MaxRowHeight = 20,
-                        Title = "Empty",
-                    });
-                }
-
-                Card_Label1.Text = taskCount.ToString();
-                Card_Label2.Text = pointsCount.ToString();
-
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to load task durations for {SelectedDate}.", selectedDate);
-                MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string query, object parameters = null)
-        {
-            try
-            {
-                Log.Information("Executing query: {Query}", query);
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-                var result = await connection.QueryAsync<T>(query, parameters);
-                Log.Information("Query executed successfully.");
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to execute query: {Query}", query);
-                MessageBox.Show($"Failed to execute query: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return Enumerable.Empty<T>();
-            }
-        }
-
-        private void bt_OverTime_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.NavigationService.Navigate(new TaskPage());
-        }
-
-        private void bt_CardAddTask_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.NavigationService.Navigate(new TaskPage());
-
-            var newTask = new Task { TaskDate = DateTime.Today };
-            InputTask inputTaskWindow = new InputTask(newTask, TaskInitializationMode.Add);
-            inputTaskWindow.Left = this.Width - this.Left ; // ??????????????
-            inputTaskWindow.Top = this.Top + 100; // ??????????
-            inputTaskWindow.ShowDialog();
-        }
-
-        private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.NavigationService.Navigate(new TaskPage());
-        }
-
-        #endregion
-    }
-}
-
-This file is: MainWindow.xaml.cs
-
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
-using System;
-
-namespace WorkTrack
-{
-    public static class LogConfiguration
-    {
-        public static void Initialize()
-        {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information() // ??? Information ??
-                .WriteTo.Console() // ?????????
-                .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7) // ???? 7 ????
-                .CreateLogger();
-        }
-    }
-
-    public class ConsoleSink : ILogEventSink
-    {
-        public void Emit(LogEvent logEvent)
-        {
-            Console.WriteLine(logEvent.RenderMessage());
-        }
-    }
-}
-
-This file is: Serilog.cs
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WorkTrack
-{
-    public class Task
-    {
-        public int TaskID { get; set; }
-        public string TaskName { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int DurationLevelID { get; set; }
-        public String DurationLevelName { get; set; } = string.Empty;
-        public int Duration { get; set; }
-        public int UnitID { get; set; }
-        public string UnitName { get; set; } = string.Empty;
-        public string ApplicationID { get; set; } = string.Empty;
-        public bool DeleteFlag { get; set; }
-        public DateTime TaskDate { get; set; }
-    }
-
-    public class Unit
-    {
-        public int UnitID { get; set; }
-        public string UnitName { get; set; } = string.Empty;
-    }
-
-    public class DurationLevel
-    {
-    
-        public int DurationLevelID { get; set; }
-        public string DurationLevelName { get; set; } = string.Empty;
-
-    }
-}
-This file is: Task.cs
-
-using Dapper;
-using Microsoft.Data.Sqlite;
-using LiveCharts;
-using LiveCharts.Wpf;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Navigation;
-
-namespace WorkTrack 
-{
-    public class TaskSearch
-    {
-
-        public async Task<List<Task>> GetTasks(DateTime taskDate)
-        {
-            var query = """
-                SELECT
-                    p1.*
-                    ,t1.UnitName
-                    ,t2.DurationLevelName
-                FROM
-                    TaskBody p1
-                    LEFT JOIN Unit t1 on p1.UnitID = t1.UnitID
-                    LEFT JOIN DurationLevel t2 on p1.DurationLevelID = t2.DurationLevelID
-                WHERE TaskDate = @TaskDate
-             """;
-
-            await using var connection = new SqliteConnection(App.ConnectionString);
-            await connection.OpenAsync();
-
-            return (await connection.QueryAsync<Task>(query, new { TaskDate = taskDate })).ToList();
-        }
-
-        public async System.Threading.Tasks.Task UpdateTaskBodyAsync(Task taskBody)
-        {
-            await using var connection = new SqliteConnection(App.ConnectionString);
-            await connection.OpenAsync();
-
-            // ?????? TaskBody ???
-        }
-
-        // ??????
-    }
-
-}
-
-This file is: TaskSearch.cs
+This file is: OverTimeInput.xaml.cs
 
 Based on the above files, solve my requirements. Please answer in Traditional Chinese, prioritizing solutions that reduce system load, with maintainability as secondary. Responses should be clear, concise, and to the point. Since there are many different files, please first provide the file names and present the solutions in a before-and-after comparison format. For both the before and after content, only show the modified sections, no need to display everything. My requirement is:

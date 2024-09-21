@@ -20,9 +20,9 @@ using System.Data;
 namespace WorkTrack
 {
     /// <summary>
-    /// InputTask.xaml 的互動邏輯
+    /// TaskInput.xaml 的互動邏輯
     /// </summary>
-    public partial class InputTask : Window
+    public partial class TaskInput : Window
     {
         private readonly Task _taskBody;
         private readonly bool _isCopyMode;
@@ -34,7 +34,7 @@ namespace WorkTrack
             Copy    // 用於複製現有任務
         }
 
-        public InputTask(Task taskBody, TaskInitializationMode initializationMode)
+        public TaskInput(Task taskBody, TaskInitializationMode initializationMode)
         {
             InitializeComponent();
             _taskBody = taskBody;
@@ -223,12 +223,12 @@ namespace WorkTrack
             await RefreshTaskBodyAsync();
 
             // 確保 MainFrame.Content 是 TaskPage
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            if (mainWindow?.MainFrame.Content is TaskPage taskPage)
-            {
-                var taskViewModel = taskPage.DataContext as WorkTrack.ViewModel.TaskViewModel;
-                taskViewModel?.LoadTasksCommand.Execute(null); // 通過 ViewModel 的 Command 來更新資料
-            }
+            // var mainWindow = Application.Current.MainWindow as MainWindow;
+            // if (mainWindow?.MainFrame.Content is TaskPage taskPage)
+            // {
+            // var taskViewModel = taskPage.DataContext as WorkTrack.ViewModel.TaskViewModel;
+            // taskViewModel?.LoadTasksCommand.Execute(null); // 通過 ViewModel 的 Command 來更新資料
+            // }
 
             ip_TaskID.Clear();
             ip_TaskName.Clear();
