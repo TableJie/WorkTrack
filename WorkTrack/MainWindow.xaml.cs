@@ -137,7 +137,10 @@ namespace WorkTrack
         private void bt_OverTime_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.NavigationService.Navigate(new TaskPage());
-            OverTimeInput overTimeInputWindow = new OverTimeInput();
+            DateTime selectedDate = DateTime.Today;
+            OverTimeInput overTimeInputWindow = new OverTimeInput(selectedDate);
+
+            // 設置子視窗位置
             overTimeInputWindow.Left = this.Width - this.Left; // 設置子視窗顯示在主視窗的右側
             overTimeInputWindow.Top = this.Top + 100; // 垂直位置與主視窗對齊
             overTimeInputWindow.ShowDialog();

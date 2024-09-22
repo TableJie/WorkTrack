@@ -32,13 +32,13 @@
             <StackPanel  Orientation="Vertical" Margin="18,-5,10,10">
                 <Label Content="You'd like to keep working until ..." Margin="0" FontSize="10" FontWeight="Bold" ></Label>
 
-                <ComboBox x:Name="ip_OverTimeHours"
+                <ComboBox x:Name="ip_OverHours"
                               Style="{StaticResource MaterialDesignComboBox}"
                               Width="{StaticResource FormElementWidth}"
                               Padding="{StaticResource FormElementPadding}"
                               materialDesign:HintAssist.Hint="Please choose a time"
                               materialDesign:HintAssist.FloatingOffset="0,-12"
-                              SelectionChanged="ip_OverTimeHours_SelectionChanged">
+                              SelectionChanged="ip_OverHours_SelectionChanged">
                         <ComboBoxItem Content="~ 18:30"/>
                         <ComboBoxItem Content="~ 19:00"/>
                         <ComboBoxItem Content="~ 19:30"/>
@@ -51,89 +51,90 @@
             </StackPanel>
             
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Height="246">
-                <StackPanel  x:Name="pn_Task" Orientation="Vertical" Margin="18,0,10,10" Visibility="Collapsed">
+                <StackPanel  x:Name="pn_Task" Orientation="Vertical" Margin="18,0,10,10">
 
                     <Label Content="About Your Plan" Margin="0" FontSize="10" FontWeight="Bold" ></Label>
 
-
-                    <TextBox x:Name="ip_TaskName1"
-                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                             Width="{StaticResource FormElementWidth}"
-                             Padding="{StaticResource FormElementPadding}"
-                             materialDesign:HintAssist.Hint="18:00 - 18:30"
-                             materialDesign:HintAssist.FloatingOffset="0,-12"
-                             Text="HI"
-                    />
-
-                    <TextBox x:Name="ip_TaskName2"
+                    <StackPanel x:Name="pn_Plan">
+                        <TextBox x:Name="ip_TaskPlan1"
                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                  Width="{StaticResource FormElementWidth}"
-                                 Padding="{StaticResource FormElementPadding}"
-                                 Margin="0,3"
-                                 materialDesign:HintAssist.Hint="18:30 - 19:00"
-                                 materialDesign:HintAssist.FloatingOffset="0,-12"
-                                 Text="HI"
-                    />
-
-                    <TextBox x:Name="ip_TaskName3"
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                 Width="{StaticResource FormElementWidth}"
-                                 Padding="{StaticResource FormElementPadding}"
-                                 Margin="0,3"
-                                 materialDesign:HintAssist.Hint="19:00 - 19:30"
+                                     Margin="0,3"
+                                 materialDesign:HintAssist.Hint="18:00 - 18:30"
                                  materialDesign:HintAssist.FloatingOffset="0,-12"
                                  Visibility="Collapsed"
-                    />
+                        />
 
-                    <TextBox x:Name="ip_TaskName4"
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                 Width="{StaticResource FormElementWidth}"
-                                 Padding="{StaticResource FormElementPadding}"
-                                 Margin="0,3"
-                                 materialDesign:HintAssist.Hint="19:30 - 20:00"
-                                 materialDesign:HintAssist.FloatingOffset="0,-12"
-                                 Visibility="Collapsed"
-                    />
+                        <TextBox x:Name="ip_TaskPlan2"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="18:30 - 19:00"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
 
-                    <TextBox x:Name="ip_TaskName5"
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                 Width="{StaticResource FormElementWidth}"
-                                 Padding="{StaticResource FormElementPadding}"
-                                 Margin="0,3"
-                                 materialDesign:HintAssist.Hint="20:00 - 20:30"
-                                 materialDesign:HintAssist.FloatingOffset="0,-12"
-                                 Visibility="Collapsed"
-                    />
+                        <TextBox x:Name="ip_TaskPlan3"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="19:00 - 19:30"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
 
-                    <TextBox x:Name="ip_TaskName6"
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                 Width="{StaticResource FormElementWidth}"
-                                 Padding="{StaticResource FormElementPadding}"
-                                 Margin="0,3"
-                                 materialDesign:HintAssist.Hint="20:30 - 21:00"
-                                 materialDesign:HintAssist.FloatingOffset="0,-12"
-                                 Visibility="Collapsed"
-                    />
+                        <TextBox x:Name="ip_TaskPlan4"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="19:30 - 20:00"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
 
-                    <TextBox x:Name="ip_TaskName7"
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                 Width="{StaticResource FormElementWidth}"
-                                 Padding="{StaticResource FormElementPadding}"
-                                 Margin="0,3"
-                                 materialDesign:HintAssist.Hint="21:00 - 21:30"
-                                 materialDesign:HintAssist.FloatingOffset="0,-12"
-                                 Visibility="Collapsed"
-                    />
+                        <TextBox x:Name="ip_TaskPlan5"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="20:00 - 20:30"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
 
-                    <TextBox x:Name="ip_TaskName8"
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                 Width="{StaticResource FormElementWidth}"
-                                 Padding="{StaticResource FormElementPadding}"
-                                 Margin="0,3"
-                                 materialDesign:HintAssist.Hint="21:30 - 22:00"
-                                 materialDesign:HintAssist.FloatingOffset="0,-12"
-                                 Visibility="Collapsed"
-                    />
+                        <TextBox x:Name="ip_TaskPlan6"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="20:30 - 21:00"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+
+                        <TextBox x:Name="ip_TaskPlan7"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="21:00 - 21:30"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+
+                        <TextBox x:Name="ip_TaskPlan8"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="21:30 - 22:00"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
             
@@ -196,47 +197,56 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace WorkTrack
 {
     public partial class OverTimeInput : Window
     {
+        private readonly DateTime _taskDate;
 
-        public OverTimeInput()  // ??????
+        public OverTimeInput(DateTime taskDate)
         {
             InitializeComponent();
+            _taskDate = taskDate;
+            ip_TaskDate.SelectedDate = _taskDate;
         }
 
-        private void ip_OverTimeHours_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+        private void ip_OverHours_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
-            if (ip_OverTimeHours.SelectedItem == null)
+            if (ip_OverHours.SelectedItem == null)
             {
+                pn_Task.Visibility = Visibility.Collapsed;
                 return;
             }
 
-            if (ip_OverTimeHours.SelectedItem is ComboBoxItem selectedItem)
-            {
-                string selectedText = selectedItem.Content.ToString();
-                int selectedIndex = ip_OverTimeHours.Items.IndexOf(selectedItem);  // ?? ComboBox ? index ??????
+            pn_Task.Visibility = Visibility.Visible;
 
-                for (int i = 0; i < pn_Task.Children.Count; i++)
+            if (ip_OverHours.SelectedItem is ComboBoxItem selectedItem)
+            {
+
+                int selectedIndex = ip_OverHours.Items.IndexOf(selectedItem);  // ?? ComboBox ? index ??????
+
+                for (int i = 0; i < pn_Plan.Children.Count; i++)
                 {
                     if (i < selectedIndex + 1)  // ????? index ????? TextBox
                     {
-                        ((TextBox)pn_Task.Children[i]).Visibility = Visibility.Visible;
+                        ((TextBox)pn_Plan.Children[i]).Visibility = Visibility.Visible;
                     }
                     else
                     {
-                        ((TextBox)pn_Task.Children[i]).Visibility = Visibility.Collapsed;
+                        ((TextBox)pn_Plan.Children[i]).Visibility = Visibility.Collapsed;
                     }
                 }
             }
         }
 
-        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            this.Close(); // ??????
+
+            this.Close();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)

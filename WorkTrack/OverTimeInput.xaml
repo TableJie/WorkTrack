@@ -32,13 +32,13 @@
             <StackPanel  Orientation="Vertical" Margin="18,-5,10,10">
                 <Label Content="You'd like to keep working until ..." Margin="0" FontSize="10" FontWeight="Bold" ></Label>
 
-                <ComboBox x:Name="ip_OverTimeHours"
+                <ComboBox x:Name="ip_OverHours"
                               Style="{StaticResource MaterialDesignComboBox}"
                               Width="{StaticResource FormElementWidth}"
                               Padding="{StaticResource FormElementPadding}"
                               materialDesign:HintAssist.Hint="Please choose a time"
                               materialDesign:HintAssist.FloatingOffset="0,-12"
-                              SelectionChanged="ip_OverTimeHours_SelectionChanged">
+                              SelectionChanged="ip_OverHours_SelectionChanged">
                         <ComboBoxItem Content="~ 18:30"/>
                         <ComboBoxItem Content="~ 19:00"/>
                         <ComboBoxItem Content="~ 19:30"/>
@@ -56,7 +56,7 @@
                     <Label Content="About Your Plan" Margin="0" FontSize="10" FontWeight="Bold" ></Label>
 
                     <StackPanel x:Name="pn_Plan">
-                        <TextBox x:Name="ip_TaskName1"
+                        <TextBox x:Name="ip_TaskPlan1"
                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                  Width="{StaticResource FormElementWidth}"
                                      Margin="0,3"
@@ -65,7 +65,7 @@
                                  Visibility="Collapsed"
                         />
 
-                        <TextBox x:Name="ip_TaskName2"
+                        <TextBox x:Name="ip_TaskPlan2"
                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                      Width="{StaticResource FormElementWidth}"
                                      Padding="{StaticResource FormElementPadding}"
@@ -75,7 +75,7 @@
                                      Visibility="Collapsed"
                         />
 
-                        <TextBox x:Name="ip_TaskName3"
+                        <TextBox x:Name="ip_TaskPlan3"
                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                      Width="{StaticResource FormElementWidth}"
                                      Padding="{StaticResource FormElementPadding}"
@@ -85,7 +85,7 @@
                                      Visibility="Collapsed"
                         />
 
-                        <TextBox x:Name="ip_TaskName4"
+                        <TextBox x:Name="ip_TaskPlan4"
                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                      Width="{StaticResource FormElementWidth}"
                                      Padding="{StaticResource FormElementPadding}"
@@ -95,7 +95,7 @@
                                      Visibility="Collapsed"
                         />
 
-                        <TextBox x:Name="ip_TaskName5"
+                        <TextBox x:Name="ip_TaskPlan5"
                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                      Width="{StaticResource FormElementWidth}"
                                      Padding="{StaticResource FormElementPadding}"
@@ -105,7 +105,7 @@
                                      Visibility="Collapsed"
                         />
 
-                        <TextBox x:Name="ip_TaskName6"
+                        <TextBox x:Name="ip_TaskPlan6"
                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                      Width="{StaticResource FormElementWidth}"
                                      Padding="{StaticResource FormElementPadding}"
@@ -115,7 +115,7 @@
                                      Visibility="Collapsed"
                         />
 
-                        <TextBox x:Name="ip_TaskName7"
+                        <TextBox x:Name="ip_TaskPlan7"
                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                      Width="{StaticResource FormElementWidth}"
                                      Padding="{StaticResource FormElementPadding}"
@@ -125,7 +125,7 @@
                                      Visibility="Collapsed"
                         />
 
-                        <TextBox x:Name="ip_TaskName8"
+                        <TextBox x:Name="ip_TaskPlan8"
                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                      Width="{StaticResource FormElementWidth}"
                                      Padding="{StaticResource FormElementPadding}"

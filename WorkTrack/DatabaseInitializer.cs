@@ -81,6 +81,21 @@ namespace WorkTrack
                                 DeleteFlag BOOLEAN DEFAULT 0
                             );",
                             @"
+                            CREATE TABLE IF NOT EXISTS OverTime (
+                                TaskDate DATE PRIMARY KEY,
+                                OverHours REAL DEFAULT 0,
+                                TaskPlan1 TEXT DEFAULT null,
+                                TaskPlan2 TEXT DEFAULT null,
+                                TaskPlan3 TEXT DEFAULT null,
+                                TaskPlan4 TEXT DEFAULT null,
+                                TaskPlan5 TEXT DEFAULT null,
+                                TaskPlan6 TEXT DEFAULT null,
+                                TaskPlan7 TEXT DEFAULT null,
+                                TaskPlan8 TEXT DEFAULT null,
+                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                DeleteFlag BOOLEAN DEFAULT 0
+                            );",
+                            @"
                             CREATE TABLE IF NOT EXISTS DurationLevel (
                                 DurationLevelID INTEGER PRIMARY KEY,
                                 DurationLevelName TEXT
