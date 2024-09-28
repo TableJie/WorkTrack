@@ -122,3 +122,82 @@ Microsoft.Data.Sqlite.SqliteException (0x80004005): SQLite Error 19: 'NOT NULL c
 2024-09-28 12:44:11.065 +08:00 [INF] Fetched 0 tasks.
 2024-09-28 12:44:11.066 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate
 2024-09-28 12:44:11.068 +08:00 [INF] Query executed successfully.
+2024-09-28 13:00:13.902 +08:00 [INF] MainWindow initialized.
+2024-09-28 13:00:13.950 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-28 13:00:13.954 +08:00 [INF] Initializing database.
+2024-09-28 13:00:14.041 +08:00 [INF] 今日日期登入完成。
+2024-09-28 13:00:14.042 +08:00 [INF] Database initialized successfully.
+2024-09-28 13:00:14.046 +08:00 [INF] Fetching tasks for "2024-09-28T00:00:00.0000000+08:00"
+2024-09-28 13:00:14.082 +08:00 [INF] Fetched 0 tasks.
+2024-09-28 13:00:14.084 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins, 480) FROM TaskHeader WHERE date(TaskDate) = @TaskDate
+2024-09-28 13:00:14.089 +08:00 [INF] Query executed successfully.
+2024-09-28 13:00:14.113 +08:00 [INF] Chart initialized with 1 series
+2024-09-28 13:00:35.188 +08:00 [INF] MainWindow initialized.
+2024-09-28 13:00:35.224 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-28 13:00:35.227 +08:00 [INF] Initializing database.
+2024-09-28 13:00:35.290 +08:00 [INF] 今日日期登入完成。
+2024-09-28 13:00:35.291 +08:00 [INF] Database initialized successfully.
+2024-09-28 13:00:35.294 +08:00 [INF] Fetching tasks for "2024-09-28T00:00:00.0000000+08:00"
+2024-09-28 13:00:35.322 +08:00 [INF] Fetched 0 tasks.
+2024-09-28 13:00:35.324 +08:00 [INF] Executing query: SELECT coalesce(AvailableMins, 480) FROM TaskHeader WHERE date(TaskDate) = @TaskDate
+2024-09-28 13:00:35.327 +08:00 [INF] Query executed successfully.
+2024-09-28 13:00:35.342 +08:00 [INF] Chart initialized with 1 series
+2024-09-28 13:07:18.100 +08:00 [INF] MainWindow initialized.
+2024-09-28 13:07:18.135 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-28 13:07:18.138 +08:00 [INF] Initializing database.
+2024-09-28 13:07:18.496 +08:00 [INF] 今日日期登入完成。
+2024-09-28 13:07:18.497 +08:00 [INF] Database initialized successfully.
+2024-09-28 13:07:18.500 +08:00 [INF] Fetching tasks for "2024-09-28T00:00:00.0000000+08:00"
+2024-09-28 13:07:18.527 +08:00 [INF] Fetched 2 tasks.
+2024-09-28 13:07:18.529 +08:00 [INF] Executing query: SELECT AvailableMins FROM TaskHeader WHERE date(TaskDate) = @TaskDate
+2024-09-28 13:07:18.532 +08:00 [INF] Query executed successfully.
+2024-09-28 13:07:18.546 +08:00 [INF] Chart initialized with 3 series
+2024-09-28 13:25:50.951 +08:00 [INF] MainWindow initialized.
+2024-09-28 13:25:50.987 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-28 13:25:50.990 +08:00 [INF] Initializing database.
+2024-09-28 13:25:51.054 +08:00 [INF] 今日日期登入完成。
+2024-09-28 13:25:51.056 +08:00 [INF] Database initialized successfully.
+2024-09-28 13:25:51.059 +08:00 [INF] Fetching tasks for 2024-09-28
+2024-09-28 13:25:51.083 +08:00 [INF] Fetched 2 tasks.
+2024-09-28 13:25:51.114 +08:00 [INF] Chart initialized with 2 series
+2024-09-28 13:28:43.082 +08:00 [INF] MainWindow initialized.
+2024-09-28 13:28:43.123 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-28 13:28:43.127 +08:00 [INF] Initializing database.
+2024-09-28 13:28:43.205 +08:00 [INF] 今日日期登入完成。
+2024-09-28 13:28:43.206 +08:00 [INF] Database initialized successfully.
+2024-09-28 13:28:43.210 +08:00 [INF] Fetching tasks for 2024-09-28
+2024-09-28 13:28:43.239 +08:00 [INF] Fetched 2 tasks.
+2024-09-28 13:28:43.275 +08:00 [INF] Chart initialized with 2 series
+2024-09-28 13:29:15.643 +08:00 [INF] MainWindow initialized.
+2024-09-28 13:29:15.681 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-28 13:29:15.685 +08:00 [INF] Initializing database.
+2024-09-28 13:29:15.764 +08:00 [INF] 今日日期登入完成。
+2024-09-28 13:29:15.765 +08:00 [INF] Database initialized successfully.
+2024-09-28 13:29:15.769 +08:00 [INF] Fetching tasks for 2024-09-28
+2024-09-28 13:29:15.798 +08:00 [INF] Fetched 2 tasks.
+2024-09-28 13:29:15.830 +08:00 [INF] Chart initialized with 2 series
+2024-09-28 13:29:39.769 +08:00 [INF] MainWindow initialized.
+2024-09-28 13:29:39.812 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-28 13:29:39.815 +08:00 [INF] Initializing database.
+2024-09-28 13:29:39.894 +08:00 [INF] 今日日期登入完成。
+2024-09-28 13:29:39.895 +08:00 [INF] Database initialized successfully.
+2024-09-28 13:29:39.899 +08:00 [INF] Fetching tasks for 2024-09-28
+2024-09-28 13:29:39.929 +08:00 [INF] Fetched 2 tasks.
+2024-09-28 13:29:39.964 +08:00 [INF] Chart initialized with 2 series
+2024-09-28 13:30:29.213 +08:00 [INF] MainWindow initialized.
+2024-09-28 13:30:29.255 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-28 13:30:29.260 +08:00 [INF] Initializing database.
+2024-09-28 13:30:29.336 +08:00 [INF] 今日日期登入完成。
+2024-09-28 13:30:29.337 +08:00 [INF] Database initialized successfully.
+2024-09-28 13:30:29.341 +08:00 [INF] Fetching tasks for 2024-09-28
+2024-09-28 13:30:29.368 +08:00 [INF] Fetched 2 tasks.
+2024-09-28 13:30:29.400 +08:00 [INF] Chart initialized with 2 series
+2024-09-28 13:32:03.264 +08:00 [INF] MainWindow initialized.
+2024-09-28 13:32:03.300 +08:00 [INF] Navigating to Page0_Welcome.
+2024-09-28 13:32:03.303 +08:00 [INF] Initializing database.
+2024-09-28 13:32:03.363 +08:00 [INF] 今日日期登入完成。
+2024-09-28 13:32:03.365 +08:00 [INF] Database initialized successfully.
+2024-09-28 13:32:03.368 +08:00 [INF] Fetching tasks for 2024-09-28
+2024-09-28 13:32:03.392 +08:00 [INF] Fetched 0 tasks.
+2024-09-28 13:32:03.399 +08:00 [WRN] No data available for "2024-09-28T00:00:00.0000000+08:00"
+2024-09-28 13:32:03.424 +08:00 [INF] Chart initialized with 1 series

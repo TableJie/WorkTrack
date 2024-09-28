@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Navigation;
 using static WorkTrack.TaskInput;
 using Serilog;
+using System.Windows.Documents;
 
 namespace WorkTrack
 {
@@ -57,60 +58,111 @@ namespace WorkTrack
         public async System.Threading.Tasks.Task InitializeStackedColumnChart(DateTime selectedDate)
         {
             SeriesCollection.Clear();
+            var formattedDate = selectedDate.ToString("yyyy-MM-dd");
 
             try
             {
-                Log.Information("Fetching tasks for {SelectedDate}", selectedDate);
-                var tasks = await _taskSearch.GetTasks(selectedDate);  // 從 TaskSearch 獲取當天的任務資料
+                Log.Information("Fetching tasks for {FormattedDate}", formattedDate);
+                var tasks = await _taskSearch.GetTasks(selectedDate);
                 Log.Information("Fetched {TaskCount} tasks.", tasks.Count());
 
                 int taskCount = 0;
                 int pointsCount = 0;
 
-                foreach (var task in tasks)
-                {
-                    taskCount++;
-                    pointsCount += task.DurationLevelID;
+                var query = @"
+            SELECT AvailableMins, OverHours 
+            FROM TaskHeader 
+            WHERE date(TaskDate) = @TaskDate";
 
-                    SeriesCollection.Add(new StackedRowSeries
+                double availableMins = 0;
+                double overHours = 0;
+
+                using (var connection = new SqliteConnection(App.ConnectionString))
+                {
+                    await connection.OpenAsync();
+                    var result = await connection.QueryFirstOrDefaultAsync<(double AvailableMins, double OverHours)>(
+                        query,
+                        new { TaskDate = formattedDate }
+                    );
+
+                    if (result != default)
                     {
-                        Values = new ChartValues<double> { task.Duration },
-                        StackMode = StackMode.Values,
-                        DataLabels = true,
-                        Fill = Brushes.Teal,
-                        Stroke = Brushes.White,
-                        StrokeThickness = 0.5,
-                        MaxRowHeight = 20,
-                        Title = task.TaskName
-                    });
+                        (availableMins, overHours) = result;
+                    }
+                    else
+                    {
+                        Log.Warning("No data found in TaskHeader for date: {FormattedDate}", formattedDate);
+                        availableMins = 480; // 默認值，如果沒有數據
+                        overHours = 0;
+                    }
                 }
 
-                // 顯示空白時間的邏輯
-                var Emptyquery = "SELECT coalesce(AvailableMins,480) FROM TaskHeader WHERE TaskDate = @TaskDate";
-                var durations = await ExecuteQueryAsync<int>(Emptyquery, new { TaskDate = DateTime.Now.Date });
-
-                foreach (var duration in durations)
+                if (tasks.Any() || availableMins > 0)
                 {
+                    foreach (var task in tasks)
+                    {
+                        taskCount++;
+                        pointsCount += task.DurationLevelID;
+
+                        SeriesCollection.Add(new StackedRowSeries
+                        {
+                            Values = new ChartValues<double> { Math.Max(task.Duration, 1) },
+                            StackMode = StackMode.Values,
+                            DataLabels = true,
+                            Fill = Brushes.Teal,
+                            Stroke = Brushes.White,
+                            StrokeThickness = 0.5,
+                            MaxRowHeight = 20,
+                            Title = task.TaskName
+                        });
+                    }
+
+                    if (availableMins > 0)
+                    {
+                        SeriesCollection.Add(new StackedRowSeries
+                        {
+                            Values = new ChartValues<double> { availableMins },
+                            StackMode = StackMode.Values,
+                            DataLabels = true,
+                            Fill = Brushes.Gray,
+                            Stroke = Brushes.White,
+                            StrokeThickness = 0.5,
+                            MaxRowHeight = 20,
+                            Title = "Empty",
+                        });
+                    }
+                }
+                else
+                {
+                    Log.Warning("No data available for {SelectedDate}", selectedDate);
                     SeriesCollection.Add(new StackedRowSeries
                     {
-                        Values = new ChartValues<double> { duration },
+                        Values = new ChartValues<double> { 480 },
                         StackMode = StackMode.Values,
                         DataLabels = true,
                         Fill = Brushes.Gray,
                         Stroke = Brushes.White,
                         StrokeThickness = 0.5,
                         MaxRowHeight = 20,
-                        Title = "Empty",
+                        Title = "No Data"
                     });
                 }
 
-                Card_Label1.Text = taskCount.ToString();
-                Card_Label2.Text = pointsCount.ToString();
+                double avgpoint = taskCount > 0 ? (double)pointsCount / taskCount : 0;
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    Card_Label1.Inlines.Clear();
+                    Card_Label1.Inlines.Add(new Run($"{taskCount} ") { FontSize = 15 });
+                    Card_Label1.Inlines.Add(new Run($"({avgpoint:F2})") { FontSize = 10 });
 
+                    Card_Label2.Text = overHours.ToString("F1");
+                });
+
+                Log.Information("Chart initialized with {SeriesCount} series", SeriesCollection.Count);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed to load task durations for {SelectedDate}.", selectedDate);
+                Log.Error(ex, "Failed to load task durations for {SelectedDate}. SeriesCollection count: {Count}", selectedDate, SeriesCollection.Count);
                 MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

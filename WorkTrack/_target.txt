@@ -1,5 +1,3 @@
-TaskViewModel1.cs
-DatabaseInitializer.cs
 OverTimeInput.xaml.cs
 TaskInput.xaml.cs
-Target.cs
+MainWindow.xaml.cs

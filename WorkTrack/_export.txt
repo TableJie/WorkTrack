@@ -1,490 +1,3 @@
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Windows;
-using Dapper;
-using Microsoft.Data.Sqlite;
-using Serilog;
-using static WorkTrack.TaskInput;
-
-namespace WorkTrack.ViewModel
-{
-    public class TaskViewModel : INotifyPropertyChanged
-    {
-        private readonly ILogger _logger;
-
-        public TaskViewModel()
-        {
-            // ?????
-        }
-
-        // Properties
-        public DateTime? _selectedDate;
-        public DateTime? SelectedDate
-        {
-            get => _selectedDate;
-            set
-            {
-                if (_selectedDate != value)
-                {
-                    _selectedDate = value?.Date;
-                    OnPropertyChanged(nameof(SelectedDate));
-                    OnPropertyChanged(nameof(FormattedSelectedDate));
-                    LoadTasksCommand.Execute(null);
-                }
-            }
-        }
-
-        public string FormattedSelectedDate => SelectedDate?.ToString("yyyy-MM-dd") ?? "";
-        public ObservableCollection<Task>? _taskBodyCollection;
-        public ObservableCollection<Task>? TaskBodyCollection
-        {
-            get => _taskBodyCollection;
-            set
-            {
-                if (_taskBodyCollection != value)
-                {
-                    _taskBodyCollection = value;
-                    OnPropertyChanged(nameof(TaskBodyCollection));
-                }
-            }
-        }
-
-        // Commands
-        public AsyncRelayCommand LoadTasksCommand { get; }
-        public RelayCommand AddTaskCommand { get; }
-        public RelayCommand<Task> EditTaskCommand { get; }
-        public RelayCommand<Task> CopyTaskCommand { get; }
-        public AsyncRelayCommand<Task> ToggleTaskDeleteCommand { get; }
-
-        public TaskViewModel(ILogger? logger = null)
-        {
-            _logger = logger ?? Log.Logger;
-            LoadTasksCommand = new AsyncRelayCommand(LoadTasksAsync);
-            AddTaskCommand = new RelayCommand(AddTask);
-            EditTaskCommand = new RelayCommand<Task>(EditTask);
-            CopyTaskCommand = new RelayCommand<Task>(CopyTask);
-            ToggleTaskDeleteCommand = new AsyncRelayCommand<Task>(ToggleTaskDeleteAsync);
-            SelectedDate = DateTime.Today;
-            _taskBodyCollection = new ObservableCollection<Task>();
-        }
-
-        private async System.Threading.Tasks.Task LoadTasksAsync()
-        {
-            try
-            {
-                _logger.Information("Loading tasks for date: {Date}", SelectedDate);
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                var taskSearch = new TaskSearch();
-                if (SelectedDate.HasValue)
-                {
-                    var taskBodyData = await taskSearch.GetTasks(SelectedDate.Value); // ???? DateTime
-                    TaskBodyCollection = new ObservableCollection<Task>(taskBodyData);
-                    _logger.Information("Loaded {Count} tasks for date {Date}", TaskBodyCollection.Count, FormattedSelectedDate);
-                }
-                else
-                {
-                    _logger.Warning("SelectedDate is null. Unable to load tasks.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Failed to load tasks");
-            }
-        }
-
-        private void AddTask()
-        {
-            try
-            {
-                _logger.Information("Adding new task");
-                var newTask = new Task { TaskDate = SelectedDate ?? DateTime.Today }; // ???? DateTime
-                var TaskInputWindow = new TaskInput(newTask, TaskInitializationMode.Add);
-                if (TaskInputWindow.ShowDialog() == true)
-                {
-                    TaskBodyCollection?.Add(newTask);
-                    _logger.Information("New task added successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while adding new task");
-            }
-        }
-
-        private void EditTask(Task? task)
-        {
-            if (task == null)
-            {
-                _logger.Warning("Attempted to edit null task");
-                return;
-            }
-
-            try
-            {
-                _logger.Information("Editing task: {TaskId}", task.TaskID);
-                var TaskInputWindow = new TaskInput(task, TaskInitializationMode.Edit);
-                if (TaskInputWindow.ShowDialog() == true)
-                {
-                    // Refresh the collection to reflect changes
-                    var index = TaskBodyCollection?.IndexOf(task) ?? -1;
-                    if (index != -1 && TaskBodyCollection != null)
-                    {
-                        TaskBodyCollection[index] = task;
-                    }
-                    _logger.Information("Task edited successfully: {TaskId}", task.TaskID);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while editing task: {TaskId}", task.TaskID);
-                MessageBox.Show($"????:{ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void CopyTask(Task? task)
-        {
-            if (task == null)
-            {
-                _logger.Warning("Attempted to copy null task");
-                return;
-            }
-
-            try
-            {
-                _logger.Information("Copying task: {TaskId}", task.TaskID);
-                var copyTask = new Task
-                {
-                    TaskName = task.TaskName,
-                    Description = task.Description,
-                    DurationLevelID = task.DurationLevelID,
-                    Duration = task.Duration,
-                    UnitID = task.UnitID,
-                    ApplicationID = task.ApplicationID,
-                    TaskDate = task.TaskDate // ???? DateTime
-                };
-                var TaskInputWindow = new TaskInput(copyTask, TaskInitializationMode.Copy);
-                if (TaskInputWindow.ShowDialog() == true)
-                {
-                    TaskBodyCollection?.Add(copyTask);
-                    _logger.Information("Task copied successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while copying task: {TaskId}", task.TaskID);
-                
-            }
-        }
-
-        private async System.Threading.Tasks.Task ToggleTaskDeleteAsync(Task? task)
-        {
-            if (task == null)
-            {
-                _logger.Warning("Attempted to toggle delete on null task");
-                return;
-            }
-
-            try
-            {
-                _logger.Information("Toggling delete flag for task: {TaskId}", task.TaskID);
-                task.DeleteFlag = !task.DeleteFlag;
-
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                const string query = "UPDATE TaskBody SET DeleteFlag = @DeleteFlag WHERE TaskID = @TaskID";
-                await connection.ExecuteAsync(query, new { task.DeleteFlag, task.TaskID });
-
-                // Refresh the collection to reflect changes
-                var index = TaskBodyCollection?.IndexOf(task) ?? -1;
-                if (index != -1 && TaskBodyCollection != null)
-                {
-                    TaskBodyCollection[index] = task;
-                }
-
-                _logger.Information("Delete flag toggled successfully for task: {TaskId}", task.TaskID);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while toggling delete flag for task: {TaskId}", task.TaskID);
-                // Revert the change in the local object
-                task.DeleteFlag = !task.DeleteFlag;
-                
-            }
-        }
-
-        // INotifyPropertyChanged implementation
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-}
-This file is: TaskViewModel1.cs
-
-
-using System.Diagnostics;
-using System.IO;
-using Dapper;
-using Microsoft.Data.Sqlite;
-using Serilog;
-
-namespace WorkTrack
-{
-    public class DatabaseInitializer
-    {
-        private readonly string DatabasePath = "Database/app.db"; // ????????DatabasePath???readonly
-
-        public void Initialize()
-        {
-            try
-            {
-                string fullPath = Path.Combine(Directory.GetCurrentDirectory(), DatabasePath);
-
-                if (!File.Exists(fullPath))
-                {
-                    // ????????
-                    string directoryPath = Path.GetDirectoryName(fullPath);
-                    if (directoryPath != null)
-                    {
-                        Directory.CreateDirectory(directoryPath);
-                    }
-                    Log.Information("???????: {FullPath}", fullPath);
-
-
-                    using (var connection = new SqliteConnection($"Data Source={fullPath};"))
-                    {
-                        connection.Open();
-
-                        var createTableQueries = new[]
-                        {
-                            @"
-                            CREATE TABLE IF NOT EXISTS TaskBody (
-                                TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                TaskDate DATE NOT NULL,
-                                TaskName TEXT NOT NULL,
-                                DurationLevelID INTEGER,
-                                Duration INTEGER,
-                                Description TEXT,
-                                UnitID INTEGER,
-                                ApplicationID INTEGER,
-                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                DeleteFlag BOOLEAN DEFAULT 0
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS Application (
-                                ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                ApplicationName TEXT,
-                                ApplicationSubName TEXT,
-                                ApplicationStatus TEXT,
-                                ApplicationDatetime DATETIME,
-                                PCDFlag BOOLEAN DEFAULT 0,
-                                UnitID INTEGER,
-                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                DeleteFlag BOOLEAN DEFAULT 0
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS Unit (
-                                UnitID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                UnitName TEXT,
-                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                DeleteFlag BOOLEAN DEFAULT 0
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS TaskHeader (
-                                TaskDate DATE PRIMARY KEY,
-                                OverHours REAL DEFAULT 0,
-                                TotalHours REAL DEFAULT 8,
-                                TotalMins REAL DEFAULT 480,
-                                CustomizedMins REAL DEFAULT 0,
-                                UsedPoints INT DEFAULT 0,
-                                BasicPoints INT DEFAULT 0,
-                                UsedMins REAL DEFAULT 0,
-                                AvailableMins REAL DEFAULT 480,
-                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                DeleteFlag BOOLEAN DEFAULT 0
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS OverTime (
-                                TaskDate DATE PRIMARY KEY,
-                                OverHours REAL DEFAULT 0,
-                                TaskPlan1 TEXT DEFAULT null,
-                                TaskPlan2 TEXT DEFAULT null,
-                                TaskPlan3 TEXT DEFAULT null,
-                                TaskPlan4 TEXT DEFAULT null,
-                                TaskPlan5 TEXT DEFAULT null,
-                                TaskPlan6 TEXT DEFAULT null,
-                                TaskPlan7 TEXT DEFAULT null,
-                                TaskPlan8 TEXT DEFAULT null,
-                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                DeleteFlag BOOLEAN DEFAULT 0
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS DurationLevel (
-                                DurationLevelID INTEGER PRIMARY KEY,
-                                DurationLevelName TEXT
-                            );",
-                            @"
-                            CREATE TABLE IF NOT EXISTS Calendar (
-                                CalendarDate DATE PRIMARY KEY,            
-                                Year TEXT NOT NULL,                       
-                                YearMonth TEXT NOT NULL,                   
-                                YearHalf TEXT NOT NULL,                    
-                                YearQuarter TEXT NOT NULL,                 
-                                YearMonthSequence INTEGER NOT NULL,        
-                                YearQuarterSequence INTEGER NOT NULL,      
-                                YearHalfSequence INTEGER NOT NULL,         
-                                WorkDayFlag BOOLEAN NOT NULL,              
-                                WeeklySequenceMonthly INTEGER NOT NULL     
-                            );"
-                        };
-
-                        foreach (var query in createTableQueries)
-                        {
-                            connection.Execute(query);
-                        }
-
-                        // ??????
-                        var insertDataQuery = new[]
-                        {
-                            @"
-                            INSERT OR IGNORE INTO DurationLevel (DurationLevelID, DurationLevelName) VALUES
-                                (1,'Tiny'),
-                                (2,'Small'),
-                                (3,'Medium'),
-                                (4,'Large'),
-                                (5,'Huge'),
-                                (9,'-Customize-')
-                            ;",
-                            @"
-                            INSERT OR IGNORE INTO Unit (UnitName) VALUES
-                                ('IMD'),
-                                ('FA'),
-                                ('APP'),
-                                ('MECT'),
-                                ('METRO'),
-                                ('CSO'),
-                                ('CSM'),
-                                ('AC'),
-                                ('AR'),
-                                ('PCD')
-                            ;",
-                            @"
-                            WITH RECURSIVE CalendarGenerator AS (
-                                SELECT DATE('2024-03-01') AS CalendarDate
-                                UNION ALL
-                                -- ??????????
-                                SELECT DATE(CalendarDate, '+1 day')
-                                FROM CalendarGenerator
-                                WHERE CalendarDate < DATE('2030-02-28')
-                            ),CalendarData AS (
-                                SELECT 
-                                    CalendarDate,
-                                    CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
-                                        THEN STRFTIME('%Y', CalendarDate)
-                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
-                                    END AS Year,
-                                    CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
-                                        THEN STRFTIME('%Y', CalendarDate) || '/' || STRFTIME('%m', CalendarDate)
-                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year')) || '/' || STRFTIME('%m', CalendarDate)
-                                    END AS YearMonth,
-                                    CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-1H'
-                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-2H'
-                                    END AS YearHalf,
-                                    CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 5 THEN STRFTIME('%Y', CalendarDate) || '-1Q'
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 6 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-2Q'
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 9 AND 11 THEN STRFTIME('%Y', CalendarDate) || '-3Q'
-                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-4Q'
-                                    END AS YearQuarter,
-                                    ROW_NUMBER() OVER (ORDER BY CalendarDate) AS YearMonthSequence,
-                                    ROW_NUMBER() OVER (PARTITION BY CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
-                                        THEN STRFTIME('%Y', CalendarDate)
-                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
-                                    END, CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 5 THEN 1
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 6 AND 8 THEN 2
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 9 AND 11 THEN 3
-                                        ELSE 4
-                                    END ORDER BY CalendarDate) AS YearQuarterSequence,
-                                    ROW_NUMBER() OVER (PARTITION BY CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
-                                        THEN STRFTIME('%Y', CalendarDate)
-                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1?'))
-                                    END, CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 8 THEN 1
-                                        ELSE 2
-                                    END ORDER BY CalendarDate) AS YearHalfSequence,
-                                    CASE 
-                                        WHEN STRFTIME('%w', CalendarDate) IN ('0', '6') THEN False -- ??(0)???(6)??????
-                                        ELSE True -- ??????????
-                                    END AS WorkDayFlag,
-                                    ROW_NUMBER() OVER (PARTITION BY STRFTIME('%Y-%W', CalendarDate) ORDER BY CalendarDate) AS WeeklySequenceMonthly
-                                FROM 
-                                    CalendarGenerator
-                            )
-                            INSERT INTO Calendar
-                            SELECT *
-                            FROM CalendarData
-                            ;",
-                        };
-
-                        foreach (var query in insertDataQuery)
-                        {
-                            connection.Execute(query);
-                        }
-
-
-                        var createTriggerQuery = @"
-                            CREATE TRIGGER IF NOT EXISTS update_TaskHeader_Values
-                            AFTER UPDATE OF OverHours, CustomizedMins, UsedPoints ON TaskHeader
-                            FOR EACH ROW
-                            BEGIN
-                                UPDATE TaskHeader
-                                SET 
-                                    TotalHours = NEW.OverHours + 8,
-                                    TotalMins = (NEW.OverHours + 8) * 60,
-                                    BasicPoints = (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
-                                    UsedMins = NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
-                                    AvailableMins = TotalMins - NEW.CustomizedMins - NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0)
-                                WHERE TaskDate = NEW.TaskDate;
-                            END;
-                        ";
-
-                        connection.Execute(createTriggerQuery);
-                        Debug.WriteLine("?????????????");
-                    }
-                }
-
-
-                // ???????,????????,???????? TaskHeader
-                using (var connection = new SqliteConnection($"Data Source={fullPath};"))
-                {
-                    connection.Open();
-
-                    var insertTodayDateQuery = @"
-                        INSERT OR IGNORE INTO TaskHeader (TaskDate) VALUES
-                        (@TaskDate)
-                    ";
-
-                    connection.Execute(insertTodayDateQuery, new { TaskDate = DateTime.Today.ToString("yyyy-MM-dd") });
-                    Log.Information("?????????");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "???????????");
-            }
-        }
-    }
-}
-This file is: DatabaseInitializer.cs
-
 using Dapper;
 using Microsoft.Data.Sqlite;
 using System.Windows;
@@ -746,7 +259,7 @@ namespace WorkTrack
                 using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
 
-                DateTime taskDate = ip_TaskDate.SelectedDate ?? DateTime.Today;
+                string taskDate = (ip_TaskDate.SelectedDate ?? DateTime.Today).ToString("yyyy-MM-dd");
                 string taskID = ip_TaskID.Text;
                 string taskName = ip_TaskName.Text;
                 string description = ip_Describe.Text;
@@ -876,6 +389,226 @@ namespace WorkTrack
 
 This file is: TaskInput.xaml.cs
 
-File Target.cs does not exist
+using Dapper;
+using LiveCharts;
+using LiveCharts.Wpf;
+using Microsoft.Data.Sqlite;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Navigation;
+using static WorkTrack.TaskInput;
+using Serilog;
+using System.Windows.Documents;
+
+namespace WorkTrack
+{
+    public partial class MainWindow : Window
+    {
+        private TaskSearch _taskSearch;
+        public DateTime TodayDate { get; set; }
+        public ChartValues<double> TaskDurations { get; set; } = new ChartValues<double>();
+        public SeriesCollection SeriesCollection { get; set; } = new SeriesCollection();
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            LogConfiguration.Initialize(); // ???????
+
+            Log.Information("MainWindow initialized.");
+
+            _taskSearch = new TaskSearch();  // ??? TaskSearch
+            DataContext = this;
+            TodayDate = DateTime.Now;
+
+            Log.Information("Navigating to Page0_Welcome.");
+            MainFrame.NavigationService.Navigate(new Page0_Welcome());
+
+            try
+            {
+                Log.Information("Initializing database.");
+                DatabaseInitializer dbInitializer = new DatabaseInitializer();
+                dbInitializer.Initialize();
+                Log.Information("Database initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to initialize database.");
+                MessageBox.Show($"Database initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            _ = InitializeStackedColumnChart(DateTime.Today);
+        }
+
+        #region Cd1_Bt
+
+        public async System.Threading.Tasks.Task InitializeStackedColumnChart(DateTime selectedDate)
+        {
+            SeriesCollection.Clear();
+            var formattedDate = selectedDate.ToString("yyyy-MM-dd");
+
+            try
+            {
+                Log.Information("Fetching tasks for {FormattedDate}", formattedDate);
+                var tasks = await _taskSearch.GetTasks(selectedDate);
+                Log.Information("Fetched {TaskCount} tasks.", tasks.Count());
+
+                int taskCount = 0;
+                int pointsCount = 0;
+
+                var query = @"
+            SELECT AvailableMins, OverHours 
+            FROM TaskHeader 
+            WHERE date(TaskDate) = @TaskDate";
+
+                double availableMins = 0;
+                double overHours = 0;
+
+                using (var connection = new SqliteConnection(App.ConnectionString))
+                {
+                    await connection.OpenAsync();
+                    var result = await connection.QueryFirstOrDefaultAsync<(double AvailableMins, double OverHours)>(
+                        query,
+                        new { TaskDate = formattedDate }
+                    );
+
+                    if (result != default)
+                    {
+                        (availableMins, overHours) = result;
+                    }
+                    else
+                    {
+                        Log.Warning("No data found in TaskHeader for date: {FormattedDate}", formattedDate);
+                        availableMins = 480; // ???,??????
+                        overHours = 0;
+                    }
+                }
+
+                if (tasks.Any() || availableMins > 0)
+                {
+                    foreach (var task in tasks)
+                    {
+                        taskCount++;
+                        pointsCount += task.DurationLevelID;
+
+                        SeriesCollection.Add(new StackedRowSeries
+                        {
+                            Values = new ChartValues<double> { Math.Max(task.Duration, 1) },
+                            StackMode = StackMode.Values,
+                            DataLabels = true,
+                            Fill = Brushes.Teal,
+                            Stroke = Brushes.White,
+                            StrokeThickness = 0.5,
+                            MaxRowHeight = 20,
+                            Title = task.TaskName
+                        });
+                    }
+
+                    if (availableMins > 0)
+                    {
+                        SeriesCollection.Add(new StackedRowSeries
+                        {
+                            Values = new ChartValues<double> { availableMins },
+                            StackMode = StackMode.Values,
+                            DataLabels = true,
+                            Fill = Brushes.Gray,
+                            Stroke = Brushes.White,
+                            StrokeThickness = 0.5,
+                            MaxRowHeight = 20,
+                            Title = "Empty",
+                        });
+                    }
+                }
+                else
+                {
+                    Log.Warning("No data available for {SelectedDate}", selectedDate);
+                    SeriesCollection.Add(new StackedRowSeries
+                    {
+                        Values = new ChartValues<double> { 480 },
+                        StackMode = StackMode.Values,
+                        DataLabels = true,
+                        Fill = Brushes.Gray,
+                        Stroke = Brushes.White,
+                        StrokeThickness = 0.5,
+                        MaxRowHeight = 20,
+                        Title = "No Data"
+                    });
+                }
+
+                double avgpoint = taskCount > 0 ? (double)pointsCount / taskCount : 0;
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    Card_Label1.Inlines.Clear();
+                    Card_Label1.Inlines.Add(new Run($"{taskCount} ") { FontSize = 15 });
+                    Card_Label1.Inlines.Add(new Run($"({avgpoint:F2})") { FontSize = 10 });
+
+                    Card_Label2.Text = overHours.ToString("F1");
+                });
+
+                Log.Information("Chart initialized with {SeriesCount} series", SeriesCollection.Count);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to load task durations for {SelectedDate}. SeriesCollection count: {Count}", selectedDate, SeriesCollection.Count);
+                MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string query, object parameters = null)
+        {
+            try
+            {
+                Log.Information("Executing query: {Query}", query);
+                await using var connection = new SqliteConnection(App.ConnectionString);
+                await connection.OpenAsync();
+                var result = await connection.QueryAsync<T>(query, parameters);
+                Log.Information("Query executed successfully.");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to execute query: {Query}", query);
+                MessageBox.Show($"Failed to execute query: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return Enumerable.Empty<T>();
+            }
+        }
+
+        private void bt_OverTime_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.NavigationService.Navigate(new TaskPage());
+            DateTime selectedDate = DateTime.Today;
+            OverTimeInput overTimeInputWindow = new OverTimeInput(selectedDate);
+
+            // ???????
+            overTimeInputWindow.Left = this.Width - this.Left; // ??????????????
+            overTimeInputWindow.Top = this.Top + 100; // ??????????
+            overTimeInputWindow.ShowDialog();
+        }
+
+        private void bt_CardAddTask_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.NavigationService.Navigate(new TaskPage());
+
+            var newTask = new Task { TaskDate = DateTime.Today };
+            TaskInput TaskInputWindow = new TaskInput(newTask, TaskInitializationMode.Add);
+            TaskInputWindow.Left = this.Width - this.Left ; // ??????????????
+            TaskInputWindow.Top = this.Top + 100; // ??????????
+            TaskInputWindow.ShowDialog();
+        }
+
+        private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.NavigationService.Navigate(new TaskPage());
+        }
+
+        #endregion
+    }
+}
+
+This file is: MainWindow.xaml.cs
 
 Based on the above files, solve my requirements. Please answer in Traditional Chinese, prioritizing solutions that reduce system load, with maintainability as secondary. Responses should be clear, concise, and to the point. Since there are many different files, please first provide the file names and present the solutions in a before-and-after comparison format. For both the before and after content, only show the modified sections, no need to display everything. My requirement is:

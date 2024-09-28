@@ -18,6 +18,7 @@ namespace WorkTrack
 
         public async Task<List<Task>> GetTasks(DateTime taskDate)
         {
+            var formattedDate = taskDate.ToString("yyyy-MM-dd");
             var query = """
                 SELECT
                     p1.*
@@ -27,13 +28,13 @@ namespace WorkTrack
                     TaskBody p1
                     LEFT JOIN Unit t1 on p1.UnitID = t1.UnitID
                     LEFT JOIN DurationLevel t2 on p1.DurationLevelID = t2.DurationLevelID
-                WHERE TaskDate = @TaskDate
+                WHERE date(TaskDate) = @TaskDate
              """;
 
             await using var connection = new SqliteConnection(App.ConnectionString);
             await connection.OpenAsync();
 
-            return (await connection.QueryAsync<Task>(query, new { TaskDate = taskDate })).ToList();
+            return (await connection.QueryAsync<Task>(query, new { TaskDate = formattedDate })).ToList();
         }
 
         public async System.Threading.Tasks.Task UpdateTaskBodyAsync(Task taskBody)
