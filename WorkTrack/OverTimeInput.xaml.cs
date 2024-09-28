@@ -85,26 +85,26 @@ namespace WorkTrack
 
                         await connection.ExecuteAsync(overTimeQuery, new
                         {
-                            TaskDate = _taskDate.ToString("yyyy/MM/dd"),
-                            OverHours = overHours,
-                            TaskPlan1 = taskPlans[0],
-                            TaskPlan2 = taskPlans[1],
-                            TaskPlan3 = taskPlans[2],
-                            TaskPlan4 = taskPlans[3],
-                            TaskPlan5 = taskPlans[4],
-                            TaskPlan6 = taskPlans[5],
-                            TaskPlan7 = taskPlans[6],
-                            TaskPlan8 = taskPlans[7]
+                            TaskDate = _taskDate.ToString("yyyy-MM-dd")
+                            ,OverHours = overHours
+                            ,TaskPlan1 = taskPlans[0]
+                            ,TaskPlan2 = taskPlans[1]
+                            ,TaskPlan3 = taskPlans[2]
+                            ,TaskPlan4 = taskPlans[3]
+                            ,TaskPlan5 = taskPlans[4]
+                            ,TaskPlan6 = taskPlans[5]
+                            ,TaskPlan7 = taskPlans[6]
+                            ,TaskPlan8 = taskPlans[7]
                         }, transaction);
 
                         var updateTaskHeaderQuery = @"
                                         UPDATE TaskHeader 
                                         SET OverHours = @OverHours 
-                                        WHERE date(TaskDate) = date(@TaskDate)";
+                                        WHERE date(TaskDate) = @TaskDate";
 
                         await connection.ExecuteAsync(updateTaskHeaderQuery, new
                         {
-                            TaskDate = _taskDate.ToString("yyyy/MM/dd"),
+                            TaskDate = _taskDate.ToString("yyyy-MM-dd"),
                             OverHours = overHours
                         }, transaction);
 

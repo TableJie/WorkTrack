@@ -247,7 +247,7 @@ namespace WorkTrack
                         (@TaskDate)
                     ";
 
-                    connection.Execute(insertTodayDateQuery, new { TaskDate = DateTime.Today });
+                    connection.Execute(insertTodayDateQuery, new { TaskDate = DateTime.Today.ToString("yyyy-MM-dd") });
                     Log.Information("今日日期登入完成。");
                 }
             }

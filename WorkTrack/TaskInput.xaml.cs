@@ -1,21 +1,8 @@
 ﻿using Dapper;
-using LiveCharts.Wpf;
-using LiveCharts;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Serilog;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.Data;
 
 namespace WorkTrack
 {
@@ -49,7 +36,7 @@ namespace WorkTrack
             await LoadOption();
 
             // 通用初始化
-            ip_TaskDate.SelectedDate = _taskBody.TaskDate != DateTime.MinValue ? _taskBody.TaskDate : DateTime.Today;
+            ip_TaskDate.SelectedDate = _taskBody.TaskDate != default ? _taskBody.TaskDate : DateTime.Today;
             ip_TaskName.Text = _taskBody.TaskName;
             ip_Describe.Text = _taskBody.Description;
             ip_DurationLevelName.SelectedValue = _taskBody.DurationLevelID != 0 ? _taskBody.DurationLevelID : ip_DurationLevelName.Items[2];
@@ -74,7 +61,7 @@ namespace WorkTrack
                 await connection.OpenAsync();
 
                 // 加載 UnitNames 資料
-                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID, UnitName FROM Unit")).ToList();
+                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID, UnitName FROM Unit WHERE DeleteFlag = @DeleteFlag", new { DeleteFlag = false })).ToList();
                 unitNames.Add(new Unit { UnitID = 0, UnitName = "-Add-" });
                 ip_UnitName.ItemsSource = unitNames;
                 ip_UnitName.SelectedIndex = 0;
@@ -129,7 +116,7 @@ namespace WorkTrack
                 using var connection = new SqliteConnection(App.ConnectionString);
                 await connection.OpenAsync();
 
-                DateTime? taskDate = ip_TaskDate.SelectedDate;
+                string taskDate = (ip_TaskDate.SelectedDate ?? DateTime.Today).ToString("yyyy-MM-dd");
                 string taskID = ip_TaskID.Text;
                 string taskName = ip_TaskName.Text;
                 string description = ip_Describe.Text;
@@ -204,7 +191,7 @@ namespace WorkTrack
                     ;
                 """;
 
-                await connection.ExecuteAsync(insertOrUpdateTaskHeader, new{TaskDate = taskDate});
+                await connection.ExecuteAsync(insertOrUpdateTaskHeader, new { TaskDate = taskDate });
             }
             catch (Exception ex)
             {
@@ -214,21 +201,20 @@ namespace WorkTrack
         }
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(ip_TaskName.Text))
-            {
-                MessageBox.Show("Input TaskName", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            try {
+                if (string.IsNullOrWhiteSpace(ip_TaskName.Text))
+                {
+                    MessageBox.Show("Input TaskName", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
-            await RefreshTaskBodyAsync();
+                if (!ip_TaskDate.SelectedDate.HasValue)
+                {
+                    MessageBox.Show("Input TaskDate", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
-            // 確保 MainFrame.Content 是 TaskPage
-            // var mainWindow = Application.Current.MainWindow as MainWindow;
-            // if (mainWindow?.MainFrame.Content is TaskPage taskPage)
-            // {
-            // var taskViewModel = taskPage.DataContext as WorkTrack.ViewModel.TaskViewModel;
-            // taskViewModel?.LoadTasksCommand.Execute(null); // 通過 ViewModel 的 Command 來更新資料
-            // }
+                await RefreshTaskBodyAsync();
 
             ip_TaskID.Clear();
             ip_TaskName.Clear();
@@ -236,6 +222,15 @@ namespace WorkTrack
             ip_DurationLevelName.SelectedIndex = 2;
             ip_UnitName.SelectedIndex = 0;
             ip_ApplicationID.SelectedIndex = 0;
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"更新任務失敗: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+                // 假設您使用 Serilog 或類似的日誌系統
+                Log.Error(ex, "更新任務時發生錯誤");
+            }
+
         }
 
 

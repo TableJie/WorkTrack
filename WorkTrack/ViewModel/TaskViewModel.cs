@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using Serilog;
@@ -29,13 +26,15 @@ namespace WorkTrack.ViewModel
             {
                 if (_selectedDate != value)
                 {
-                    _selectedDate = value;
+                    _selectedDate = value?.Date;
                     OnPropertyChanged(nameof(SelectedDate));
+                    OnPropertyChanged(nameof(FormattedSelectedDate));
                     LoadTasksCommand.Execute(null);
                 }
             }
         }
 
+        public string FormattedSelectedDate => SelectedDate?.ToString("yyyy-MM-dd") ?? "";
         public ObservableCollection<Task>? _taskBodyCollection;
         public ObservableCollection<Task>? TaskBodyCollection
         {
@@ -80,9 +79,9 @@ namespace WorkTrack.ViewModel
                 var taskSearch = new TaskSearch();
                 if (SelectedDate.HasValue)
                 {
-                    var taskBodyData = await taskSearch.GetTasks(SelectedDate.Value.Date);
+                    var taskBodyData = await taskSearch.GetTasks(SelectedDate.Value); // 直接傳遞 DateTime
                     TaskBodyCollection = new ObservableCollection<Task>(taskBodyData);
-                    _logger.Information("Loaded {Count} tasks", TaskBodyCollection.Count);
+                    _logger.Information("Loaded {Count} tasks for date {Date}", TaskBodyCollection.Count, FormattedSelectedDate);
                 }
                 else
                 {
@@ -100,7 +99,7 @@ namespace WorkTrack.ViewModel
             try
             {
                 _logger.Information("Adding new task");
-                var newTask = new Task { TaskDate = SelectedDate ?? DateTime.Today };
+                var newTask = new Task { TaskDate = SelectedDate ?? DateTime.Today }; // 直接使用 DateTime
                 var TaskInputWindow = new TaskInput(newTask, TaskInitializationMode.Add);
                 if (TaskInputWindow.ShowDialog() == true)
                 {
@@ -111,7 +110,6 @@ namespace WorkTrack.ViewModel
             catch (Exception ex)
             {
                 _logger.Error(ex, "Error occurred while adding new task");
-                
             }
         }
 
@@ -164,7 +162,7 @@ namespace WorkTrack.ViewModel
                     Duration = task.Duration,
                     UnitID = task.UnitID,
                     ApplicationID = task.ApplicationID,
-                    TaskDate = task.TaskDate
+                    TaskDate = task.TaskDate // 直接複製 DateTime
                 };
                 var TaskInputWindow = new TaskInput(copyTask, TaskInitializationMode.Copy);
                 if (TaskInputWindow.ShowDialog() == true)
