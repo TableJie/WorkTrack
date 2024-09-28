@@ -119,6 +119,7 @@ namespace WorkTrack
                 MessageBox.Show($"發生錯誤: {ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
+            UpdateService.NotifyDataUpdated(_taskDate);
             this.Close();
         }
 

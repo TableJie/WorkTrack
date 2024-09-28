@@ -1,9 +1,15 @@
 ﻿
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.IO;
+using System.Windows.Controls.Primitives;
+using System.Windows;
 using Dapper;
+using MaterialDesignThemes.Wpf;
 using Microsoft.Data.Sqlite;
 using Serilog;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WorkTrack
 {
@@ -39,11 +45,11 @@ namespace WorkTrack
                                 TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
                                 TaskDate DATE NOT NULL,
                                 TaskName TEXT NOT NULL,
-                                DurationLevelID INTEGER,
-                                Duration INTEGER,
+                                DurationLevelID NUMERIC,
+                                Duration NUMERIC,
                                 Description TEXT,
-                                UnitID INTEGER,
-                                ApplicationID INTEGER,
+                                UnitID NUMERIC,
+                                ApplicationID NUMERIC,
                                 RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
                                 DeleteFlag BOOLEAN DEFAULT 0
                             );",
@@ -55,7 +61,7 @@ namespace WorkTrack
                                 ApplicationStatus TEXT,
                                 ApplicationDatetime DATETIME,
                                 PCDFlag BOOLEAN DEFAULT 0,
-                                UnitID INTEGER,
+                                UnitID NUMERIC,
                                 RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
                                 DeleteFlag BOOLEAN DEFAULT 0
                             );",
@@ -107,11 +113,11 @@ namespace WorkTrack
                                 YearMonth TEXT NOT NULL,                   
                                 YearHalf TEXT NOT NULL,                    
                                 YearQuarter TEXT NOT NULL,                 
-                                YearMonthSequence INTEGER NOT NULL,        
-                                YearQuarterSequence INTEGER NOT NULL,      
-                                YearHalfSequence INTEGER NOT NULL,         
+                                YearMonthSequence NUMERIC NOT NULL,        
+                                YearQuarterSequence NUMERIC NOT NULL,      
+                                YearHalfSequence NUMERIC NOT NULL,         
                                 WorkDayFlag BOOLEAN NOT NULL,              
-                                WeeklySequenceMonthly INTEGER NOT NULL     
+                                WeeklySequenceMonthly NUMERIC NOT NULL     
                             );"
                         };
 
@@ -157,42 +163,42 @@ namespace WorkTrack
                                 SELECT 
                                     CalendarDate,
                                     CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
                                         THEN STRFTIME('%Y', CalendarDate)
                                         ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
                                     END AS Year,
                                     CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
                                         THEN STRFTIME('%Y', CalendarDate) || '/' || STRFTIME('%m', CalendarDate)
                                         ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year')) || '/' || STRFTIME('%m', CalendarDate)
                                     END AS YearMonth,
                                     CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-1H'
-                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-2H'
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-1H'
+                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-2H'
                                     END AS YearHalf,
                                     CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 5 THEN STRFTIME('%Y', CalendarDate) || '-1Q'
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 6 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-2Q'
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 9 AND 11 THEN STRFTIME('%Y', CalendarDate) || '-3Q'
-                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-4Q'
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 5 THEN STRFTIME('%Y', CalendarDate) || '-1Q'
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 6 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-2Q'
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 9 AND 11 THEN STRFTIME('%Y', CalendarDate) || '-3Q'
+                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-4Q'
                                     END AS YearQuarter,
                                     ROW_NUMBER() OVER (ORDER BY CalendarDate) AS YearMonthSequence,
                                     ROW_NUMBER() OVER (PARTITION BY CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
                                         THEN STRFTIME('%Y', CalendarDate)
                                         ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
                                     END, CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 5 THEN 1
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 6 AND 8 THEN 2
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 9 AND 11 THEN 3
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 5 THEN 1
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 6 AND 8 THEN 2
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 9 AND 11 THEN 3
                                         ELSE 4
                                     END ORDER BY CalendarDate) AS YearQuarterSequence,
                                     ROW_NUMBER() OVER (PARTITION BY CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) >= 3 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
                                         THEN STRFTIME('%Y', CalendarDate)
                                         ELSE STRFTIME('%Y', DATE(CalendarDate, '-1年'))
                                     END, CASE 
-                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS INTEGER) BETWEEN 3 AND 8 THEN 1
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 8 THEN 1
                                         ELSE 2
                                     END ORDER BY CalendarDate) AS YearHalfSequence,
                                     CASE 
@@ -214,24 +220,205 @@ namespace WorkTrack
                             connection.Execute(query);
                         }
 
+                        var createTriggerQuery = new[]
+                        {
+                            @"
+                                CREATE TRIGGER insert_TaskHeader_onTaskBody
+                                AFTER INSERT ON TaskBody
+                                FOR EACH ROW
+                                BEGIN
+                                    -- 更新 UsedPoints 和 CustomizedMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        UsedPoints = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ),
+                                        CustomizedMins = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
 
-                        var createTriggerQuery = @"
-                            CREATE TRIGGER IF NOT EXISTS update_TaskHeader_Values
-                            AFTER UPDATE OF OverHours, CustomizedMins, UsedPoints ON TaskHeader
-                            FOR EACH ROW
-                            BEGIN
-                                UPDATE TaskHeader
-                                SET 
-                                    TotalHours = NEW.OverHours + 8,
-                                    TotalMins = (NEW.OverHours + 8) * 60,
-                                    BasicPoints = (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
-                                    UsedMins = NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0),
-                                    AvailableMins = TotalMins - NEW.CustomizedMins - NEW.UsedPoints * (TotalMins - NEW.CustomizedMins) / NULLIF(NEW.UsedPoints, 0)
-                                WHERE TaskDate = NEW.TaskDate;
-                            END;
-                        ";
+                                    -- 更新 BasicPoints, UsedMins 和 AvailableMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        BasicPoints = COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0),
+                                        UsedMins = ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0),
+                                        AvailableMins = TotalMins - ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0) - (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
 
-                        connection.Execute(createTriggerQuery);
+                                    -- 更新 TaskBody 中 Duration
+                                    UPDATE TaskBody
+                                    SET Duration = round(DurationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = NEW.TaskDate),0)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+                            ,@"
+                                CREATE TRIGGER update_TaskHeader_onTaskBody
+                                AFTER UPDATE ON TaskBody
+                                FOR EACH ROW
+                                BEGIN
+                                    -- 更新 UsedPoints 和 CustomizedMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        UsedPoints = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ),
+                                        CustomizedMins = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- 更新 BasicPoints, UsedMins 和 AvailableMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        BasicPoints = COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0),
+                                        UsedMins = ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0),
+                                        AvailableMins = TotalMins - ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0) - (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- 更新 TaskBody 中 Duration
+                                    UPDATE TaskBody
+                                    SET Duration = round(DurationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = NEW.TaskDate),0)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+                            ,@"
+                                CREATE TRIGGER insert_TaskHeader_onOverTime
+                                AFTER INSERT ON OverTime
+                                FOR EACH ROW
+                                BEGIN
+                                    UPDATE TaskHeader
+                                    SET 
+                                        OverHours = NEW.OverHours,
+                                        TotalHours = 8 + NEW.OverHours,
+                                        TotalMins = (8 + NEW.OverHours) * 60,
+
+                                        BasicPoints = round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+                                        UsedMins = UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+
+                                        AvailableMins = (8 + NEW.OverHours) * 60 -
+                                                        UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0)
+
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- 更新 TaskBody 中 Duration
+                                    UPDATE TaskBody
+                                    SET Duration = DurationLevelID * (SELECT round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0) FROM TaskHeader WHERE TaskDate = NEW.TaskDate)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+                            ,@"
+                                CREATE TRIGGER update_TaskHeader_onOverTime
+                                AFTER UPDATE ON OverTime
+                                FOR EACH ROW
+                                BEGIN
+                                    UPDATE TaskHeader
+                                    SET 
+                                        OverHours = NEW.OverHours,
+                                        TotalHours = 8 + NEW.OverHours,
+                                        TotalMins = (8 + NEW.OverHours) * 60,
+
+                                        BasicPoints = round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+                                        UsedMins = UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+
+                                        AvailableMins = (8 + NEW.OverHours) * 60 -
+                                                        UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0)
+
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- 更新 TaskBody 中 Duration
+                                    UPDATE TaskBody
+                                    SET Duration = DurationLevelID * (SELECT round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0) FROM TaskHeader WHERE TaskDate = NEW.TaskDate)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+
+                    };
+
+                        foreach (var query in createTriggerQuery)
+                        {
+                            connection.Execute(query);
+                        }
                         Debug.WriteLine("所有資料表和觸發器已創建。");
                     }
                 }

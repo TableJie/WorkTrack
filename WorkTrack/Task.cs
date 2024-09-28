@@ -13,7 +13,7 @@ namespace WorkTrack
         public string Description { get; set; } = string.Empty;
         public int DurationLevelID { get; set; }
         public String DurationLevelName { get; set; } = string.Empty;
-        public int Duration { get; set; }
+        public double Duration { get; set; }
         public int UnitID { get; set; }
         public string UnitName { get; set; } = string.Empty;
         public string ApplicationID { get; set; } = string.Empty;

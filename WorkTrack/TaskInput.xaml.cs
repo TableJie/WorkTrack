@@ -165,33 +165,7 @@ namespace WorkTrack
                     });
                 }
 
-                var insertOrUpdateTaskHeader = $$"""
-                   
-
-                    WITH CTE AS (
-                        SELECT 
-                            sum(CASE WHEN DurationLevelID != 0 THEN DurationLevelID END) as UsedPoints
-                            ,sum(CASE WHEN DurationLevelID = 0 THEN Duration END) as CustomizedMins
-                        FROM TaskBody
-                        WHERE TaskDate = @TaskDate
-                    )
-                    UPDATE TaskHeader
-                    SET
-                        UsedPoints = coalesce(CTE.UsedPoints, 0)
-                        ,CustomizedMins = coalesce(CTE.CustomizedMins, 0)
-                    FROM CTE
-                    WHERE TaskHeader.TaskDate = @TaskDate
-                    ;
-
-                    UPDATE TaskBody
-                    SET Duration = CAST(durationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate) AS INTEGER)
-                    WHERE
-                        durationLevelID != 0
-                        and TaskDate = @TaskDate
-                    ;
-                """;
-
-                await connection.ExecuteAsync(insertOrUpdateTaskHeader, new { TaskDate = taskDate });
+                UpdateService.NotifyDataUpdated((ip_TaskDate.SelectedDate ?? DateTime.Today));
             }
             catch (Exception ex)
             {
@@ -216,12 +190,12 @@ namespace WorkTrack
 
                 await RefreshTaskBodyAsync();
 
-            ip_TaskID.Clear();
-            ip_TaskName.Clear();
-            ip_Describe.Clear();
-            ip_DurationLevelName.SelectedIndex = 2;
-            ip_UnitName.SelectedIndex = 0;
-            ip_ApplicationID.SelectedIndex = 0;
+                ip_TaskID.Clear();
+                ip_TaskName.Clear();
+                ip_Describe.Clear();
+                ip_DurationLevelName.SelectedIndex = 2;
+                ip_UnitName.SelectedIndex = 0;
+                ip_ApplicationID.SelectedIndex = 0;
 
             }
             catch (Exception ex)

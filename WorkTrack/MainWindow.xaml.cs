@@ -51,6 +51,7 @@ namespace WorkTrack
             }
 
             _ = InitializeStackedColumnChart(DateTime.Today);
+            UpdateService.DataUpdated += async (date) => await InitializeStackedColumnChart(date);
         }
 
         #region Cd1_Bt
@@ -70,45 +71,51 @@ namespace WorkTrack
                 int pointsCount = 0;
 
                 var query = @"
-            SELECT AvailableMins, OverHours 
-            FROM TaskHeader 
-            WHERE date(TaskDate) = @TaskDate";
+                            SELECT coalesce(OverHours,0) as OverHours ,coalesce(TotalMins,0) as TotalMins ,coalesce(UsedMins,0) as UsedMins ,coalesce(AvailableMins,0) as AvailableMins
+                            FROM TaskHeader 
+                            WHERE date(TaskDate) = @TaskDate";
 
-                double availableMins = 0;
                 double overHours = 0;
+                double totalMins = 0;
+                double usedMins = 0;
+                double availableMins = 0;
 
                 using (var connection = new SqliteConnection(App.ConnectionString))
                 {
                     await connection.OpenAsync();
-                    var result = await connection.QueryFirstOrDefaultAsync<(double AvailableMins, double OverHours)>(
+                    var result = await connection.QueryFirstOrDefaultAsync<(double OverHours, double TotalMins, double UsedMins, double AvailableMins)>(
                         query,
                         new { TaskDate = formattedDate }
                     );
 
                     if (result != default)
                     {
-                        (availableMins, overHours) = result;
+                        (overHours, totalMins, usedMins, availableMins) = result;
                     }
                     else
                     {
                         Log.Warning("No data found in TaskHeader for date: {FormattedDate}", formattedDate);
-                        availableMins = 480; // 默認值，如果沒有數據
-                        overHours = 0;
                     }
                 }
+
+                double scaleFactor = usedMins / totalMins;
+
 
                 if (tasks.Any() || availableMins > 0)
                 {
                     foreach (var task in tasks)
                     {
                         taskCount++;
-                        pointsCount += task.DurationLevelID;
+                        if (task.DurationLevelID != 9)
+                        {
+                            pointsCount += task.DurationLevelID;
+                        }
 
                         SeriesCollection.Add(new StackedRowSeries
                         {
-                            Values = new ChartValues<double> { Math.Max(task.Duration, 1) },
+                            Values = new ChartValues<double> { (int)Math.Truncate(task.Duration * scaleFactor) },
                             StackMode = StackMode.Values,
-                            DataLabels = true,
+                            DataLabels = false,
                             Fill = Brushes.Teal,
                             Stroke = Brushes.White,
                             StrokeThickness = 0.5,
@@ -123,7 +130,7 @@ namespace WorkTrack
                         {
                             Values = new ChartValues<double> { availableMins },
                             StackMode = StackMode.Values,
-                            DataLabels = true,
+                            DataLabels = false,
                             Fill = Brushes.Gray,
                             Stroke = Brushes.White,
                             StrokeThickness = 0.5,
@@ -137,7 +144,7 @@ namespace WorkTrack
                     Log.Warning("No data available for {SelectedDate}", selectedDate);
                     SeriesCollection.Add(new StackedRowSeries
                     {
-                        Values = new ChartValues<double> { 480 },
+                        Values = new ChartValues<double> { availableMins },
                         StackMode = StackMode.Values,
                         DataLabels = true,
                         Fill = Brushes.Gray,

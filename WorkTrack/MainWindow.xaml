@@ -73,23 +73,21 @@
                         </Grid>
                         <Grid Grid.Row="2">
                             <StackPanel Orientation="Vertical">
-                                <lvc:CartesianChart MinWidth="100" Series="{Binding SeriesCollection}" Margin="0,-15,0,-10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <lvc:CartesianChart MaxWidth ="220" MinWidth="220" Width="220" Height="30" Series="{Binding SeriesCollection}" Margin="0,-15,0,-10">
                                     <lvc:CartesianChart.AxisX>
-                                        <lvc:Axis Title="" Labels="">
+                                        <lvc:Axis MinValue="0" MaxValue="480" ShowLabels="False">
                                             <lvc:Axis.Separator>
                                                 <lvc:Separator StrokeThickness="0"/>
                                             </lvc:Axis.Separator>
                                         </lvc:Axis>
                                     </lvc:CartesianChart.AxisX>
-
                                     <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="" Labels="">
+                                        <lvc:Axis ShowLabels="False">
                                             <lvc:Axis.Separator>
                                                 <lvc:Separator StrokeThickness="0"/>
                                             </lvc:Axis.Separator>
                                         </lvc:Axis>
                                     </lvc:CartesianChart.AxisY>
-
                                 </lvc:CartesianChart>
                             </StackPanel>
                         </Grid>
