@@ -1,110 +1,162 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Windows;
-using Dapper;
-using Microsoft.Data.Sqlite;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
-using static WorkTrack.TaskInput;
+using WorkTrack.Interfaces;
 
 namespace WorkTrack.ViewModel
 {
-    public class TaskViewModel : INotifyPropertyChanged
+    public partial class TaskViewModel : ObservableObject
     {
         private readonly ILogger _logger;
+        private readonly ITaskService _taskService;
+        private readonly IChartService _chartService;
 
-        public TaskViewModel()
+        [ObservableProperty]
+        private DateTime selectedDate;
+
+        [ObservableProperty]
+        private ObservableCollection<WorkTask> tasks;
+
+        [ObservableProperty]
+        private OverTime? _dailyOverTime;
+
+        [RelayCommand]
+        private async Task LoadDailyDataAsync()
         {
-            // 初始化邏輯
+            await LoadTasksAsync();
+            await LoadOverTimeAsync();
         }
 
-        // Properties
-        public DateTime? _selectedDate;
-        public DateTime? SelectedDate
-        {
-            get => _selectedDate;
-            set
-            {
-                if (_selectedDate != value)
-                {
-                    _selectedDate = value?.Date;
-                    OnPropertyChanged(nameof(SelectedDate));
-                    OnPropertyChanged(nameof(FormattedSelectedDate));
-                    LoadTasksCommand.Execute(null);
-                }
-            }
-        }
-
-        public string FormattedSelectedDate => SelectedDate?.ToString("yyyy-MM-dd") ?? "";
-        public ObservableCollection<Task>? _taskBodyCollection;
-        public ObservableCollection<Task>? TaskBodyCollection
-        {
-            get => _taskBodyCollection;
-            set
-            {
-                if (_taskBodyCollection != value)
-                {
-                    _taskBodyCollection = value;
-                    OnPropertyChanged(nameof(TaskBodyCollection));
-                }
-            }
-        }
-
-        // Commands
-        public AsyncRelayCommand LoadTasksCommand { get; }
-        public RelayCommand AddTaskCommand { get; }
-        public RelayCommand<Task> EditTaskCommand { get; }
-        public RelayCommand<Task> CopyTaskCommand { get; }
-        public AsyncRelayCommand<Task> ToggleTaskDeleteCommand { get; }
-
-        public TaskViewModel(ILogger? logger = null)
-        {
-            _logger = logger ?? Log.Logger;
-            LoadTasksCommand = new AsyncRelayCommand(LoadTasksAsync);
-            AddTaskCommand = new RelayCommand(AddTask);
-            EditTaskCommand = new RelayCommand<Task>(EditTask);
-            CopyTaskCommand = new RelayCommand<Task>(CopyTask);
-            ToggleTaskDeleteCommand = new AsyncRelayCommand<Task>(ToggleTaskDeleteAsync);
-            SelectedDate = DateTime.Today;
-            _taskBodyCollection = new ObservableCollection<Task>();
-        }
-
-        private async System.Threading.Tasks.Task LoadTasksAsync()
+        private async Task LoadOverTimeAsync()
         {
             try
             {
-                _logger.Information("Loading tasks for date: {Date}", SelectedDate);
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
+                DailyOverTime = await _taskService.GetOverTimeAsync(SelectedDate);
+                _logger.Information("OverTime loaded successfully for date: {SelectedDate}", SelectedDate);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while loading overtime");
+            }
+        }
 
-                var taskSearch = new TaskSearch();
-                if (SelectedDate.HasValue)
+        [RelayCommand]
+        private async Task AddOverTimeAsync()
+        {
+            try
+            {
+                _logger.Information("Adding new overtime");
+                var newOverTime = new OverTime { TaskDate = SelectedDate };
+                var result = await _taskService.AddOverTimeAsync(newOverTime);
+                if (result)
                 {
-                    var taskBodyData = await taskSearch.GetTasks(SelectedDate.Value); // 直接傳遞 DateTime
-                    TaskBodyCollection = new ObservableCollection<Task>(taskBodyData);
-                    _logger.Information("Loaded {Count} tasks for date {Date}", TaskBodyCollection.Count, FormattedSelectedDate);
-                }
-                else
-                {
-                    _logger.Warning("SelectedDate is null. Unable to load tasks.");
+                    DailyOverTime = newOverTime;
+                    _logger.Information("New overtime added successfully");
+                    await _chartService.InitializeChartAsync(SelectedDate);
                 }
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Failed to load tasks");
+                _logger.Error(ex, "Error occurred while adding new overtime");
             }
         }
 
-        private void AddTask()
+        [RelayCommand]
+        private async Task EditOverTimeAsync()
+        {
+            if (DailyOverTime == null)
+            {
+                _logger.Warning("Attempted to edit null overtime");
+                return;
+            }
+            try
+            {
+                _logger.Information("Editing overtime: {TaskDate}", DailyOverTime.TaskDate);
+                var result = await _taskService.EditOverTimeAsync(DailyOverTime);
+                if (result)
+                {
+                    _logger.Information("Overtime edited successfully: {TaskDate}", DailyOverTime.TaskDate);
+                    await _chartService.InitializeChartAsync(SelectedDate);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while editing overtime: {TaskDate}", DailyOverTime.TaskDate);
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteOverTimeAsync()
+        {
+            if (DailyOverTime == null)
+            {
+                _logger.Warning("Attempted to delete null overtime");
+                return;
+            }
+            try
+            {
+                _logger.Information("Deleting overtime: {TaskDate}", DailyOverTime.TaskDate);
+                var result = await _taskService.DeleteOverTimeAsync(DailyOverTime.TaskDate);
+                if (result)
+                {
+                    DailyOverTime = null;
+                    _logger.Information("Overtime deleted successfully: {Date}", SelectedDate);
+                    await _chartService.InitializeChartAsync(SelectedDate);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while deleting overtime: {Date}", SelectedDate);
+            }
+        }
+
+
+        public TaskViewModel(ITaskService taskService, IChartService chartService, ILogger logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _taskService = taskService ?? throw new ArgumentNullException(nameof(taskService));
+            _chartService = chartService ?? throw new ArgumentNullException(nameof(chartService));
+            SelectedDate = DateTime.Today;
+            Tasks = new ObservableCollection<WorkTask>();
+            _ = LoadTasksAsync();
+        }
+
+
+
+        [RelayCommand]
+        private async Task LoadTasksAsync()
+        {
+            try
+            {
+                Tasks.Clear();
+                var loadedTasks = await _taskService.GetTasksAsync(SelectedDate);
+                foreach (var task in loadedTasks)
+                {
+                    Tasks.Add(task);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while loading tasks");
+            }
+        }
+
+        [RelayCommand]
+        private async Task AddTaskAsync()
         {
             try
             {
                 _logger.Information("Adding new task");
-                var newTask = new Task { TaskDate = SelectedDate ?? DateTime.Today }; // 直接使用 DateTime
-                var TaskInputWindow = new TaskInput(newTask, TaskInitializationMode.Add);
-                if (TaskInputWindow.ShowDialog() == true)
+                var newTask = new WorkTask { TaskDate = SelectedDate };
+                var result = await _taskService.AddTaskAsync(newTask);
+                if (result)
                 {
-                    TaskBodyCollection?.Add(newTask);
+                    Tasks.Add(newTask);
                     _logger.Information("New task added successfully");
+                    await _chartService.InitializeChartAsync(SelectedDate);
                 }
             }
             catch (Exception ex)
@@ -113,111 +165,63 @@ namespace WorkTrack.ViewModel
             }
         }
 
-        private void EditTask(Task? task)
+        [RelayCommand]
+        private async Task EditTaskAsync(WorkTask task)
         {
             if (task == null)
             {
                 _logger.Warning("Attempted to edit null task");
                 return;
             }
-
             try
             {
                 _logger.Information("Editing task: {TaskId}", task.TaskID);
-                var TaskInputWindow = new TaskInput(task, TaskInitializationMode.Edit);
-                if (TaskInputWindow.ShowDialog() == true)
+                var result = await _taskService.EditTaskAsync(task);
+                if (result)
                 {
-                    // Refresh the collection to reflect changes
-                    var index = TaskBodyCollection?.IndexOf(task) ?? -1;
-                    if (index != -1 && TaskBodyCollection != null)
+                    var index = Tasks.IndexOf(task);
+                    if (index != -1)
                     {
-                        TaskBodyCollection[index] = task;
+                        Tasks[index] = task;
                     }
                     _logger.Information("Task edited successfully: {TaskId}", task.TaskID);
+                    await _chartService.InitializeChartAsync(SelectedDate);
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error(ex, "Error occurred while editing task: {TaskId}", task.TaskID);
-                MessageBox.Show($"操作失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void CopyTask(Task? task)
+        [RelayCommand]
+        private async Task DeleteTaskAsync(WorkTask task)
         {
             if (task == null)
             {
-                _logger.Warning("Attempted to copy null task");
+                _logger.Warning("Attempted to delete null task");
                 return;
             }
-
             try
             {
-                _logger.Information("Copying task: {TaskId}", task.TaskID);
-                var copyTask = new Task
+                _logger.Information("Deleting task: {TaskId}", task.TaskID);
+                var result = await _taskService.DeleteTaskAsync(task.TaskID);
+                if (result)
                 {
-                    TaskName = task.TaskName,
-                    Description = task.Description,
-                    DurationLevelID = task.DurationLevelID,
-                    Duration = task.Duration,
-                    UnitID = task.UnitID,
-                    ApplicationID = task.ApplicationID,
-                    TaskDate = task.TaskDate // 直接複製 DateTime
-                };
-                var TaskInputWindow = new TaskInput(copyTask, TaskInitializationMode.Copy);
-                if (TaskInputWindow.ShowDialog() == true)
-                {
-                    TaskBodyCollection?.Add(copyTask);
-                    _logger.Information("Task copied successfully");
+                    Tasks.Remove(task);
+                    _logger.Information("Task deleted successfully: {TaskId}", task.TaskID);
+                    await _chartService.InitializeChartAsync(SelectedDate);
                 }
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Error occurred while copying task: {TaskId}", task.TaskID);
-                
+                _logger.Error(ex, "Error occurred while deleting task: {TaskId}", task.TaskID);
             }
         }
 
-        private async System.Threading.Tasks.Task ToggleTaskDeleteAsync(Task? task)
+        partial void OnSelectedDateChanged(DateTime value)
         {
-            if (task == null)
-            {
-                _logger.Warning("Attempted to toggle delete on null task");
-                return;
-            }
-
-            try
-            {
-                _logger.Information("Toggling delete flag for task: {TaskId}", task.TaskID);
-                task.DeleteFlag = !task.DeleteFlag;
-
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                const string query = "UPDATE TaskBody SET DeleteFlag = @DeleteFlag WHERE TaskID = @TaskID";
-                await connection.ExecuteAsync(query, new { task.DeleteFlag, task.TaskID });
-
-                // Refresh the collection to reflect changes
-                var index = TaskBodyCollection?.IndexOf(task) ?? -1;
-                if (index != -1 && TaskBodyCollection != null)
-                {
-                    TaskBodyCollection[index] = task;
-                }
-
-                _logger.Information("Delete flag toggled successfully for task: {TaskId}", task.TaskID);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error occurred while toggling delete flag for task: {TaskId}", task.TaskID);
-                // Revert the change in the local object
-                task.DeleteFlag = !task.DeleteFlag;
-                
-            }
+            _ = LoadTasksAsync();
         }
-
-        // INotifyPropertyChanged implementation
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

@@ -1,393 +1,1016 @@
-using Dapper;
-using Microsoft.Data.Sqlite;
+<Application x:Class="WorkTrack.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:WorkTrack"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Teal" SecondaryColor="Lime" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
+                <!--Select colors, options are metrial, metro, orange, blue, black and white-->
+                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Colors/black.xaml" /> 
+
+                <!--Select size, options are small, medium and large-->
+                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Size/s.xaml" />
+
+                <!--Select weight, options are light, normal and bold-->
+                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/Weight/light.xaml" />
+
+                <!--Also add the base theme, this is required always-->
+                <ResourceDictionary Source="pack://application:,,,/LiveCharts.Wpf;component/Themes/base.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+
+            <sys:Double x:Key="FormElementWidth">180</sys:Double>
+            <sys:Double x:Key="FormElementHeight">24</sys:Double>
+            
+            <Thickness x:Key="FormElementMargin">0,10</Thickness>
+            <Thickness x:Key="FormElementPadding">0,5</Thickness>
+
+
+            <Color x:Key="PrimaryColor">#008080</Color>
+            <Color x:Key="ComplementaryColor">#800000</Color>
+            <Color x:Key="DarkTeal">#004D4D</Color>
+            <Color x:Key="LightTeal">#66CCCC</Color>
+            <Color x:Key="Gold">#FFD700</Color>
+            <Color x:Key="LightGray">#F0F0F0</Color>
+            <Color x:Key="DarkGrayBlue">#2C3E50</Color>
+            <Color x:Key="WhiteColor">#FFFFFF</Color>
+
+            <!-- ?????? -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+            <SolidColorBrush x:Key="ComplementaryBrush" Color="{StaticResource ComplementaryColor}" />
+            <SolidColorBrush x:Key="DarkTealBrush" Color="{StaticResource DarkTeal}" />
+            <SolidColorBrush x:Key="LightTealBrush" Color="{StaticResource LightTeal}" />
+            <SolidColorBrush x:Key="GoldBrush" Color="{StaticResource Gold}" />
+            <SolidColorBrush x:Key="LightGrayBrush" Color="{StaticResource LightGray}" />
+            <SolidColorBrush x:Key="DarkGrayBlueBrush" Color="{StaticResource DarkGrayBlue}" />
+            <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}" />
+
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="5"/>
+                <Setter Property="BorderBrush" Value="#CCCCCC"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Margin" Value="10"/>
+                <Setter Property="Padding" Value="10"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="Black" Direction="315" ShadowDepth="5" BlurRadius="10" Opacity="0.5"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!--
+            ??:#F0F0F0 (Light Gray)? #FFFFFF (White)
+            ?????????:#008080 (Teal)
+            ???????:#004D4D (Dark Teal)
+            ???????:#800000 (Maroon)
+            ????:#FFD700 (Gold)
+            ????:#2C3E50 (Dark Gray-Blue)
+            -->
+
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
+
+This file is: App.xaml
+
+File AppSetting.cs does not exist
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  }
+}
+
+This file is: appsettings.json
+
+
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.IO;
+using System.Windows.Controls.Primitives;
 using System.Windows;
-using System.Windows.Controls;
-using System.Data;
+using Dapper;
+using MaterialDesignThemes.Wpf;
+using Microsoft.Data.Sqlite;
+using Serilog;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WorkTrack
 {
-    public partial class OverTimeInput : Window
+    public class DatabaseInitializer
     {
+        private readonly string DatabasePath = "Database/app.db"; // ????????DatabasePath???readonly
 
-        private const int MAX_TASK_PLANS = 8;
-        private const double OVER_HOURS_FACTOR = 0.5;
-        private readonly DateTime _taskDate;
-
-        public OverTimeInput(DateTime taskDate)
+        public void Initialize()
         {
-            InitializeComponent();
-            _taskDate = taskDate;
-            ip_TaskDate.SelectedDate = _taskDate;
-        }
-
-
-        private void ip_OverHours_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-            if (ip_OverHours.SelectedItem == null)
-            {
-                pn_Task.Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            pn_Task.Visibility = Visibility.Visible;
-
-            if (ip_OverHours.SelectedItem is ComboBoxItem selectedItem)
-            {
-
-                int selectedIndex = ip_OverHours.Items.IndexOf(selectedItem);  // ?? ComboBox ? index ??????
-
-                for (int i = 0; i < pn_Plan.Children.Count; i++)
-                {
-                    if (i < selectedIndex + 1)  // ????? index ????? TextBox
-                    {
-                        ((TextBox)pn_Plan.Children[i]).Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        ((TextBox)pn_Plan.Children[i]).Visibility = Visibility.Collapsed;
-                    }
-                }
-            }
-        }
-
-
-        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!ValidateInput())
-            {
-                MessageBox.Show("??????????????", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
             try
             {
-                using (var connection = new SqliteConnection(App.ConnectionString))
+                string fullPath = Path.Combine(Directory.GetCurrentDirectory(), DatabasePath);
+
+                if (!File.Exists(fullPath))
                 {
-                    await connection.OpenAsync();
-
-                    using (var transaction = connection.BeginTransaction())
+                    // ????????
+                    string directoryPath = Path.GetDirectoryName(fullPath);
+                    if (directoryPath != null)
                     {
-                        var overHours = (ip_OverHours.SelectedIndex + 1) * OVER_HOURS_FACTOR;
-                        var taskPlans = Enumerable.Range(1, MAX_TASK_PLANS)
-                            .Select(i => (FindName($"ip_TaskPlan{i}") as TextBox)?.Visibility == Visibility.Visible
-                                ? (FindName($"ip_TaskPlan{i}") as TextBox)?.Text
-                                : null)
-                            .ToArray();
-
-                        var overTimeQuery = @"
-                                            INSERT INTO OverTime (TaskDate, OverHours, TaskPlan1, TaskPlan2, TaskPlan3, TaskPlan4, TaskPlan5, TaskPlan6, TaskPlan7, TaskPlan8)
-                                            VALUES (@TaskDate, @OverHours, @TaskPlan1, @TaskPlan2, @TaskPlan3, @TaskPlan4, @TaskPlan5, @TaskPlan6, @TaskPlan7, @TaskPlan8)
-                                            ON CONFLICT(TaskDate) DO UPDATE SET
-                                            OverHours = @OverHours,
-                                            TaskPlan1 = @TaskPlan1, TaskPlan2 = @TaskPlan2, TaskPlan3 = @TaskPlan3, TaskPlan4 = @TaskPlan4,
-                                            TaskPlan5 = @TaskPlan5, TaskPlan6 = @TaskPlan6, TaskPlan7 = @TaskPlan7, TaskPlan8 = @TaskPlan8";
-
-                        await connection.ExecuteAsync(overTimeQuery, new
-                        {
-                            TaskDate = _taskDate.ToString("yyyy-MM-dd")
-                            ,OverHours = overHours
-                            ,TaskPlan1 = taskPlans[0]
-                            ,TaskPlan2 = taskPlans[1]
-                            ,TaskPlan3 = taskPlans[2]
-                            ,TaskPlan4 = taskPlans[3]
-                            ,TaskPlan5 = taskPlans[4]
-                            ,TaskPlan6 = taskPlans[5]
-                            ,TaskPlan7 = taskPlans[6]
-                            ,TaskPlan8 = taskPlans[7]
-                        }, transaction);
-
-                        var updateTaskHeaderQuery = @"
-                                        UPDATE TaskHeader 
-                                        SET OverHours = @OverHours 
-                                        WHERE date(TaskDate) = @TaskDate";
-
-                        await connection.ExecuteAsync(updateTaskHeaderQuery, new
-                        {
-                            TaskDate = _taskDate.ToString("yyyy-MM-dd"),
-                            OverHours = overHours
-                        }, transaction);
-
-                        transaction.Commit();
+                        Directory.CreateDirectory(directoryPath);
                     }
+                    Log.Information("???????: {FullPath}", fullPath);
 
-                    MessageBox.Show("????????", "??", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    using (var connection = new SqliteConnection($"Data Source={fullPath};"))
+                    {
+                        connection.Open();
+
+                        var createTableQueries = new[]
+                        {
+                            @"
+                            CREATE TABLE IF NOT EXISTS TaskBody (
+                                TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
+                                TaskDate DATE NOT NULL,
+                                TaskName TEXT NOT NULL,
+                                DurationLevelID NUMERIC,
+                                Duration NUMERIC,
+                                Description TEXT,
+                                UnitID NUMERIC,
+                                ApplicationID NUMERIC,
+                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                DeleteFlag BOOLEAN DEFAULT 0
+                            );",
+                            @"
+                            CREATE TABLE IF NOT EXISTS Application (
+                                ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
+                                ApplicationName TEXT,
+                                ApplicationSubName TEXT,
+                                ApplicationStatus TEXT,
+                                ApplicationDatetime DATETIME,
+                                PCDFlag BOOLEAN DEFAULT 0,
+                                UnitID NUMERIC,
+                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                DeleteFlag BOOLEAN DEFAULT 0
+                            );",
+                            @"
+                            CREATE TABLE IF NOT EXISTS Unit (
+                                UnitID INTEGER PRIMARY KEY AUTOINCREMENT,
+                                UnitName TEXT,
+                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                DeleteFlag BOOLEAN DEFAULT 0
+                            );",
+                            @"
+                            CREATE TABLE IF NOT EXISTS TaskHeader (
+                                TaskDate DATE PRIMARY KEY,
+                                OverHours REAL DEFAULT 0,
+                                TotalHours REAL DEFAULT 8,
+                                TotalMins REAL DEFAULT 480,
+                                CustomizedMins REAL DEFAULT 0,
+                                UsedPoints INT DEFAULT 0,
+                                BasicPoints INT DEFAULT 0,
+                                UsedMins REAL DEFAULT 0,
+                                AvailableMins REAL DEFAULT 480,
+                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                DeleteFlag BOOLEAN DEFAULT 0
+                            );",
+                            @"
+                            CREATE TABLE IF NOT EXISTS OverTime (
+                                TaskDate DATE PRIMARY KEY,
+                                OverHours REAL DEFAULT 0,
+                                TaskPlan1 TEXT DEFAULT null,
+                                TaskPlan2 TEXT DEFAULT null,
+                                TaskPlan3 TEXT DEFAULT null,
+                                TaskPlan4 TEXT DEFAULT null,
+                                TaskPlan5 TEXT DEFAULT null,
+                                TaskPlan6 TEXT DEFAULT null,
+                                TaskPlan7 TEXT DEFAULT null,
+                                TaskPlan8 TEXT DEFAULT null,
+                                RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                DeleteFlag BOOLEAN DEFAULT 0
+                            );",
+                            @"
+                            CREATE TABLE IF NOT EXISTS DurationLevel (
+                                DurationLevelID INTEGER PRIMARY KEY,
+                                DurationLevelName TEXT
+                            );",
+                            @"
+                            CREATE TABLE IF NOT EXISTS Calendar (
+                                CalendarDate DATE PRIMARY KEY,            
+                                Year TEXT NOT NULL,                       
+                                YearMonth TEXT NOT NULL,                   
+                                YearHalf TEXT NOT NULL,                    
+                                YearQuarter TEXT NOT NULL,                 
+                                YearMonthSequence NUMERIC NOT NULL,        
+                                YearQuarterSequence NUMERIC NOT NULL,      
+                                YearHalfSequence NUMERIC NOT NULL,         
+                                WorkDayFlag BOOLEAN NOT NULL,              
+                                WeeklySequenceMonthly NUMERIC NOT NULL     
+                            );"
+                        };
+
+                        foreach (var query in createTableQueries)
+                        {
+                            connection.Execute(query);
+                        }
+
+                        // ??????
+                        var insertDataQuery = new[]
+                        {
+                            @"
+                            INSERT OR IGNORE INTO DurationLevel (DurationLevelID, DurationLevelName) VALUES
+                                (1,'Tiny'),
+                                (2,'Small'),
+                                (3,'Medium'),
+                                (4,'Large'),
+                                (5,'Huge'),
+                                (9,'-Customize-')
+                            ;",
+                            @"
+                            INSERT OR IGNORE INTO Unit (UnitName) VALUES
+                                ('IMD'),
+                                ('FA'),
+                                ('APP'),
+                                ('MECT'),
+                                ('METRO'),
+                                ('CSO'),
+                                ('CSM'),
+                                ('AC'),
+                                ('AR'),
+                                ('PCD')
+                            ;",
+                            @"
+                            WITH RECURSIVE CalendarGenerator AS (
+                                SELECT DATE('2024-03-01') AS CalendarDate
+                                UNION ALL
+                                -- ??????????
+                                SELECT DATE(CalendarDate, '+1 day')
+                                FROM CalendarGenerator
+                                WHERE CalendarDate < DATE('2030-02-28')
+                            ),CalendarData AS (
+                                SELECT 
+                                    CalendarDate,
+                                    CASE 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
+                                        THEN STRFTIME('%Y', CalendarDate)
+                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
+                                    END AS Year,
+                                    CASE 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
+                                        THEN STRFTIME('%Y', CalendarDate) || '/' || STRFTIME('%m', CalendarDate)
+                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year')) || '/' || STRFTIME('%m', CalendarDate)
+                                    END AS YearMonth,
+                                    CASE 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-1H'
+                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-2H'
+                                    END AS YearHalf,
+                                    CASE 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 5 THEN STRFTIME('%Y', CalendarDate) || '-1Q'
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 6 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-2Q'
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 9 AND 11 THEN STRFTIME('%Y', CalendarDate) || '-3Q'
+                                        ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-4Q'
+                                    END AS YearQuarter,
+                                    ROW_NUMBER() OVER (ORDER BY CalendarDate) AS YearMonthSequence,
+                                    ROW_NUMBER() OVER (PARTITION BY CASE 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
+                                        THEN STRFTIME('%Y', CalendarDate)
+                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
+                                    END, CASE 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 5 THEN 1
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 6 AND 8 THEN 2
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 9 AND 11 THEN 3
+                                        ELSE 4
+                                    END ORDER BY CalendarDate) AS YearQuarterSequence,
+                                    ROW_NUMBER() OVER (PARTITION BY CASE 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
+                                        THEN STRFTIME('%Y', CalendarDate)
+                                        ELSE STRFTIME('%Y', DATE(CalendarDate, '-1?'))
+                                    END, CASE 
+                                        WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 8 THEN 1
+                                        ELSE 2
+                                    END ORDER BY CalendarDate) AS YearHalfSequence,
+                                    CASE 
+                                        WHEN STRFTIME('%w', CalendarDate) IN ('0', '6') THEN False -- ??(0)???(6)??????
+                                        ELSE True -- ??????????
+                                    END AS WorkDayFlag,
+                                    ROW_NUMBER() OVER (PARTITION BY STRFTIME('%Y-%W', CalendarDate) ORDER BY CalendarDate) AS WeeklySequenceMonthly
+                                FROM 
+                                    CalendarGenerator
+                            )
+                            INSERT INTO Calendar
+                            SELECT *
+                            FROM CalendarData
+                            ;",
+                        };
+
+                        foreach (var query in insertDataQuery)
+                        {
+                            connection.Execute(query);
+                        }
+
+                        var createTriggerQuery = new[]
+                        {
+                            @"
+                                CREATE TRIGGER insert_TaskHeader_onTaskBody
+                                AFTER INSERT ON TaskBody
+                                FOR EACH ROW
+                                BEGIN
+                                    -- ?? UsedPoints ? CustomizedMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        UsedPoints = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ),
+                                        CustomizedMins = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? BasicPoints, UsedMins ? AvailableMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        BasicPoints = COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0),
+                                        UsedMins = ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0),
+                                        AvailableMins = TotalMins - ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0) - (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? TaskBody ? Duration
+                                    UPDATE TaskBody
+                                    SET Duration = round(DurationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = NEW.TaskDate),0)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+                            ,@"
+                                CREATE TRIGGER update_TaskHeader_onTaskBody
+                                AFTER UPDATE ON TaskBody
+                                FOR EACH ROW
+                                BEGIN
+                                    -- ?? UsedPoints ? CustomizedMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        UsedPoints = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ),
+                                        CustomizedMins = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? BasicPoints, UsedMins ? AvailableMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        BasicPoints = COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0),
+                                        UsedMins = ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0),
+                                        AvailableMins = TotalMins - ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0) - (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? TaskBody ? Duration
+                                    UPDATE TaskBody
+                                    SET Duration = round(DurationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = NEW.TaskDate),0)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+                            ,@"
+                                CREATE TRIGGER insert_TaskHeader_onOverTime
+                                AFTER INSERT ON OverTime
+                                FOR EACH ROW
+                                BEGIN
+                                    UPDATE TaskHeader
+                                    SET 
+                                        OverHours = NEW.OverHours,
+                                        TotalHours = 8 + NEW.OverHours,
+                                        TotalMins = (8 + NEW.OverHours) * 60,
+
+                                        BasicPoints = round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+                                        UsedMins = UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+
+                                        AvailableMins = (8 + NEW.OverHours) * 60 -
+                                                        UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0)
+
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? TaskBody ? Duration
+                                    UPDATE TaskBody
+                                    SET Duration = DurationLevelID * (SELECT round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0) FROM TaskHeader WHERE TaskDate = NEW.TaskDate)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+                            ,@"
+                                CREATE TRIGGER update_TaskHeader_onOverTime
+                                AFTER UPDATE ON OverTime
+                                FOR EACH ROW
+                                BEGIN
+                                    UPDATE TaskHeader
+                                    SET 
+                                        OverHours = NEW.OverHours,
+                                        TotalHours = 8 + NEW.OverHours,
+                                        TotalMins = (8 + NEW.OverHours) * 60,
+
+                                        BasicPoints = round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+                                        UsedMins = UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+
+                                        AvailableMins = (8 + NEW.OverHours) * 60 -
+                                                        UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0)
+
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? TaskBody ? Duration
+                                    UPDATE TaskBody
+                                    SET Duration = DurationLevelID * (SELECT round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0) FROM TaskHeader WHERE TaskDate = NEW.TaskDate)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+
+                    };
+
+                        foreach (var query in createTriggerQuery)
+                        {
+                            connection.Execute(query);
+                        }
+                        Debug.WriteLine("?????????????");
+                    }
+                }
+
+
+                // ???????,????????,???????? TaskHeader
+                using (var connection = new SqliteConnection($"Data Source={fullPath};"))
+                {
+                    connection.Open();
+
+                    var insertTodayDateQuery = @"
+                        INSERT OR IGNORE INTO TaskHeader (TaskDate) VALUES
+                        (@TaskDate)
+                    ";
+
+                    connection.Execute(insertTodayDateQuery, new { TaskDate = DateTime.Today.ToString("yyyy-MM-dd") });
+                    Log.Information("?????????");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
+                Log.Error(ex, "???????????");
             }
-
-            this.Close();
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close(); // ??????
-        }
-
-        private bool ValidateInput()
-        {
-            return Enumerable.Range(1, MAX_TASK_PLANS)
-                .All(i => (FindName($"ip_TaskPlan{i}") as TextBox)?.Visibility != Visibility.Visible ||
-                          !string.IsNullOrWhiteSpace((FindName($"ip_TaskPlan{i}") as TextBox)?.Text));
         }
     }
-
-
-
 }
+This file is: DatabaseInitializer.cs
 
-This file is: OverTimeInput.xaml.cs
-
+using System;
+using System.Data;
+using System.IO;
+using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using Serilog;
-using System.Windows;
-using System.Windows.Controls;
+using WorkTrack.Interfaces;
 
-namespace WorkTrack
+
+
+namespace WorkTrack.Services
 {
-    /// <summary>
-    /// TaskInput.xaml ?????
-    /// </summary>
-    public partial class TaskInput : Window
+    public class DbFactory : IDbFactory, IInitializer
     {
-        private readonly Task _taskBody;
-        private readonly bool _isCopyMode;
+        private readonly ILogger _logger;
+        private readonly string _databasePath = "Database/app.db";
 
-        public enum TaskInitializationMode
+        public DbFactory(ILogger logger)
         {
-            Add,    // ??????
-            Edit,   // ????????
-            Copy    // ????????
+            _logger = logger;
         }
 
-        public TaskInput(Task taskBody, TaskInitializationMode initializationMode)
+        public async Task<IDbConnection> CreateConnectionAsync()
         {
-            InitializeComponent();
-            _taskBody = taskBody;
-            _isCopyMode = initializationMode == TaskInitializationMode.Copy;
-
-            Loaded += MainWindow_Loaded;
-            ip_TaskName.Focus();
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), _databasePath);
+            var connection = new SqliteConnection($"Data Source={fullPath}");
+            await connection.OpenAsync();
+            return connection;
         }
 
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            await LoadOption();
-
-            // ?????
-            ip_TaskDate.SelectedDate = _taskBody.TaskDate != default ? _taskBody.TaskDate : DateTime.Today;
-            ip_TaskName.Text = _taskBody.TaskName;
-            ip_Describe.Text = _taskBody.Description;
-            ip_DurationLevelName.SelectedValue = _taskBody.DurationLevelID != 0 ? _taskBody.DurationLevelID : ip_DurationLevelName.Items[2];
-            ip_Duration.Text = _taskBody.Duration.ToString();
-            ip_UnitName.SelectedValue = _taskBody.UnitID != 0 ? _taskBody.UnitID : ip_UnitName.Items[0];
-            ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
-
-            // ??????????? TaskID ?????
-            this.Title = _isCopyMode ? "Copy Task" : _taskBody.TaskID == 0 ? "Add Task" : "Change Task";
-            ip_TaskID.Visibility = _taskBody.TaskID == 0 || _isCopyMode ? Visibility.Collapsed : Visibility.Visible;
-            if (!_isCopyMode && _taskBody.TaskID != 0)
-            {
-                ip_TaskID.Text = _taskBody.TaskID.ToString();
-            }
-        }
-
-        private async System.Threading.Tasks.Task LoadOption()
+        public void Initialize()
         {
             try
             {
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
+                string fullPath = Path.Combine(Directory.GetCurrentDirectory(), _databasePath);
 
-                // ?? UnitNames ??
-                var unitNames = (await connection.QueryAsync<Unit>("SELECT UnitID, UnitName FROM Unit WHERE DeleteFlag = @DeleteFlag", new { DeleteFlag = false })).ToList();
-                unitNames.Add(new Unit { UnitID = 0, UnitName = "-Add-" });
-                ip_UnitName.ItemsSource = unitNames;
-                ip_UnitName.SelectedIndex = 0;
-
-                // ?? DurationLevels ??
-                var durationLevelNames = (await connection.QueryAsync<DurationLevel>("SELECT DurationLevelID, DurationLevelName FROM DurationLevel")).ToList();
-                ip_DurationLevelName.ItemsSource = durationLevelNames;
-                ip_DurationLevelName.SelectedIndex = 2;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"?????????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-        }
-
-
-        private void ip_DurationLevelName_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ip_DurationLevelName.SelectedIndex == 5) 
-            {
-                ip_Duration.Visibility = Visibility.Visible;
-                ip_DurationLevelName.Width = 110;
-                ip_Duration.Focus();
-                ip_Duration.SelectAll();
-            }
-            else
-            {
-                ip_Duration.Visibility = Visibility.Collapsed;
-                ip_DurationLevelName.Width = 180;
-            }
-        }
-        private void ip_UnitName_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ip_UnitName.SelectedItem != null && ip_UnitName.SelectedItem.ToString() == "-Add-")
-            {
-                UnitManagement unitManagementWindow = new UnitManagement();
-                unitManagementWindow.Closed += UnitManagementWindow_Closed;
-                unitManagementWindow.ShowDialog();
-            }
-        }
-        private async void UnitManagementWindow_Closed(object sender, EventArgs e)
-        {
-            await LoadOption(); // ??????UnitName??
-        }
-
-
-        private async System.Threading.Tasks.Task RefreshTaskBodyAsync()
-        {
-            try
-            {
-                using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-
-                string taskDate = (ip_TaskDate.SelectedDate ?? DateTime.Today).ToString("yyyy-MM-dd");
-                string taskID = ip_TaskID.Text;
-                string taskName = ip_TaskName.Text;
-                string description = ip_Describe.Text;
-                int durationLevelID = (int)ip_DurationLevelName.SelectedValue;
-                int? duration = string.IsNullOrEmpty(ip_Duration.Text) ? (int?)null : int.Parse(ip_Duration.Text);
-                int selectedUnitID = (int)ip_UnitName.SelectedValue;
-                string applicationID = ip_ApplicationID.Text;
-
-
-                if (string.IsNullOrEmpty(taskID))
+                if (!File.Exists(fullPath))
                 {
-                    var insertQuery = $$"""
-                        INSERT INTO TaskBody (TaskDate, TaskName, DurationLevelID, Duration, Description, UnitID, ApplicationID)
-                        VALUES (@TaskDate, @TaskName, @DurationLevelID, @Duration, @Description, @UnitID, @ApplicationID);
-                    """;
-
-                    await connection.ExecuteAsync(insertQuery, new
+                    string directoryPath = Path.GetDirectoryName(fullPath);
+                    if (directoryPath != null)
                     {
-                        TaskDate = taskDate,
-                        TaskName = taskName,
-                        DurationLevelID = durationLevelID,
-                        Duration = duration,
-                        Description = description,
-                        UnitID = selectedUnitID,
-                        ApplicationID = applicationID,
-                    });
-                }
-                else
-                {
-                    var updateQuery = $$"""
-                        UPDATE TaskBody
-                        SET TaskName = @TaskName, DurationLevelID = @DurationLevelID, Duration = @Duration, Description = @Description,
-                            UnitID = @UnitID, ApplicationID = @ApplicationID
-                        WHERE TaskID = @TaskID;
-                    """;
+                        Directory.CreateDirectory(directoryPath);
+                    }
+                    _logger.Information("???????: {FullPath}", fullPath);
 
-                    await connection.ExecuteAsync(updateQuery, new
+                    using (var connection = new SqliteConnection($"Data Source={fullPath};"))
                     {
-                        TaskName = taskName,
-                        DurationLevelID = durationLevelID,
-                        Duration = duration,
-                        Description = description,
-                        UnitID = selectedUnitID,
-                        ApplicationID = applicationID,
-                        TaskID = taskID
-                    });
+                        connection.Open();
+                        CreateTables(connection);
+                        InsertInitialData(connection);
+                        CreateTriggers(connection);
+                    }
+                    _logger.Information("???????????");
                 }
 
-                var insertOrUpdateTaskHeader = $$"""
-                   
-
-                    WITH CTE AS (
-                        SELECT 
-                            sum(CASE WHEN DurationLevelID != 0 THEN DurationLevelID END) as UsedPoints
-                            ,sum(CASE WHEN DurationLevelID = 0 THEN Duration END) as CustomizedMins
-                        FROM TaskBody
-                        WHERE TaskDate = @TaskDate
-                    )
-                    UPDATE TaskHeader
-                    SET
-                        UsedPoints = coalesce(CTE.UsedPoints, 0)
-                        ,CustomizedMins = coalesce(CTE.CustomizedMins, 0)
-                    FROM CTE
-                    WHERE TaskHeader.TaskDate = @TaskDate
-                    ;
-
-                    UPDATE TaskBody
-                    SET Duration = CAST(durationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = @TaskDate) AS INTEGER)
-                    WHERE
-                        durationLevelID != 0
-                        and TaskDate = @TaskDate
-                    ;
-                """;
-
-                await connection.ExecuteAsync(insertOrUpdateTaskHeader, new { TaskDate = taskDate });
+                // ?????????,???????? TaskHeader
+                using (var connection = new SqliteConnection($"Data Source={fullPath};"))
+                {
+                    connection.Open();
+                    var insertTodayDateQuery = @"
+                        INSERT OR IGNORE INTO TaskHeader (TaskDate) VALUES (@TaskDate)
+                    ";
+                    connection.Execute(insertTodayDateQuery, new { TaskDate = DateTime.Today.ToString("yyyy-MM-dd") });
+                    _logger.Information("?????????");
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to update task body: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _logger.Error(ex, "???????????");
+                throw;
             }
-
         }
-        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+
+        private void CreateTables(SqliteConnection connection)
         {
-            try {
-                if (string.IsNullOrWhiteSpace(ip_TaskName.Text))
-                {
-                    MessageBox.Show("Input TaskName", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                if (!ip_TaskDate.SelectedDate.HasValue)
-                {
-                    MessageBox.Show("Input TaskDate", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                await RefreshTaskBodyAsync();
-
-            ip_TaskID.Clear();
-            ip_TaskName.Clear();
-            ip_Describe.Clear();
-            ip_DurationLevelName.SelectedIndex = 2;
-            ip_UnitName.SelectedIndex = 0;
-            ip_ApplicationID.SelectedIndex = 0;
-
-            }
-            catch (Exception ex)
+            var createTableQueries = new[]
             {
-                MessageBox.Show($"??????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
-                // ????? Serilog ????????
-                Log.Error(ex, "?????????");
+                @"
+                CREATE TABLE IF NOT EXISTS TaskBody (
+                    TaskID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    TaskDate DATE NOT NULL,
+                    TaskName TEXT NOT NULL,
+                    DurationLevelID NUMERIC,
+                    Duration NUMERIC,
+                    Description TEXT,
+                    UnitID NUMERIC,
+                    ApplicationID NUMERIC,
+                    RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    DeleteFlag BOOLEAN DEFAULT 0
+                );",
+                @"
+                CREATE TABLE IF NOT EXISTS Application (
+                    ApplicationID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ApplicationName TEXT,
+                    ApplicationSubName TEXT,
+                    ApplicationStatus TEXT,
+                    ApplicationDatetime DATETIME,
+                    PCDFlag BOOLEAN DEFAULT 0,
+                    UnitID NUMERIC,
+                    RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    DeleteFlag BOOLEAN DEFAULT 0
+                );",
+                @"
+                CREATE TABLE IF NOT EXISTS Unit (
+                    UnitID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    UnitName TEXT,
+                    RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    DeleteFlag BOOLEAN DEFAULT 0
+                );",
+                @"
+                CREATE TABLE IF NOT EXISTS TaskHeader (
+                    TaskDate DATE PRIMARY KEY,
+                    OverHours REAL DEFAULT 0,
+                    TotalHours REAL DEFAULT 8,
+                    TotalMins REAL DEFAULT 480,
+                    CustomizedMins REAL DEFAULT 0,
+                    UsedPoints INT DEFAULT 0,
+                    BasicPoints INT DEFAULT 0,
+                    UsedMins REAL DEFAULT 0,
+                    AvailableMins REAL DEFAULT 480,
+                    RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    DeleteFlag BOOLEAN DEFAULT 0
+                );",
+                @"
+                CREATE TABLE IF NOT EXISTS OverTime (
+                    TaskDate DATE PRIMARY KEY,
+                    OverHours REAL DEFAULT 0,
+                    TaskPlan1 TEXT DEFAULT null,
+                    TaskPlan2 TEXT DEFAULT null,
+                    TaskPlan3 TEXT DEFAULT null,
+                    TaskPlan4 TEXT DEFAULT null,
+                    TaskPlan5 TEXT DEFAULT null,
+                    TaskPlan6 TEXT DEFAULT null,
+                    TaskPlan7 TEXT DEFAULT null,
+                    TaskPlan8 TEXT DEFAULT null,
+                    RegistDatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    DeleteFlag BOOLEAN DEFAULT 0
+                );",
+                @"
+                CREATE TABLE IF NOT EXISTS DurationLevel (
+                    DurationLevelID INTEGER PRIMARY KEY,
+                    DurationLevelName TEXT
+                );",
+                @"
+                CREATE TABLE IF NOT EXISTS Calendar (
+                    CalendarDate DATE PRIMARY KEY,            
+                    Year TEXT NOT NULL,                       
+                    YearMonth TEXT NOT NULL,                   
+                    YearHalf TEXT NOT NULL,                    
+                    YearQuarter TEXT NOT NULL,                 
+                    YearMonthSequence NUMERIC NOT NULL,        
+                    YearQuarterSequence NUMERIC NOT NULL,      
+                    YearHalfSequence NUMERIC NOT NULL,         
+                    WorkDayFlag BOOLEAN NOT NULL,              
+                    WeeklySequenceMonthly NUMERIC NOT NULL     
+                );"
+            };
+
+            foreach (var query in createTableQueries)
+            {
+                connection.Execute(query);
             }
-
+            _logger.Information("?????????");
         }
 
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        private void InsertInitialData(SqliteConnection connection)
         {
-            this.Close(); // ??????
+            var insertDataQueries = new[]
+            {
+                @"
+                INSERT OR IGNORE INTO DurationLevel (DurationLevelID, DurationLevelName) VALUES
+                    (1,'Tiny'),
+                    (2,'Small'),
+                    (3,'Medium'),
+                    (4,'Large'),
+                    (5,'Huge'),
+                    (9,'-Customize-')
+                ;",
+                @"
+                INSERT OR IGNORE INTO Unit (UnitName) VALUES
+                    ('IMD'),
+                    ('FA'),
+                    ('APP'),
+                    ('MECT'),
+                    ('METRO'),
+                    ('CSO'),
+                    ('CSM'),
+                    ('AC'),
+                    ('AR'),
+                    ('PCD')
+                ;",
+                @"
+                WITH RECURSIVE CalendarGenerator AS (
+                    SELECT DATE('2024-03-01') AS CalendarDate
+                    UNION ALL
+                    -- ??????????
+                    SELECT DATE(CalendarDate, '+1 day')
+                    FROM CalendarGenerator
+                    WHERE CalendarDate < DATE('2030-02-28')
+                ),CalendarData AS (
+                    SELECT 
+                        CalendarDate,
+                        CASE 
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
+                            THEN STRFTIME('%Y', CalendarDate)
+                            ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
+                        END AS Year,
+                        CASE 
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
+                            THEN STRFTIME('%Y', CalendarDate) || '/' || STRFTIME('%m', CalendarDate)
+                            ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year')) || '/' || STRFTIME('%m', CalendarDate)
+                        END AS YearMonth,
+                        CASE 
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-1H'
+                            ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-2H'
+                        END AS YearHalf,
+                        CASE 
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 5 THEN STRFTIME('%Y', CalendarDate) || '-1Q'
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 6 AND 8 THEN STRFTIME('%Y', CalendarDate) || '-2Q'
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 9 AND 11 THEN STRFTIME('%Y', CalendarDate) || '-3Q'
+                            ELSE STRFTIME('%Y', CASE WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 THEN CalendarDate ELSE DATE(CalendarDate, '-1 year') END) || '-4Q'
+                        END AS YearQuarter,
+                        ROW_NUMBER() OVER (ORDER BY CalendarDate) AS YearMonthSequence,
+                        ROW_NUMBER() OVER (PARTITION BY CASE 
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
+                            THEN STRFTIME('%Y', CalendarDate)
+                            ELSE STRFTIME('%Y', DATE(CalendarDate, '-1 year'))
+                        END, CASE 
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 5 THEN 1
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 6 AND 8 THEN 2
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 9 AND 11 THEN 3
+                            ELSE 4
+                        END ORDER BY CalendarDate) AS YearQuarterSequence,
+                        ROW_NUMBER() OVER (PARTITION BY CASE 
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) >= 3 
+                            THEN STRFTIME('%Y', CalendarDate)
+                            ELSE STRFTIME('%Y', DATE(CalendarDate, '-1?'))
+                        END, CASE 
+                            WHEN CAST(STRFTIME('%m', CalendarDate) AS NUMERIC) BETWEEN 3 AND 8 THEN 1
+                            ELSE 2
+                        END ORDER BY CalendarDate) AS YearHalfSequence,
+                        CASE 
+                            WHEN STRFTIME('%w', CalendarDate) IN ('0', '6') THEN False -- ??(0)???(6)??????
+                            ELSE True -- ??????????
+                        END AS WorkDayFlag,
+                        ROW_NUMBER() OVER (PARTITION BY STRFTIME('%Y-%W', CalendarDate) ORDER BY CalendarDate) AS WeeklySequenceMonthly
+                    FROM 
+                        CalendarGenerator
+                )
+                INSERT INTO Calendar
+                SELECT *
+                FROM CalendarData
+                ;",
+            };
+
+            foreach (var query in insertDataQueries)
+            {
+                connection.Execute(query);
+            }
+            _logger.Information("????????");
         }
 
+        private void CreateTriggers(SqliteConnection connection)
+        {
+            var createTriggerQueries = new[]
+            {
+                            @"
+                                CREATE TRIGGER insert_TaskHeader_onTaskBody
+                                AFTER INSERT ON TaskBody
+                                FOR EACH ROW
+                                BEGIN
+                                    -- ?? UsedPoints ? CustomizedMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        UsedPoints = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ),
+                                        CustomizedMins = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? BasicPoints, UsedMins ? AvailableMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        BasicPoints = COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0),
+                                        UsedMins = ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0),
+                                        AvailableMins = TotalMins - ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0) - (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? TaskBody ? Duration
+                                    UPDATE TaskBody
+                                    SET Duration = round(DurationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = NEW.TaskDate),0)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+                            ,@"
+                                CREATE TRIGGER update_TaskHeader_onTaskBody
+                                AFTER UPDATE ON TaskBody
+                                FOR EACH ROW
+                                BEGIN
+                                    -- ?? UsedPoints ? CustomizedMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        UsedPoints = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ),
+                                        CustomizedMins = (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? BasicPoints, UsedMins ? AvailableMins
+                                    UPDATE TaskHeader
+                                    SET 
+                                        BasicPoints = COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0),
+                                        UsedMins = ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0),
+                                        AvailableMins = TotalMins - ROUND(COALESCE((TotalMins -  (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )) / NULLIF((
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0), 0) * (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID != 9 THEN DurationLevelID END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        ), 0) - (
+                                            SELECT COALESCE(SUM(CASE WHEN DurationLevelID = 9 THEN Duration END), 0)
+                                            FROM TaskBody
+                                            WHERE TaskDate = NEW.TaskDate
+                                        )
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? TaskBody ? Duration
+                                    UPDATE TaskBody
+                                    SET Duration = round(DurationLevelID * (SELECT BasicPoints FROM TaskHeader WHERE TaskDate = NEW.TaskDate),0)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+                            ,@"
+                                CREATE TRIGGER insert_TaskHeader_onOverTime
+                                AFTER INSERT ON OverTime
+                                FOR EACH ROW
+                                BEGIN
+                                    UPDATE TaskHeader
+                                    SET 
+                                        OverHours = NEW.OverHours,
+                                        TotalHours = 8 + NEW.OverHours,
+                                        TotalMins = (8 + NEW.OverHours) * 60,
+
+                                        BasicPoints = round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+                                        UsedMins = UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+
+                                        AvailableMins = (8 + NEW.OverHours) * 60 -
+                                                        UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0)
+
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? TaskBody ? Duration
+                                    UPDATE TaskBody
+                                    SET Duration = DurationLevelID * (SELECT round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0) FROM TaskHeader WHERE TaskDate = NEW.TaskDate)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+                            ,@"
+                                CREATE TRIGGER update_TaskHeader_onOverTime
+                                AFTER UPDATE ON OverTime
+                                FOR EACH ROW
+                                BEGIN
+                                    UPDATE TaskHeader
+                                    SET 
+                                        OverHours = NEW.OverHours,
+                                        TotalHours = 8 + NEW.OverHours,
+                                        TotalMins = (8 + NEW.OverHours) * 60,
+
+                                        BasicPoints = round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+                                        UsedMins = UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0),
+
+                                        AvailableMins = (8 + NEW.OverHours) * 60 -
+                                                        UsedPoints * round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0)
+
+                                    WHERE TaskDate = NEW.TaskDate;
+
+                                    -- ?? TaskBody ? Duration
+                                    UPDATE TaskBody
+                                    SET Duration = DurationLevelID * (SELECT round(((8 + NEW.OverHours) * 60 - CustomizedMins) / UsedPoints ,0) FROM TaskHeader WHERE TaskDate = NEW.TaskDate)
+                                    WHERE TaskDate = NEW.TaskDate AND DurationLevelID != 9;
+                                END;
+                            "
+
+                    };
+
+            foreach (var query in createTriggerQueries)
+            {
+                connection.Execute(query);
+            }
+            _logger.Information("?????????");
+        }
     }
-
-
 }
-
-This file is: TaskInput.xaml.cs
+This file is: DbFactory.cs
 
 using Dapper;
 using LiveCharts;
@@ -402,207 +1025,148 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using static WorkTrack.TaskInput;
+using WorkTrack.Interfaces;
+using WorkTrack.ViewModel;
 using Serilog;
 using System.Windows.Documents;
+using WorkTrack.Services;
 
 namespace WorkTrack
 {
     public partial class MainWindow : Window
     {
-        private TaskSearch _taskSearch;
+
+        private readonly ILogger _logger;
+        private readonly IInitializer _dbInitializer;
+        private readonly ITaskService _taskService;
+        private readonly IChartService _chartService;
+
         public DateTime TodayDate { get; set; }
-        public ChartValues<double> TaskDurations { get; set; } = new ChartValues<double>();
         public SeriesCollection SeriesCollection { get; set; } = new SeriesCollection();
 
-        public MainWindow()
+        public MainWindow(
+            ILogger logger,
+            IInitializer dbInitializer,
+            ITaskService taskService,
+            IChartService chartService)
         {
             InitializeComponent();
-            LogConfiguration.Initialize(); // ???????
+            _logger = logger;
+            _dbInitializer = dbInitializer;
+            _taskService = taskService;
+            _chartService = chartService;
 
-            Log.Information("MainWindow initialized.");
-
-            _taskSearch = new TaskSearch();  // ??? TaskSearch
             DataContext = this;
             TodayDate = DateTime.Now;
 
-            Log.Information("Navigating to Page0_Welcome.");
-            MainFrame.NavigationService.Navigate(new Page0_Welcome());
+            Loaded += async (s, e) => await InitializeApplicationAsync();
+        }
 
+        private async Task InitializeApplicationAsync()
+        {
             try
             {
-                Log.Information("Initializing database.");
-                DatabaseInitializer dbInitializer = new DatabaseInitializer();
-                dbInitializer.Initialize();
-                Log.Information("Database initialized successfully.");
+                _logger.Information("Initializing application.");
+                InitializeDatabase();
+
+                _logger.Information("Navigating to Page0_Welcome.");
+                if (MainFrame?.NavigationService != null)
+                {
+                    MainFrame.NavigationService.Navigate(new Page0_Welcome());
+                }
+                else
+                {
+                    _logger.Warning("MainFrame or its NavigationService is null.");
+                }
+
+                if (_chartService != null)
+                {
+                    await _chartService.InitializeChartAsync(DateTime.Today);
+                    _chartService.UpdateChartUI += ChartService_UpdateChartUI;
+                }
+                else
+                {
+                    _logger.Warning("ChartService is null.");
+                }
+
+                UpdateService.DataUpdated += async (date) =>
+                {
+                    if (_chartService != null)
+                    {
+                        await _chartService.InitializeChartAsync(date);
+                    }
+                };
+
+                _logger.Information("Application initialized successfully.");
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed to initialize database.");
+                _logger.Error(ex, "Failed to initialize application.");
+                MessageBox.Show($"Application initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void InitializeDatabase()
+        {
+            try
+            {
+                _logger.Information("Initializing database.");
+                _dbInitializer.Initialize();
+                _logger.Information("Database initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to initialize database.");
                 MessageBox.Show($"Database initialization failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            _ = InitializeStackedColumnChart(DateTime.Today);
         }
 
         #region Cd1_Bt
 
-        public async System.Threading.Tasks.Task InitializeStackedColumnChart(DateTime selectedDate)
+        private void ChartService_UpdateChartUI(object? sender, ChartUpdateEventArgs e)
         {
-            SeriesCollection.Clear();
-            var formattedDate = selectedDate.ToString("yyyy-MM-dd");
-
-            try
-            {
-                Log.Information("Fetching tasks for {FormattedDate}", formattedDate);
-                var tasks = await _taskSearch.GetTasks(selectedDate);
-                Log.Information("Fetched {TaskCount} tasks.", tasks.Count());
-
-                int taskCount = 0;
-                int pointsCount = 0;
-
-                var query = @"
-            SELECT AvailableMins, OverHours 
-            FROM TaskHeader 
-            WHERE date(TaskDate) = @TaskDate";
-
-                double availableMins = 0;
-                double overHours = 0;
-
-                using (var connection = new SqliteConnection(App.ConnectionString))
-                {
-                    await connection.OpenAsync();
-                    var result = await connection.QueryFirstOrDefaultAsync<(double AvailableMins, double OverHours)>(
-                        query,
-                        new { TaskDate = formattedDate }
-                    );
-
-                    if (result != default)
-                    {
-                        (availableMins, overHours) = result;
-                    }
-                    else
-                    {
-                        Log.Warning("No data found in TaskHeader for date: {FormattedDate}", formattedDate);
-                        availableMins = 480; // ???,??????
-                        overHours = 0;
-                    }
-                }
-
-                if (tasks.Any() || availableMins > 0)
-                {
-                    foreach (var task in tasks)
-                    {
-                        taskCount++;
-                        pointsCount += task.DurationLevelID;
-
-                        SeriesCollection.Add(new StackedRowSeries
-                        {
-                            Values = new ChartValues<double> { Math.Max(task.Duration, 1) },
-                            StackMode = StackMode.Values,
-                            DataLabels = true,
-                            Fill = Brushes.Teal,
-                            Stroke = Brushes.White,
-                            StrokeThickness = 0.5,
-                            MaxRowHeight = 20,
-                            Title = task.TaskName
-                        });
-                    }
-
-                    if (availableMins > 0)
-                    {
-                        SeriesCollection.Add(new StackedRowSeries
-                        {
-                            Values = new ChartValues<double> { availableMins },
-                            StackMode = StackMode.Values,
-                            DataLabels = true,
-                            Fill = Brushes.Gray,
-                            Stroke = Brushes.White,
-                            StrokeThickness = 0.5,
-                            MaxRowHeight = 20,
-                            Title = "Empty",
-                        });
-                    }
-                }
-                else
-                {
-                    Log.Warning("No data available for {SelectedDate}", selectedDate);
-                    SeriesCollection.Add(new StackedRowSeries
-                    {
-                        Values = new ChartValues<double> { 480 },
-                        StackMode = StackMode.Values,
-                        DataLabels = true,
-                        Fill = Brushes.Gray,
-                        Stroke = Brushes.White,
-                        StrokeThickness = 0.5,
-                        MaxRowHeight = 20,
-                        Title = "No Data"
-                    });
-                }
-
-                double avgpoint = taskCount > 0 ? (double)pointsCount / taskCount : 0;
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    Card_Label1.Inlines.Clear();
-                    Card_Label1.Inlines.Add(new Run($"{taskCount} ") { FontSize = 15 });
-                    Card_Label1.Inlines.Add(new Run($"({avgpoint:F2})") { FontSize = 10 });
-
-                    Card_Label2.Text = overHours.ToString("F1");
-                });
-
-                Log.Information("Chart initialized with {SeriesCount} series", SeriesCollection.Count);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to load task durations for {SelectedDate}. SeriesCollection count: {Count}", selectedDate, SeriesCollection.Count);
-                MessageBox.Show($"Failed to load task durations: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string query, object parameters = null)
-        {
-            try
-            {
-                Log.Information("Executing query: {Query}", query);
-                await using var connection = new SqliteConnection(App.ConnectionString);
-                await connection.OpenAsync();
-                var result = await connection.QueryAsync<T>(query, parameters);
-                Log.Information("Query executed successfully.");
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to execute query: {Query}", query);
-                MessageBox.Show($"Failed to execute query: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return Enumerable.Empty<T>();
-            }
+            SeriesCollection = e.SeriesCollection;
+            Card_Label1.Inlines.Clear();
+            Card_Label1.Inlines.Add(new Run($"{e.TaskCount} ") { FontSize = 15 });
+            Card_Label1.Inlines.Add(new Run($"({e.AveragePoint:F2})") { FontSize = 10 });
+            Card_Label2.Text = e.OverHours.ToString("F1");
         }
 
         private void bt_OverTime_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.NavigationService.Navigate(new TaskPage());
+            var taskViewModel = new TaskViewModel(_taskService, _chartService, _logger);
+            MainFrame.NavigationService.Navigate(new TaskPage(taskViewModel));
             DateTime selectedDate = DateTime.Today;
-            OverTimeInput overTimeInputWindow = new OverTimeInput(selectedDate);
-
-            // ???????
-            overTimeInputWindow.Left = this.Width - this.Left; // ??????????????
-            overTimeInputWindow.Top = this.Top + 100; // ??????????
+            OverTimeInput overTimeInputWindow = new OverTimeInput(selectedDate, _logger, _taskService)
+            {
+                Left = this.Left + this.Width,
+                Top = this.Top + 100,
+                Owner = this
+            };
             overTimeInputWindow.ShowDialog();
         }
 
         private void bt_CardAddTask_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.NavigationService.Navigate(new TaskPage());
+            var taskViewModel = new TaskViewModel(_taskService, _chartService, _logger);
+            MainFrame.NavigationService.Navigate(new TaskPage(taskViewModel));
+            var newTask = new WorkTask { TaskDate = DateTime.Today };
+            var taskCompletionSource = new TaskCompletionSource<WorkTask>();
+            taskCompletionSource.SetResult(newTask);
 
-            var newTask = new Task { TaskDate = DateTime.Today };
-            TaskInput TaskInputWindow = new TaskInput(newTask, TaskInitializationMode.Add);
-            TaskInputWindow.Left = this.Width - this.Left ; // ??????????????
-            TaskInputWindow.Top = this.Top + 100; // ??????????
-            TaskInputWindow.ShowDialog();
+            TaskInput taskInputWindow = new TaskInput(newTask, TaskInput.TaskInitializationMode.Add, _logger, _taskService)
+            {
+                Left = this.Left + this.Width,
+                Top = this.Top + 100,
+                Owner = this
+            };
+            taskInputWindow.ShowDialog();
         }
 
         private void bt_TaskCheck_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.NavigationService.Navigate(new TaskPage());
+            var taskViewModel = new TaskViewModel(_taskService, _chartService, _logger);
+            MainFrame.NavigationService.Navigate(new TaskPage(taskViewModel));
         }
 
         #endregion
@@ -610,5 +1174,2395 @@ namespace WorkTrack
 }
 
 This file is: MainWindow.xaml.cs
+
+<Window x:Class="WorkTrack.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WorkTrack"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="White"
+        FontFamily="Calibri"
+        >
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="200" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="390"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource CardStyle}" Grid.Column="0" Background="White">
+                    <!--#7AB2B2-->
+                    <!-- Card 1 Content -->
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="25"/>
+                            <RowDefinition Height="60"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                <materialDesign:PackIcon Kind="ClipboardEditOutline"
+                                                         Width="20"
+                                                         Height="20"
+                                                         Margin="5,0,0,0"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
+                                <TextBlock Text="TaskView"
+                                               Margin="5,0,0,0"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontSize="20"
+                                               FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="12*"/>
+                                <ColumnDefinition Width="10*"/>
+                                <ColumnDefinition Width="7*"/>
+                                <ColumnDefinition Width="198*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="ChartDate" Text="{Binding TodayDate, StringFormat=' {0:yyyy-MM-dd}'}" FontSize="12" Margin="5,10,0,0" Grid.ColumnSpan="4"/>
+                        </Grid>
+                        <Grid Grid.Row="2">
+                            <StackPanel Orientation="Vertical">
+                                <lvc:CartesianChart MaxWidth ="220" MinWidth="220" Width="220" Height="30" Series="{Binding SeriesCollection}" Margin="0,-15,0,-10">
+                                    <lvc:CartesianChart.AxisX>
+                                        <lvc:Axis MinValue="0" MaxValue="480" ShowLabels="False">
+                                            <lvc:Axis.Separator>
+                                                <lvc:Separator StrokeThickness="0"/>
+                                            </lvc:Axis.Separator>
+                                        </lvc:Axis>
+                                    </lvc:CartesianChart.AxisX>
+                                    <lvc:CartesianChart.AxisY>
+                                        <lvc:Axis ShowLabels="False">
+                                            <lvc:Axis.Separator>
+                                                <lvc:Separator StrokeThickness="0"/>
+                                            </lvc:Axis.Separator>
+                                        </lvc:Axis>
+                                    </lvc:CartesianChart.AxisY>
+                                </lvc:CartesianChart>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Row="3">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                            </Grid>
+                            <StackPanel Grid.Column="0" Orientation="Vertical">
+                                <StackPanel Orientation="Horizontal" Height="20">
+                                    <TextBlock Text="TaskCount :"
+                                                        FontSize="11"
+                                                        Foreground="Gray"
+                                                        Margin="5,0,0,0"
+                                                        FontWeight="Bold"
+                                                        VerticalAlignment="Bottom"
+                                                        />
+                                    <TextBlock x:Name="Card_Label1"
+                                                        Text=""
+                                                        FontSize="15"
+                                                        Foreground="DarkCyan"
+                                                        Margin="5,0,0,0"
+                                                        FontWeight="Bold"
+                                                        VerticalAlignment="Bottom"
+                                                        />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Height="20">
+                                    <TextBlock Text="OverHours :"
+                                                   FontSize="11"
+                                                   Foreground="Gray"
+                                                   Margin="5,0,0,0"
+                                                   FontWeight="Bold"
+                                                   VerticalAlignment="Bottom"
+                                                   />
+                                    <TextBlock x:Name="Card_Label2"
+                                                   Text=""
+                                                   FontSize="15"
+                                                   Foreground="DarkCyan"
+                                                   Margin="5,0,0,0"
+                                                   FontWeight="Bold"
+                                                   VerticalAlignment="Bottom"
+                                                   />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_OverTime_Click"  Style="{StaticResource MaterialDesignFlatButton}">
+                                    <materialDesign:PackIcon Kind="ClockPlusOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="#008080" 
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"/>
+                                </Button>
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_CardAddTask_Click" Style="{StaticResource MaterialDesignFlatButton}">
+                                    <materialDesign:PackIcon Kind="ClipboardPlusOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="#008080" 
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"/>
+                                </Button>
+                                <Button Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="bt_TaskCheck_Click"  Style="{StaticResource MaterialDesignFlatButton}">
+                                    <materialDesign:PackIcon Kind="ClipboardSearchOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="#008080" 
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"/>
+                                </Button>
+
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}" Grid.Column="1" Background="#4D869C">
+                    <!-- Card 2 Content -->
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="300"/>
+                            <RowDefinition Height="20"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/icon/edit.png"
+                                               Width="20"
+                                               Height="20"
+                                               Margin="10,0,0,0"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                <TextBlock Text="TaskView"
+                                               Margin="5,0,0,0"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontSize="20"
+                                               FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Row="1">
+
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}" Grid.Column="2" Background="#CDE8E5">
+                    <!-- Card 3 Content -->
+                    <StackPanel>
+                        <TextBlock Text="Index 3" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Text="" />
+                        <TextBlock Text="Index 3 Content" HorizontalAlignment="Left" VerticalAlignment="Center"  FontSize="10"/>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+
+            <Frame x:Name="MainFrame" Grid.Row="1" HorizontalAlignment="Stretch" NavigationUIVisibility="Hidden"/>
+
+        </Grid>
+
+        <Grid Grid.Column="1">
+
+        </Grid>
+    </Grid>
+</Window>
+
+This file is: MainWindow.xaml
+
+<Window x:Class="WorkTrack.OverTimeInput"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:WorkTrack"
+        mc:Ignorable="d"
+        Title="OverTimeInput" Height="420" Width="250">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <StackPanel x:Name="MainForm" Margin="10,15">
+
+            <DatePicker x:Name="ip_TaskDate"
+                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                    Width="180"
+                    Padding="0,3"
+                    Margin="5,10"
+                    materialDesign:HintAssist.Hint="TaskDate"
+                    materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
+                    Visibility="Collapsed"
+            />
+            <StackPanel  Orientation="Vertical" Margin="18,-5,10,10">
+                <Label Content="You'd like to keep working until ..." Margin="0" FontSize="10" FontWeight="Bold" ></Label>
+
+                <ComboBox x:Name="ip_OverHours"
+                              Style="{StaticResource MaterialDesignComboBox}"
+                              Width="{StaticResource FormElementWidth}"
+                              Padding="{StaticResource FormElementPadding}"
+                              materialDesign:HintAssist.Hint="Please choose a time"
+                              materialDesign:HintAssist.FloatingOffset="0,-12"
+                              SelectionChanged="ip_OverHours_SelectionChanged">
+                        <ComboBoxItem Content="~ 18:30"/>
+                        <ComboBoxItem Content="~ 19:00"/>
+                        <ComboBoxItem Content="~ 19:30"/>
+                        <ComboBoxItem Content="~ 20:00"/>
+                        <ComboBoxItem Content="~ 20:30"/>
+                        <ComboBoxItem Content="~ 21:00"/>
+                        <ComboBoxItem Content="~ 21:30"/>
+                        <ComboBoxItem Content="~ 22:00"/>
+                </ComboBox>
+            </StackPanel>
+            
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Height="246">
+                <StackPanel  x:Name="pn_Task" Orientation="Vertical" Margin="18,0,10,10">
+
+                    <Label Content="About Your Plan" Margin="0" FontSize="10" FontWeight="Bold" ></Label>
+
+                    <StackPanel x:Name="pn_Plan">
+                        <TextBox x:Name="ip_TaskPlan1"
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Width="{StaticResource FormElementWidth}"
+                                     Margin="0,3"
+                                 materialDesign:HintAssist.Hint="18:00 - 18:30"
+                                 materialDesign:HintAssist.FloatingOffset="0,-12"
+                                 Visibility="Collapsed"
+                        />
+
+                        <TextBox x:Name="ip_TaskPlan2"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="18:30 - 19:00"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+
+                        <TextBox x:Name="ip_TaskPlan3"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="19:00 - 19:30"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+
+                        <TextBox x:Name="ip_TaskPlan4"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="19:30 - 20:00"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+
+                        <TextBox x:Name="ip_TaskPlan5"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="20:00 - 20:30"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+
+                        <TextBox x:Name="ip_TaskPlan6"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="20:30 - 21:00"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+
+                        <TextBox x:Name="ip_TaskPlan7"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="21:00 - 21:30"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+
+                        <TextBox x:Name="ip_TaskPlan8"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Width="{StaticResource FormElementWidth}"
+                                     Padding="{StaticResource FormElementPadding}"
+                                     Margin="0,3"
+                                     materialDesign:HintAssist.Hint="21:30 - 22:00"
+                                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                                     Visibility="Collapsed"
+                        />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+
+                <Button x:Name ="bt_Close"
+                        Style="{StaticResource MaterialDesignFlatLightBgButton}"
+                        Background="{StaticResource LightGrayBrush}"
+                        Foreground="{StaticResource DarkGrayBlueBrush}"
+                        BorderThickness="0"
+                        Width="70"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="10,20"
+                        materialDesign:ButtonAssist.CornerRadius="15"
+                        HorizontalAlignment="Center"
+                        Content="Close"
+                        Click="CloseButton_Click"
+                        />
+
+                <Button x:Name ="bt_Refresh"
+                        Style="{StaticResource MaterialDesignFlatDarkBgButton}"
+                        Background="{StaticResource PrimaryBrush}"
+                        Foreground="{StaticResource WhiteBrush}"
+                        BorderThickness="0"
+                        Width="70"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="10,20"
+                        materialDesign:ButtonAssist.CornerRadius="15"
+                        HorizontalAlignment="Center"
+                        Content="Refresh"
+                        Click="RefreshButton_Click"
+                        />
+
+
+            </StackPanel>
+
+
+        </StackPanel>
+    </Grid>
+</Window>
+
+This file is: OverTimeInput.xaml
+
+using System;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using WorkTrack;
+using WorkTrack.Interfaces;
+using WorkTrack.Services;
+using Serilog;
+
+namespace WorkTrack
+{
+    public partial class OverTimeInput : Window
+    {
+        private const int MAX_TASK_PLANS = 8;
+        private const double OVER_HOURS_FACTOR = 0.5;
+        private readonly DateTime _taskDate;
+        private readonly ILogger _logger;
+        private readonly ITaskService _taskService;
+
+        public OverTimeInput(DateTime taskDate, ILogger logger, ITaskService taskService)
+        {
+            InitializeComponent();
+            _taskDate = taskDate;
+            _logger = logger;
+            _taskService = taskService;
+            ip_TaskDate.SelectedDate = _taskDate;
+        }
+
+        private void ip_OverHours_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ip_OverHours.SelectedItem is ComboBoxItem selectedItem)
+            {
+                int selectedIndex = ip_OverHours.Items.IndexOf(selectedItem);
+                UpdateTaskPlanVisibility(selectedIndex);
+            }
+        }
+
+        private void UpdateTaskPlanVisibility(int selectedIndex)
+        {
+            pn_Task.Visibility = selectedIndex >= 0 ? Visibility.Visible : Visibility.Collapsed;
+            for (int i = 0; i < pn_Plan.Children.Count; i++)
+            {
+                ((TextBox)pn_Plan.Children[i]).Visibility = i < selectedIndex + 1 ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ValidateInput())
+            {
+                MessageBox.Show("????????????", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                var overHours = (ip_OverHours.SelectedIndex + 1) * OVER_HOURS_FACTOR;
+                var taskPlans = GetTaskPlans();
+                var overTime = new OverTime
+                {
+                    TaskDate = _taskDate,
+                    OverHours = overHours,
+                    TaskPlan1 = taskPlans[0],
+                    TaskPlan2 = taskPlans[1],
+                    TaskPlan3 = taskPlans[2],
+                    TaskPlan4 = taskPlans[3],
+                    TaskPlan5 = taskPlans[4],
+                    TaskPlan6 = taskPlans[5],
+                    TaskPlan7 = taskPlans[6],
+                    TaskPlan8 = taskPlans[7]
+                };
+                await _taskService.EditOverTimeAsync(overTime);
+
+                MessageBox.Show("???????", "??", MessageBoxButton.OK, MessageBoxImage.Information);
+                UpdateService.NotifyDataUpdated(_taskDate);
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "???????????");
+                MessageBox.Show($"????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private string[] GetTaskPlans()
+        {
+            return Enumerable.Range(1, MAX_TASK_PLANS)
+                .Select(i => (FindName($"ip_TaskPlan{i}") as TextBox)?.Text ?? string.Empty)
+                .ToArray();
+        }
+
+        private bool ValidateInput()
+        {
+            return Enumerable.Range(1, MAX_TASK_PLANS)
+                .All(i => (FindName($"ip_TaskPlan{i}") as TextBox)?.Visibility != Visibility.Visible ||
+                          !string.IsNullOrWhiteSpace((FindName($"ip_TaskPlan{i}") as TextBox)?.Text));
+        }
+    }
+}
+This file is: OverTimeInput.xaml.cs
+
+<Window x:Class="WorkTrack.TaskInput"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:WorkTrack"
+        mc:Ignorable="d"
+        Title="TaskInput" Height="420" Width="250">
+    
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    
+    <Grid>
+        <StackPanel x:Name="MainForm" Margin="10,15">
+
+            <DatePicker x:Name="ip_TaskDate"
+                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                    Width="180"
+                    Padding="0,3"
+                    Margin="5,10"
+                    materialDesign:HintAssist.Hint="TaskDate"
+                    materialDesign:HintAssist.FloatingOffset="0,-12" FirstDayOfWeek="Monday" SelectedDateFormat="Short"
+                    Visibility="Collapsed"
+                />
+
+            <TextBox x:Name="ip_TaskID"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Padding="{StaticResource FormElementPadding}"
+                         Margin="{StaticResource FormElementMargin}"
+                         materialDesign:HintAssist.Hint="TaskID"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                />
+
+            <TextBox x:Name="ip_TaskName"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Padding="{StaticResource FormElementPadding}"
+                         Margin="{StaticResource FormElementMargin}"
+                         materialDesign:HintAssist.Hint="TaskName"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                         materialDesign:TextFieldAssist.HasClearButton="True"
+                />
+
+            <TextBox x:Name="ip_Describe"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Padding="{StaticResource FormElementPadding}"
+                         Margin="{StaticResource FormElementMargin}"
+                         materialDesign:HintAssist.Hint="Describe"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                         materialDesign:TextFieldAssist.HasClearButton="True"
+                />
+
+            <StackPanel Orientation="Horizontal" Margin="18,10,10,10">
+
+                <ComboBox x:Name="ip_DurationLevelName"
+                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                          Width="110"
+                          Padding="{StaticResource FormElementPadding}"
+                          Margin="0,0,0,5"
+                          materialDesign:HintAssist.Hint="DurationLevel"
+                          materialDesign:HintAssist.FloatingOffset="0,-12"
+                          SelectedValuePath="DurationLevelID"
+                          SelectionChanged="ip_DurationLevelName_SelectionChanged"
+                          >
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DurationLevelName}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DurationLevelName}" Value="-Customize-">
+                                                <Setter Property="Foreground" Value="#4D869C" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <TextBox x:Name="ip_Duration"
+                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                     Width="60"
+                     Padding="{StaticResource FormElementPadding}"
+                     Margin="10,0,0,5"
+                     materialDesign:HintAssist.Hint="Duration"
+                     materialDesign:HintAssist.FloatingOffset="0,-12"
+                     materialDesign:TextFieldAssist.HasClearButton="True"
+                     Visibility="Collapsed"
+                />
+
+            </StackPanel>
+
+
+
+            <ComboBox x:Name="ip_UnitName"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                      Width="{StaticResource FormElementWidth}"
+                      Padding="{StaticResource FormElementPadding}"
+                      Margin="{StaticResource FormElementMargin}"
+                      materialDesign:HintAssist.Hint="UnitName"
+                      materialDesign:HintAssist.FloatingOffset="0,-12"
+                      SelectedValuePath="UnitID"
+                      >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding UnitName}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding UnitName}" Value="-Add-">
+                                            <Setter Property="Foreground" Value="#4D869C" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <ComboBox x:Name="ip_ApplicationID"
+                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                          Width="{StaticResource FormElementWidth}"
+                          Padding="{StaticResource FormElementPadding}"
+                          Margin="{StaticResource FormElementMargin}"
+                          materialDesign:HintAssist.Hint="ApplicationID"
+                          materialDesign:HintAssist.FloatingOffset="0,-12"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+
+
+                <Button x:Name ="bt_Close"
+                        Style="{StaticResource MaterialDesignFlatLightBgButton}"
+                        Background="{StaticResource LightGrayBrush}"
+                        Foreground="{StaticResource DarkGrayBlueBrush}"
+                        BorderThickness="0"
+                        Width="70"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="10,20"
+                        materialDesign:ButtonAssist.CornerRadius="15"
+                        HorizontalAlignment="Center"
+                        Content="Close"
+                        />
+                
+                <Button x:Name ="bt_Refresh"
+                        Style="{StaticResource MaterialDesignFlatDarkBgButton}"
+                        Background="{StaticResource PrimaryBrush}"
+                        Foreground="{StaticResource WhiteBrush}"
+                        BorderThickness="0"
+                        Width="70"
+                        Padding="{StaticResource FormElementPadding}"
+                        Margin="10,20"
+                        materialDesign:ButtonAssist.CornerRadius="15"
+                        HorizontalAlignment="Center"
+                        Content="Refresh"
+                        Click="RefreshButton_Click"
+                        />
+
+                
+            </StackPanel>
+
+
+        </StackPanel>
+    </Grid>
+</Window>
+
+This file is: TaskInput.xaml
+
+using System;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using WorkTrack.Interfaces;
+using WorkTrack.Services;
+using WorkTrack; // ?? WorkTask ? Unit ?????????
+using Serilog; // ?? ILogger
+
+namespace WorkTrack
+{
+    public partial class TaskInput : Window
+    {
+        private readonly WorkTask _taskBody;
+        private readonly bool _isCopyMode;
+        private readonly ILogger _logger;
+        private readonly ITaskService _taskService;
+
+        public enum TaskInitializationMode
+        {
+            Add,
+            Edit,
+            Copy
+        }
+
+        public TaskInput(WorkTask taskBody, TaskInitializationMode initializationMode, ILogger logger, ITaskService taskService)
+        {
+            InitializeComponent();
+            _taskBody = taskBody;
+            _isCopyMode = initializationMode == TaskInitializationMode.Copy;
+            _logger = logger;
+            _taskService = taskService;
+
+            Loaded += MainWindow_Loaded;
+            ip_TaskName.Focus();
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await LoadOptionAsync();
+                InitializeFormData();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "?????????????");
+                MessageBox.Show($"??????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task LoadOptionAsync()
+        {
+            var unitNames = await _taskService.GetUnitNamesAsync();
+            unitNames.Add(new Unit { UnitID = 0, UnitName = "-Add-" });
+            ip_UnitName.ItemsSource = unitNames;
+            ip_UnitName.SelectedIndex = 0;
+
+            var durationLevelNames = await _taskService.GetDurationLevelsAsync();
+            ip_DurationLevelName.ItemsSource = durationLevelNames;
+            ip_DurationLevelName.SelectedIndex = 2;
+        }
+
+        private void InitializeFormData()
+        {
+            ip_TaskDate.SelectedDate = _taskBody.TaskDate != default ? _taskBody.TaskDate : DateTime.Today;
+            ip_TaskName.Text = _taskBody.TaskName;
+            ip_Describe.Text = _taskBody.Description;
+            ip_DurationLevelName.SelectedValue = _taskBody.DurationLevelID != 0 ? _taskBody.DurationLevelID : ip_DurationLevelName.Items[2];
+            ip_Duration.Text = _taskBody.Duration.ToString();
+            ip_UnitName.SelectedValue = _taskBody.UnitID != 0 ? _taskBody.UnitID : ip_UnitName.Items[0];
+            ip_ApplicationID.Text = _taskBody.ApplicationID?.ToString();
+            this.Title = _isCopyMode ? "Copy Task" : _taskBody.TaskID == 0 ? "Add Task" : "Change Task";
+            ip_TaskID.Visibility = _taskBody.TaskID == 0 || _isCopyMode ? Visibility.Collapsed : Visibility.Visible;
+            if (!_isCopyMode && _taskBody.TaskID != 0)
+            {
+                ip_TaskID.Text = _taskBody.TaskID.ToString();
+            }
+        }
+
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ValidateInput())
+            {
+                return;
+            }
+
+            try
+            {
+                var taskData = GetTaskData();
+                await _taskService.SaveTaskAsync(taskData);
+                UpdateService.NotifyDataUpdated(taskData.TaskDate);
+                ClearForm();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "?????????");
+                MessageBox.Show($"????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private bool ValidateInput()
+        {
+            if (string.IsNullOrWhiteSpace(ip_TaskName.Text))
+            {
+                MessageBox.Show("???????", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!ip_TaskDate.SelectedDate.HasValue)
+            {
+                MessageBox.Show("???????", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            return true;
+        }
+
+        private WorkTask GetTaskData()
+        {
+            return new WorkTask
+            {
+                TaskID = string.IsNullOrEmpty(ip_TaskID.Text) ? 0 : int.Parse(ip_TaskID.Text),
+                TaskDate = ip_TaskDate.SelectedDate ?? DateTime.Today,
+                TaskName = ip_TaskName.Text,
+                Description = ip_Describe.Text,
+                DurationLevelID = (int)ip_DurationLevelName.SelectedValue,
+                Duration = string.IsNullOrEmpty(ip_Duration.Text) ? 0 : double.Parse(ip_Duration.Text),
+                UnitID = (int)ip_UnitName.SelectedValue,
+                ApplicationID = ip_ApplicationID.Text
+            };
+        }
+
+        private void ClearForm()
+        {
+            ip_TaskID.Clear();
+            ip_TaskName.Clear();
+            ip_Describe.Clear();
+            ip_DurationLevelName.SelectedIndex = 2;  // ????
+            ip_UnitName.SelectedIndex = 0;  // ????
+            ip_Duration.Clear();  // ?? Duration ???
+            ip_TaskDate.SelectedDate = DateTime.Today;
+        }
+
+        private void ip_DurationLevelName_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ip_DurationLevelName.SelectedIndex == 5)
+            {
+                ip_Duration.Visibility = Visibility.Visible;
+                ip_DurationLevelName.Width = 110;
+                ip_Duration.Focus();
+                ip_Duration.SelectAll();
+            }
+            else
+            {
+                ip_Duration.Visibility = Visibility.Collapsed;
+                ip_DurationLevelName.Width = 180;
+            }
+        }
+    }
+}
+This file is: TaskInput.xaml.cs
+
+<Page x:Class="WorkTrack.TaskPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="clr-namespace:WorkTrack"
+      xmlns:viewmodel="clr-namespace:WorkTrack.ViewModel"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      mc:Ignorable="d">
+
+    <Page.DataContext>
+        <viewmodel:TaskViewModel />
+    </Page.DataContext>
+
+        <Grid HorizontalAlignment="Stretch">
+        <Border Style="{StaticResource CardStyle}" Background="#F3F3F3">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="TaskList" Grid.Column="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Margin="5,0,0,0"
+                                />
+                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <DatePicker SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
+                                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                                    Width="90"
+                                    Height="50"
+                                    Margin="5,0,5,0"
+                                    VerticalAlignment="Center"
+                                    materialDesign:HintAssist.Hint="TaskDate"
+                                    materialDesign:HintAssist.FloatingOffset="0,-12"
+                                    FirstDayOfWeek="Monday"
+                                    SelectedDateFormat="Short"
+                        />
+                        <Button Command="{Binding AddTaskCommand}" Width="30" Padding="-5,0" Margin="0" Style="{StaticResource MaterialDesignFlatButton}">
+                            <materialDesign:PackIcon Kind="ClipboardPlusOutline" 
+                                                     Width="20" 
+                                                     Height="20" 
+                                                     Foreground="#008080" 
+                                                     HorizontalAlignment="Center" 
+                                                     VerticalAlignment="Center"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <DataGrid ItemsSource="{Binding TaskBodyCollection}" Grid.Row="1"
+                            AutoGenerateColumns="False"
+                            CanUserAddRows="False"
+                            CanUserDeleteRows="False"
+                            IsReadOnly="True"
+                            SelectionUnit="FullRow"
+                            BorderThickness="0"
+                            Background="White"
+                            Margin="5"
+                            ColumnHeaderHeight="40"
+                            RowHeight="35"
+                            Style="{StaticResource MaterialDesignDataGrid}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="TaskName" Binding="{Binding TaskName}" Width="120" SortMemberPath="TaskName"/>
+                        <DataGridTextColumn Header="UnitName" Binding="{Binding UnitName}" Width="*" SortMemberPath="UnitName"/>
+                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="*" SortMemberPath="Duration" />
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" SortMemberPath="Description"/>
+                        <DataGridTemplateColumn Header="Action" Width="*" >
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="-5">
+                                        <Button x:Name="bt_TaskEdit" Command="{Binding DataContext.EditTaskCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
+                                            <materialDesign:PackIcon Kind="ClipboardEditOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="Gray" 
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"
+                                                             ToolTip="Edit"/>
+                                        </Button>
+                                        <Button x:Name="bt_TaskCopy" Command="{Binding DataContext.CopyTaskCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}" Width="30" Height="30" Padding="-5,0" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"  Style="{StaticResource MaterialDesignFlatButton}" >
+                                            <materialDesign:PackIcon Kind="ClipboardMultipleOutline" 
+                                                             Width="20" 
+                                                             Height="20" 
+                                                             Foreground="Gray"
+                                                             HorizontalAlignment="Center" 
+                                                             VerticalAlignment="Center"
+                                                             ToolTip="Copy"/>
+                                        </Button>
+                                        <ToggleButton Margin="5,0,0,0" Width="20" Height="20" Background="Transparent" Style="{StaticResource MaterialDesignActionToggleButton}" 
+                                                      IsChecked="{Binding DeleteFlag}" 
+                                                      Command="{Binding DataContext.ToggleTaskDeleteCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                      CommandParameter="{Binding}">
+                                            <materialDesign:ToggleButtonAssist.OnContent>
+                                                <materialDesign:PackIcon Kind="ClipboardRemoveOutline" Width="20" Height="20" Foreground="{StaticResource ComplementaryBrush}" ToolTip="Delete"/>
+                                            </materialDesign:ToggleButtonAssist.OnContent>
+                                            <ToggleButton.Content>
+                                                <materialDesign:PackIcon Kind="ClipboardPulseOutline" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" ToolTip="Alive"/>
+                                            </ToggleButton.Content>
+                                        </ToggleButton>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
+This file is: TaskPage.xaml
+
+using System.Windows.Controls;
+using WorkTrack.ViewModel;
+
+namespace WorkTrack
+{
+    public partial class TaskPage : Page
+    {
+        public TaskPage(TaskViewModel viewModel)
+        {
+            InitializeComponent();
+            this.DataContext = viewModel;
+        }
+    }
+}
+This file is: TaskPage.xaml.cs
+
+<Window x:Class="WorkTrack.UnitInput"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:converters="clr-namespace:WorkTrack.Converters"
+        
+        mc:Ignorable="d"
+        Title="UnitInput" Height="200" Width="300">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="45"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+            <TextBlock Text="Unit Input"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Margin="10"/>
+        </Grid>
+
+        <Grid Grid.Row="1" HorizontalAlignment="Stretch">
+            <StackPanel x:Name="Unit_InputForm" Orientation="Horizontal">
+                <TextBox x:Name="ip_UnitName"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Height="{StaticResource FormElementHeight}"
+                         Padding="0"
+                         Margin="10"                    
+                         materialDesign:HintAssist.Hint="Input New UnitName Here"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                         materialDesign:TextFieldAssist.HasClearButton="True"/>
+
+                <Button x:Name="bt_SaveUnit"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Width="60"
+                        Height="{StaticResource FormElementHeight}"
+                        Margin="10"
+                        materialDesign:ButtonAssist.CornerRadius="20"
+                        Content="Add"
+                        HorizontalAlignment="Left"
+                        Click="bt_SaveUnit_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2" HorizontalAlignment="Stretch">
+            <StackPanel x:Name="Unit_UnitData" Margin="10">
+                <DataGrid x:Name="dt_Unit" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="UnitName" Binding="{Binding UnitName}" Width="160" SortMemberPath="UnitName"/>
+                        <DataGridTemplateColumn Header="Action" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Click="DeleteButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}" Width="40" HorizontalAlignment="Left">
+                                        <Image Source="/icon/delete.png" 
+                                               Width="25" 
+                                               Height="20"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
+This file is: UnitInput.xaml
+
+using System;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using WorkTrack.Interfaces;
+using WorkTrack.Services;
+using Serilog;
+using System.Windows.Data;
+using System.Globalization;
+
+namespace WorkTrack
+{
+    public partial class UnitInput : Window
+    {
+        private readonly ILogger _logger;
+        private readonly ITaskService _taskService;
+
+        public UnitInput(ILogger logger, ITaskService taskService)
+        {
+            InitializeComponent();
+            _logger = logger;
+            _taskService = taskService;
+            Loaded += UnitInput_Loaded;
+        }
+
+        private async void UnitInput_Loaded(object sender, RoutedEventArgs e)
+        {
+            await LoadUnitDataAsync();
+        }
+
+        private async Task LoadUnitDataAsync()
+        {
+            try
+            {
+                var units = await _taskService.GetUnitNamesAsync();
+                dt_Unit.ItemsSource = units;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "???????????");
+                MessageBox.Show($"??????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void bt_SaveUnit_Click(object sender, RoutedEventArgs e)
+        {
+            string unitName = ip_UnitName.Text.Trim();
+            if (string.IsNullOrEmpty(unitName))
+            {
+                MessageBox.Show("???????", "??", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            try
+            {
+                var newUnit = new Unit { UnitName = unitName };
+                await _taskService.SaveUnitAsync(newUnit);
+                MessageBox.Show("?????", "??", MessageBoxButton.OK, MessageBoxImage.Information);
+                await LoadUnitDataAsync();
+                ip_UnitName.Clear();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "?????????");
+                MessageBox.Show($"??????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is Unit unit)
+            {
+                var result = MessageBox.Show("??????????", "????", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        await _taskService.DeleteUnitAsync(unit.UnitID);
+                        MessageBox.Show("?????", "??", MessageBoxButton.OK, MessageBoxImage.Information);
+                        await LoadUnitDataAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, "?????????");
+                        MessageBox.Show($"????: {ex.Message}", "??", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        public class DeleteButtonOpacityConverter : IValueConverter
+        {
+            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                if (value is bool deleteFlag)
+                {
+                    return deleteFlag ? 0.5 : 1.0;
+                }
+                return 1.0;
+            }
+
+            public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+    }
+}
+This file is: UnitInput.xaml.cs
+
+using System;
+
+namespace WorkTrack
+{
+    public static class UpdateService
+    {
+        // ????????,?????????
+        public static event Action<DateTime> DataUpdated;
+
+        // ????????,??????
+        public static void NotifyDataUpdated(DateTime date)
+        {
+            DataUpdated?.Invoke(date);
+        }
+
+        // ??:?????????
+        private static System.Timers.Timer debounceTimer;
+        private static DateTime lastUpdateDate;
+
+        public static void NotifyDataUpdatedWithDebounce(DateTime date)
+        {
+            lastUpdateDate = date;
+
+            if (debounceTimer == null)
+            {
+                debounceTimer = new System.Timers.Timer(300); // 300?????
+                debounceTimer.Elapsed += (sender, e) =>
+                {
+                    DataUpdated?.Invoke(lastUpdateDate);
+                    debounceTimer.Stop();
+                };
+            }
+
+            debounceTimer.Stop();
+            debounceTimer.Start();
+        }
+
+        // ??:???????????
+        public static void Cleanup()
+        {
+            debounceTimer?.Dispose();
+            debounceTimer = null;
+        }
+    }
+}
+This file is: UpdateService.cs
+
+<Page x:Class="WorkTrack.Page0_Welcome"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Page0_Welcome">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid>
+        <Border Style="{StaticResource CardStyle}" Background="#F3F3F3">
+            <TextBlock Text="Welcome" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Center" 
+                   FontSize="48" 
+                   FontWeight="Bold"/>
+        </Border>
+    </Grid>
+</Page>
+This file is: WelcomePage.xaml
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace WorkTrack
+{
+    /// <summary>
+    /// Page1.xaml ?????
+    /// </summary>
+    public partial class Page0_Welcome : Page
+    {
+        public Page0_Welcome()
+        {
+            InitializeComponent();
+        }
+    }
+}
+
+This file is: WelcomePage.xaml.cs
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- NuGet ??? -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.5.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.0" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
+    <PackageReference Include="Serilog" Version="4.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ???? -->
+    <Resource Include="Resources\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ???? -->
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
+
+This file is: WorkTrack.csproj
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace WorkTrack.Domain.Entities
+{
+    public abstract class BaseEntity
+    {
+        public int Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+    public class WorkTask : BaseEntity
+    {
+        [ObservableProperty]
+        private int _taskID;
+
+        [ObservableProperty]
+        private string _taskName = string.Empty;
+
+        [ObservableProperty]
+        private string _description = string.Empty;
+
+        [ObservableProperty]
+        private int _durationLevelID;
+
+        [ObservableProperty]
+        private string _durationLevelName = string.Empty;
+
+        [ObservableProperty]
+        private double _duration;
+
+        [ObservableProperty]
+        private int _unitID;
+
+        [ObservableProperty]
+        private string _unitName = string.Empty;
+
+        [ObservableProperty]
+        private string _applicationID = string.Empty;
+
+        [ObservableProperty]
+        private bool _deleteFlag;
+
+        [ObservableProperty]
+        private DateTime taskDate;
+    }
+
+    public class OverTime : BaseEntity
+    {
+        [ObservableProperty]
+        private DateTime _taskDate;
+
+        [ObservableProperty]
+        private double _overHours;
+
+        [ObservableProperty]
+        private string _taskPlan1 = string.Empty;
+
+        [ObservableProperty]
+        private string _taskPlan2 = string.Empty;
+
+        [ObservableProperty]
+        private string _taskPlan3 = string.Empty;
+
+        [ObservableProperty]
+        private string _taskPlan4 = string.Empty;
+
+        [ObservableProperty]
+        private string _taskPlan5 = string.Empty;
+
+        [ObservableProperty]
+        private string _taskPlan6 = string.Empty;
+
+        [ObservableProperty]
+        private string _taskPlan7 = string.Empty;
+
+        [ObservableProperty]
+        private string _taskPlan8 = string.Empty;
+    }
+
+    public class Unit : BaseEntity
+    {
+        public int UnitID { get; set; }
+        public string UnitName { get; set; } = string.Empty;
+    }
+
+    public class DurationLevel : BaseEntity
+    {
+    
+        public int DurationLevelID { get; set; }
+        public string DurationLevelName { get; set; } = string.Empty;
+
+    }
+}
+This file is: /Domain/Entities/BaseEntity.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WorkTrack.Domain.Entities;
+
+namespace WorkTrack.Domain.Specifications
+{
+    public abstract class BaseSpecification<T> : ISpecification<T> where T : BaseEntity
+    {
+        protected string _sql = string.Empty;
+        protected object? _parameters;
+
+        public virtual string ToSql() => _sql;
+        public virtual object? GetParameters() => _parameters;
+    }
+}
+
+This file is: /Domain/Specifications/BaseSpecification.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WorkTrack.Domain.Entities;
+
+namespace WorkTrack.Domain.Specifications
+{
+    public class DateRangeSpecification<T> : BaseSpecification<T> where T : BaseEntity
+    {
+        public DateRangeSpecification(DateTime startDate, DateTime endDate)
+        {
+            _sql = "WHERE TaskDate BETWEEN @StartDate AND @EndDate AND DeleteFlag = 0";
+            _parameters = new { StartDate = startDate.Date, EndDate = endDate.Date.AddDays(1).AddSeconds(-1) };
+        }
+    }
+}
+
+This file is: /Domain/Specifications/DateRangeSpecification.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WorkTrack.Domain.Entities;
+
+namespace WorkTrack.Domain.Specifications
+{
+    public interface ISpecification<T> where T : BaseEntity
+    {
+        string ToSql();
+        object? GetParameters();
+    }
+}
+
+This file is: /Domain/Specifications/ISpecification.cs
+
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WorkTrack.Domain.Entities;
+using WorkTrack.Interfaces;
+using WorkTrack.Services;
+
+namespace WorkTrack.Infrastructure
+{
+    public class UnitOfWork : IUnitOfWork
+    {
+        private readonly IDbFactory _dbFactory;
+        private readonly ILogger _logger;
+
+        public IRepository<WorkTask> WorkTasks { get; }
+        public IRepository<OverTime> OverTimes { get; }
+        public IRepository<Unit> Units { get; }
+        public IRepository<DurationLevel> DurationLevels { get; }
+
+        public UnitOfWork(IDbFactory dbFactory, ILogger logger)
+        {
+            _dbFactory = dbFactory;
+            _logger = logger;
+
+            WorkTasks = new Repository<WorkTask>(_dbFactory, _logger);
+            OverTimes = new Repository<OverTime>(_dbFactory, _logger);
+            Units = new Repository<Unit>(_dbFactory, _logger);
+            DurationLevels = new Repository<DurationLevel>(_dbFactory, _logger);
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            // ?????????
+            return 0;
+        }
+
+        public void Dispose()
+        {
+            // ?????????
+        }
+    }
+}
+
+This file is: /Infrastructure/UnitOfWork.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace WorkTrack.Infrastructure.Repositories
+{
+    internal class Repository
+    {
+    }
+}
+
+This file is: /Infrastructure/Repositories/Repository.cs
+
+using System;
+using System.Threading.Tasks;
+using LiveCharts;
+using WorkTrack.Services;
+
+namespace WorkTrack.Interfaces
+{
+    public interface IChartService
+    {
+        Task<SeriesCollection> GetChartDataAsync(DateTime selectedDate);
+        Task<ChartStatistics> GetChartStatisticsAsync(DateTime selectedDate);
+        Task InitializeChartAsync(DateTime selectedDate); // ??????????
+        event EventHandler<ChartUpdateEventArgs> UpdateChartUI;
+    }
+
+    public class ChartStatistics
+    {
+        public int TaskCount { get; set; }
+        public double AveragePoint { get; set; }
+        public double OverHours { get; set; }
+        public SeriesCollection? SeriesCollection { get; set; }
+    }
+}
+
+This file is: /Interfaces/IChartService.cs
+
+using System.Data;
+using System.Threading.Tasks;
+
+namespace WorkTrack.Interfaces
+{
+    public interface IDbFactory
+    {
+        Task<IDbConnection> CreateConnectionAsync();
+    }
+
+    public interface IInitializer
+    {
+        void Initialize();
+    }
+}
+This file is: /Interfaces/IDbfactory.cs
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using WorkTrack;
+
+namespace WorkTrack.Interfaces
+{
+    public interface IOverTimeService
+    {
+        Task<OverTime?> GetOverTimeAsync(DateTime date);
+        Task<bool> AddOverTimeAsync(OverTime overTime);
+        Task<bool> EditOverTimeAsync(OverTime overTime);
+        Task<bool> DeleteOverTimeAsync(DateTime date);
+
+    }
+}
+
+This file is: /Interfaces/IOvertTimeService.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WorkTrack.Domain.Entities;
+using WorkTrack.Domain.Specifications;
+
+namespace WorkTrack.Interfaces
+{
+    public interface IRepository<T> where T : BaseEntity
+    {
+        Task<T?> GetByIdAsync(int id);
+        Task<IEnumerable<T>> GetAllAsync();
+        Task<IEnumerable<T>> FindAsync(ISpecification<T> spec);
+        Task<int> AddAsync(T entity);
+        Task<bool> UpdateAsync(T entity);
+        Task<bool> DeleteAsync(int id);
+        Task<int> CountAsync(ISpecification<T> spec);
+        Task<bool> ExistsAsync(ISpecification<T> spec);
+    }
+}
+
+This file is: /Interfaces/IRepository.cs
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using WorkTrack;
+
+namespace WorkTrack.Interfaces
+{
+    public interface ITaskService
+    {
+        Task<List<WorkTask>> GetTasksByDateAsync(DateTime taskDate);
+        Task<List<DurationLevel>> GetDurationLevelsAsync();
+        Task<bool> SaveTaskAsync(WorkTask newTask); // ???????????(?????)
+    }
+
+}
+
+This file is: /Interfaces/ITaskService.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WorkTrack.Domain.Entities;
+
+namespace WorkTrack.Interfaces
+{
+    public interface IUnitOfWork : IDisposable
+    {
+        IRepository<WorkTask> WorkTasks { get; }
+        IRepository<OverTime> OverTimes { get; }
+        IRepository<Unit> Units { get; }
+        IRepository<DurationLevel> DurationLevels { get; }
+
+        Task<int> SaveChangesAsync();
+    }
+}
+
+This file is: /Interfaces/IUnitOfWork.cs
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using WorkTrack;
+
+namespace WorkTrack.Interfaces
+{
+    public interface IUnitService
+    {
+        Task<List<Unit>> GetUnitNamesAsync();
+        Task<bool> SaveUnitAsync(Unit unit);
+        Task<bool> DeleteUnitAsync(int unitId);
+    }
+}
+
+This file is: /Interfaces/IUnitService.cs
+
+using WorkTrack.Interfaces;
+using LiveCharts;
+using LiveCharts.Wpf;
+using Serilog;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Media;
+
+namespace WorkTrack.Services
+{
+    public class ChartService : IChartService
+    {
+        private readonly ITaskService _taskService;
+        private readonly ILogger _logger;
+        public SeriesCollection SeriesCollection { get; private set; }
+
+        public ChartService(ITaskService taskService, ILogger logger)
+        {
+            _taskService = taskService;
+            _logger = logger;
+            SeriesCollection = new SeriesCollection();
+        }
+
+        public async Task<SeriesCollection> GetChartDataAsync(DateTime selectedDate)
+        {
+            var tasks = await _taskService.GetTasksAsync(selectedDate);
+            var seriesCollection = new SeriesCollection();
+            var chartValues = new ChartValues<double>();
+            foreach (var task in tasks)
+            {
+                chartValues.Add(task.Duration);
+            }
+            seriesCollection.Add(new StackedColumnSeries
+            {
+                Values = chartValues,
+                StackMode = StackMode.Values,
+                DataLabels = false,
+                Fill = new SolidColorBrush(Color.FromRgb(0, 128, 128))
+            });
+            return seriesCollection;
+        }
+
+        public async Task<ChartStatistics> GetChartStatisticsAsync(DateTime selectedDate)
+        {
+            var tasks = await _taskService.GetTasksAsync(selectedDate);
+            return new ChartStatistics
+            {
+                TaskCount = tasks.Count,
+                AveragePoint = tasks.Average(t => t.Duration),
+                OverHours = tasks.Sum(t => t.Duration)
+            };
+        }
+
+        public async Task InitializeChartAsync(DateTime selectedDate)
+        {
+            try
+            {
+                SeriesCollection = await GetChartDataAsync(selectedDate);
+                var chartStatistics = await GetChartStatisticsAsync(selectedDate);
+
+                UpdateChartUI?.Invoke(this, new ChartUpdateEventArgs
+                {
+                    TaskCount = chartStatistics.TaskCount,
+                    AveragePoint = chartStatistics.AveragePoint,
+                    OverHours = chartStatistics.OverHours,
+                    SeriesCollection = SeriesCollection ?? new SeriesCollection()
+                });
+
+                _logger.Information("Chart initialized with {SeriesCount} series", SeriesCollection?.Count ?? 0);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to load task durations for {SelectedDate}.", selectedDate);
+            }
+        }
+
+        public event EventHandler<ChartUpdateEventArgs>? UpdateChartUI;
+    }
+
+    public class ChartUpdateEventArgs : EventArgs
+    {
+        public int TaskCount { get; set; }
+        public double AveragePoint { get; set; }
+        public double OverHours { get; set; }
+        public SeriesCollection SeriesCollection { get; set; } = new SeriesCollection();
+    }
+}
+This file is: /Services/ChartService.cs
+
+using Dapper;
+using Microsoft.Data.Sqlite;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
+using WorkTrack.Interfaces;
+using WorkTrack.Services;
+
+namespace WorkTrack.Services
+{
+
+    public class OverTime : IOverTime
+    {
+        private readonly ILogger _logger;
+        private readonly IDbFactory _dbFactory;
+
+        // OverTime
+        public async Task<OverTime?> GetOverTimeAsync(DateTime date)
+        {
+            var query = "SELECT * FROM OverTime WHERE TaskDate = @TaskDate";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                return await connection.QuerySingleOrDefaultAsync<OverTime>(query, new { TaskDate = date });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to fetch overtime for {TaskDate}", date);
+                return null;
+            }
+        }
+        public async Task<bool> AddOverTimeAsync(OverTime overTime)
+        {
+            var query = "INSERT INTO OverTime (TaskDate, Hours) VALUES (@TaskDate, @Hours)";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                var affectedRows = await connection.ExecuteAsync(query, overTime);
+                return affectedRows > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to add overtime for {TaskDate}", overTime.TaskDate);
+                return false;
+            }
+        }
+        public async Task<bool> EditOverTimeAsync(OverTime overTime)
+        {
+            var query = "UPDATE OverTime SET Hours = @Hours WHERE TaskDate = @TaskDate";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                var affectedRows = await connection.ExecuteAsync(query, overTime);
+                return affectedRows > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to edit overtime for {TaskDate}", overTime.TaskDate);
+                return false;
+            }
+        }
+        public async Task<bool> DeleteOverTimeAsync(DateTime date)
+        {
+            var query = "DELETE FROM OverTime WHERE TaskDate = @TaskDate";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                var affectedRows = await connection.ExecuteAsync(query, new { TaskDate = date });
+                return affectedRows > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to delete overtime for {TaskDate}", date);
+                return false;
+            }
+        }
+
+    }
+}
+This file is: /Services/OverTime.cs
+
+using Dapper;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WorkTrack.Domain.Entities;
+using WorkTrack.Domain.Specifications;
+using WorkTrack.Interfaces;
+
+namespace WorkTrack.Services
+{
+    public class Repository<T> : IRepository<T> where T : BaseEntity
+    {
+        private readonly IDbFactory _dbFactory;
+        private readonly ILogger _logger;
+
+        public Repository(IDbFactory dbFactory, ILogger logger)
+        {
+            _dbFactory = dbFactory;
+            _logger = logger;
+        }
+
+        public async Task<T?> GetByIdAsync(int id)
+        {
+            var query = $"SELECT * FROM {typeof(T).Name} WHERE Id = @Id";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                return await connection.QuerySingleOrDefaultAsync<T>(query, new { Id = id });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to get {Entity} by Id: {Id}", typeof(T).Name, id);
+                return null;
+            }
+        }
+        public async Task<IEnumerable<T>> GetAllAsync()
+        {
+            var query = $"SELECT * FROM {typeof(T).Name}";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                return await connection.QueryAsync<T>(query);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to get all {Entity}", typeof(T).Name);
+                return Enumerable.Empty<T>();
+            }
+        }
+        public async Task<IEnumerable<T>> FindAsync(string query, object? parameters = null)
+        {
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                return await connection.QueryAsync<T>(query, parameters);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to execute query on {Entity}", typeof(T).Name);
+                return Enumerable.Empty<T>();
+            }
+        }
+        public async Task<int> AddAsync(T entity)
+        {
+            var query = $"INSERT INTO {typeof(T).Name} ({string.Join(", ", typeof(T).GetProperties().Select(p => p.Name))}) " +
+                        $"VALUES ({string.Join(", ", typeof(T).GetProperties().Select(p => "@" + p.Name))});";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                return await connection.ExecuteAsync(query, entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to add {Entity}", typeof(T).Name);
+                return 0;
+            }
+        }
+        public async Task<bool> UpdateAsync(T entity)
+        {
+            var query = $"UPDATE {typeof(T).Name} SET " +
+                        $"{string.Join(", ", typeof(T).GetProperties().Select(p => p.Name + " = @" + p.Name))} " +
+                        $"WHERE Id = @Id;";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                var affectedRows = await connection.ExecuteAsync(query, entity);
+                return affectedRows > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to update {Entity}", typeof(T).Name);
+                return false;
+            }
+        }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var query = $"DELETE FROM {typeof(T).Name} WHERE Id = @Id";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
+                return affectedRows > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to delete {Entity} by Id: {Id}", typeof(T).Name, id);
+                return false;
+            }
+        }
+        public async Task<int> CountAsync(ISpecification<T> spec)
+        {
+            var query = $"SELECT COUNT(*) FROM {typeof(T).Name} {spec.ToSql()}";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                return await connection.ExecuteScalarAsync<int>(query, spec.GetParameters());
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to count {Entity}", typeof(T).Name);
+                return 0;
+            }
+        }
+        public async Task<bool> ExistsAsync(ISpecification<T> spec)
+        {
+            var query = $"SELECT EXISTS(SELECT 1 FROM {typeof(T).Name} {spec.ToSql()})";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                return await connection.ExecuteScalarAsync<bool>(query, spec.GetParameters());
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to check existence of {Entity}", typeof(T).Name);
+                return false;
+            }
+        }
+    }
+
+}
+
+This file is: /Services/Repository.cs
+
+using Dapper;
+using Microsoft.Data.Sqlite;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
+using WorkTrack.Domain.Entities;
+using WorkTrack.Domain.Specifications;
+using WorkTrack.Interfaces;
+using WorkTrack.Services;
+
+namespace WorkTrack.Services
+{
+
+    public class TaskService : ITaskService
+    {
+        private readonly IRepository<WorkTask> _taskRepository;
+        private readonly ILogger _logger;
+
+        // Task
+        public TaskService(IRepository<WorkTask> taskRepository, ILogger logger)
+        {
+            _taskRepository = taskRepository;
+            _logger = logger;
+        }
+
+        public async Task<List<WorkTask>> GetTasksAsync(DateTime date)
+        {
+            var spec = new DateRangeSpecification<WorkTask>(date, date);
+            return (await _taskRepository.FindAsync(spec)).ToList();
+        }
+
+
+        public async Task<bool> SaveTaskAsync(WorkTask task)
+        {
+            if (task.Id == 0)
+            {
+                return await _taskRepository.AddAsync(task) > 0;
+            }
+            else
+            {
+                return await _taskRepository.UpdateAsync(task);
+            }
+        }
+
+        public async Task<bool> DeleteTaskAsync(int taskId)
+        {
+            return await _taskRepository.DeleteAsync(taskId);
+        }
+
+        public async Task<List<DurationLevel>> GetDurationLevelsAsync()
+        {
+            var query = "SELECT * FROM DurationLevel";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                return (await connection.QueryAsync<DurationLevel>(query)).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "?????????????");
+                return new List<DurationLevel>();
+            }
+        }
+
+
+    }
+}
+This file is: /Services/TaskService.cs
+
+using Dapper;
+using Microsoft.Data.Sqlite;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
+using WorkTrack.Interfaces;
+using WorkTrack.Services;
+
+namespace WorkTrack.Services
+{
+
+    public class UnitService : IUnitService
+    {
+        private readonly ILogger _logger;
+        private readonly IDbFactory _dbFactory;
+
+        // Unit
+        public async Task<List<Unit>> GetUnitNamesAsync()
+        {
+            var query = "SELECT * FROM Unit WHERE DeleteFlag = 0";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                return (await connection.QueryAsync<Unit>(query)).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "???????????");
+                return new List<Unit>();
+            }
+        }
+        public async Task<bool> SaveUnitAsync(Unit unit)
+        {
+            var query = "INSERT INTO Unit (UnitName) VALUES (@UnitName)";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                var affectedRows = await connection.ExecuteAsync(query, unit);
+                return affectedRows > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "?????????");
+                return false;
+            }
+        }
+        public async Task<bool> DeleteUnitAsync(int unitId)
+        {
+            var query = "UPDATE Unit SET DeleteFlag = 1 WHERE UnitID = @UnitID";
+            try
+            {
+                using var connection = await _dbFactory.CreateConnectionAsync();
+                var affectedRows = await connection.ExecuteAsync(query, new { UnitID = unitId });
+                return affectedRows > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "?????????");
+                return false;
+            }
+        }
+
+    }
+}
+This file is: /Services/UnitService.cs
+
+using System;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Serilog;
+using WorkTrack.Interfaces;
+
+namespace WorkTrack.ViewModel
+{
+    public partial class TaskViewModel : ObservableObject
+    {
+        private readonly ILogger _logger;
+        private readonly ITaskService _taskService;
+        private readonly IChartService _chartService;
+
+        [ObservableProperty]
+        private DateTime selectedDate;
+
+        [ObservableProperty]
+        private ObservableCollection<WorkTask> tasks;
+
+        [ObservableProperty]
+        private OverTime? _dailyOverTime;
+
+        [RelayCommand]
+        private async Task LoadDailyDataAsync()
+        {
+            await LoadTasksAsync();
+            await LoadOverTimeAsync();
+        }
+
+        private async Task LoadOverTimeAsync()
+        {
+            try
+            {
+                DailyOverTime = await _taskService.GetOverTimeAsync(SelectedDate);
+                _logger.Information("OverTime loaded successfully for date: {SelectedDate}", SelectedDate);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while loading overtime");
+            }
+        }
+
+        [RelayCommand]
+        private async Task AddOverTimeAsync()
+        {
+            try
+            {
+                _logger.Information("Adding new overtime");
+                var newOverTime = new OverTime { TaskDate = SelectedDate };
+                var result = await _taskService.AddOverTimeAsync(newOverTime);
+                if (result)
+                {
+                    DailyOverTime = newOverTime;
+                    _logger.Information("New overtime added successfully");
+                    await _chartService.InitializeChartAsync(SelectedDate);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while adding new overtime");
+            }
+        }
+
+        [RelayCommand]
+        private async Task EditOverTimeAsync()
+        {
+            if (DailyOverTime == null)
+            {
+                _logger.Warning("Attempted to edit null overtime");
+                return;
+            }
+            try
+            {
+                _logger.Information("Editing overtime: {TaskDate}", DailyOverTime.TaskDate);
+                var result = await _taskService.EditOverTimeAsync(DailyOverTime);
+                if (result)
+                {
+                    _logger.Information("Overtime edited successfully: {TaskDate}", DailyOverTime.TaskDate);
+                    await _chartService.InitializeChartAsync(SelectedDate);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while editing overtime: {TaskDate}", DailyOverTime.TaskDate);
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteOverTimeAsync()
+        {
+            if (DailyOverTime == null)
+            {
+                _logger.Warning("Attempted to delete null overtime");
+                return;
+            }
+            try
+            {
+                _logger.Information("Deleting overtime: {TaskDate}", DailyOverTime.TaskDate);
+                var result = await _taskService.DeleteOverTimeAsync(DailyOverTime.TaskDate);
+                if (result)
+                {
+                    DailyOverTime = null;
+                    _logger.Information("Overtime deleted successfully: {Date}", SelectedDate);
+                    await _chartService.InitializeChartAsync(SelectedDate);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while deleting overtime: {Date}", SelectedDate);
+            }
+        }
+
+
+        public TaskViewModel(ITaskService taskService, IChartService chartService, ILogger logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _taskService = taskService ?? throw new ArgumentNullException(nameof(taskService));
+            _chartService = chartService ?? throw new ArgumentNullException(nameof(chartService));
+            SelectedDate = DateTime.Today;
+            Tasks = new ObservableCollection<WorkTask>();
+            _ = LoadTasksAsync();
+        }
+
+
+
+        [RelayCommand]
+        private async Task LoadTasksAsync()
+        {
+            try
+            {
+                Tasks.Clear();
+                var loadedTasks = await _taskService.GetTasksAsync(SelectedDate);
+                foreach (var task in loadedTasks)
+                {
+                    Tasks.Add(task);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while loading tasks");
+            }
+        }
+
+        [RelayCommand]
+        private async Task AddTaskAsync()
+        {
+            try
+            {
+                _logger.Information("Adding new task");
+                var newTask = new WorkTask { TaskDate = SelectedDate };
+                var result = await _taskService.AddTaskAsync(newTask);
+                if (result)
+                {
+                    Tasks.Add(newTask);
+                    _logger.Information("New task added successfully");
+                    await _chartService.InitializeChartAsync(SelectedDate);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while adding new task");
+            }
+        }
+
+        [RelayCommand]
+        private async Task EditTaskAsync(WorkTask task)
+        {
+            if (task == null)
+            {
+                _logger.Warning("Attempted to edit null task");
+                return;
+            }
+            try
+            {
+                _logger.Information("Editing task: {TaskId}", task.TaskID);
+                var result = await _taskService.EditTaskAsync(task);
+                if (result)
+                {
+                    var index = Tasks.IndexOf(task);
+                    if (index != -1)
+                    {
+                        Tasks[index] = task;
+                    }
+                    _logger.Information("Task edited successfully: {TaskId}", task.TaskID);
+                    await _chartService.InitializeChartAsync(SelectedDate);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while editing task: {TaskId}", task.TaskID);
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteTaskAsync(WorkTask task)
+        {
+            if (task == null)
+            {
+                _logger.Warning("Attempted to delete null task");
+                return;
+            }
+            try
+            {
+                _logger.Information("Deleting task: {TaskId}", task.TaskID);
+                var result = await _taskService.DeleteTaskAsync(task.TaskID);
+                if (result)
+                {
+                    Tasks.Remove(task);
+                    _logger.Information("Task deleted successfully: {TaskId}", task.TaskID);
+                    await _chartService.InitializeChartAsync(SelectedDate);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error occurred while deleting task: {TaskId}", task.TaskID);
+            }
+        }
+
+        partial void OnSelectedDateChanged(DateTime value)
+        {
+            _ = LoadTasksAsync();
+        }
+    }
+}
+This file is: /ViewModel/TaskViewModel.cs
 
 Based on the above files, solve my requirements. Please answer in Traditional Chinese, prioritizing solutions that reduce system load, with maintainability as secondary. Responses should be clear, concise, and to the point. Since there are many different files, please first provide the file names and present the solutions in a before-and-after comparison format. For both the before and after content, only show the modified sections, no need to display everything. My requirement is:

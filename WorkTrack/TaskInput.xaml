@@ -112,7 +112,6 @@
                       materialDesign:HintAssist.Hint="UnitName"
                       materialDesign:HintAssist.FloatingOffset="0,-12"
                       SelectedValuePath="UnitID"
-                      SelectionChanged="ip_UnitName_SelectionChanged"
                       >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -154,8 +153,6 @@
                         materialDesign:ButtonAssist.CornerRadius="15"
                         HorizontalAlignment="Center"
                         Content="Close"
-
-                        Click="CloseButton_Click"
                         />
                 
                 <Button x:Name ="bt_Refresh"

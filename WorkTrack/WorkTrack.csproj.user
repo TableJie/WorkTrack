@@ -10,6 +10,9 @@
     <Compile Update="OverTimeInput.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="UnitInput.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="WelcomePage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -20,7 +23,6 @@
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Page Update="Elements.xaml">
       <SubType>Designer</SubType>
@@ -29,6 +31,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="OverTimeInput.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="UnitInput.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="WelcomePage.xaml">

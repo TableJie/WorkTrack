@@ -5,10 +5,10 @@ namespace WorkTrack
 {
     public partial class TaskPage : Page
     {
-        public TaskPage()
+        public TaskPage(TaskViewModel viewModel)
         {
             InitializeComponent();
-            this.DataContext = new WorkTrack.ViewModel.TaskViewModel();
+            this.DataContext = viewModel;
         }
     }
 }

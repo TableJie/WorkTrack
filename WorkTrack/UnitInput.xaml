@@ -1,0 +1,85 @@
+﻿<Window x:Class="WorkTrack.UnitInput"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:converters="clr-namespace:WorkTrack.Converters"
+        
+        mc:Ignorable="d"
+        Title="UnitInput" Height="200" Width="300">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Elements.xaml"/>
+                <ResourceDictionary Source="DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="45"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+            <TextBlock Text="Unit Input"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Margin="10"/>
+        </Grid>
+
+        <Grid Grid.Row="1" HorizontalAlignment="Stretch">
+            <StackPanel x:Name="Unit_InputForm" Orientation="Horizontal">
+                <TextBox x:Name="ip_UnitName"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Width="{StaticResource FormElementWidth}"
+                         Height="{StaticResource FormElementHeight}"
+                         Padding="0"
+                         Margin="10"                    
+                         materialDesign:HintAssist.Hint="Input New UnitName Here"
+                         materialDesign:HintAssist.FloatingOffset="0,-12"
+                         materialDesign:TextFieldAssist.HasClearButton="True"/>
+
+                <Button x:Name="bt_SaveUnit"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Width="60"
+                        Height="{StaticResource FormElementHeight}"
+                        Margin="10"
+                        materialDesign:ButtonAssist.CornerRadius="20"
+                        Content="Add"
+                        HorizontalAlignment="Left"
+                        Click="bt_SaveUnit_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2" HorizontalAlignment="Stretch">
+            <StackPanel x:Name="Unit_UnitData" Margin="10">
+                <DataGrid x:Name="dt_Unit" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="UnitName" Binding="{Binding UnitName}" Width="160" SortMemberPath="UnitName"/>
+                        <DataGridTemplateColumn Header="Action" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Click="DeleteButton_Click" Tag="{Binding UnitID}" Style="{StaticResource MaterialDesignFlatButton}" Width="40" HorizontalAlignment="Left">
+                                        <Image Source="/icon/delete.png" 
+                                               Width="25" 
+                                               Height="20"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

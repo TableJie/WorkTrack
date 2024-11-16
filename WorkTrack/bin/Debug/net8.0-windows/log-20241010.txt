@@ -1,0 +1,139 @@
+2024-10-10 14:26:31.345 +08:00 [INF] Initializing application.
+2024-10-10 14:26:31.409 +08:00 [INF] Initializing database.
+2024-10-10 14:26:31.741 +08:00 [INF] 創建資料庫路徑: C:\Users\jay12\source\repos\WorkTrack\WorkTrack\bin\Debug\net8.0-windows\Database/app.db
+2024-10-10 14:26:32.251 +08:00 [INF] 所有資料表已創建。
+2024-10-10 14:26:32.310 +08:00 [INF] 初始資料已插入。
+2024-10-10 14:26:32.343 +08:00 [INF] 所有觸發器已創建。
+2024-10-10 14:26:32.347 +08:00 [INF] 資料庫結構初始化完成。
+2024-10-10 14:26:32.410 +08:00 [INF] 今日日期登入完成。
+2024-10-10 14:26:32.411 +08:00 [INF] Database initialized successfully.
+2024-10-10 14:26:32.411 +08:00 [INF] Navigating to Page0_Welcome.
+2024-10-10 14:26:32.562 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:26:32.621 +08:00 [INF] Application initialized successfully.
+2024-10-10 14:26:47.985 +08:00 [INF] Initializing application.
+2024-10-10 14:26:48.104 +08:00 [INF] Initializing database.
+2024-10-10 14:26:48.772 +08:00 [INF] 今日日期登入完成。
+2024-10-10 14:26:48.777 +08:00 [INF] Database initialized successfully.
+2024-10-10 14:26:48.777 +08:00 [INF] Navigating to Page0_Welcome.
+2024-10-10 14:26:49.599 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:26:49.762 +08:00 [INF] Application initialized successfully.
+2024-10-10 14:35:21.164 +08:00 [INF] Initializing application.
+2024-10-10 14:35:21.225 +08:00 [INF] Initializing database.
+2024-10-10 14:35:21.938 +08:00 [INF] 今日日期登入完成。
+2024-10-10 14:35:21.940 +08:00 [INF] Database initialized successfully.
+2024-10-10 14:35:21.940 +08:00 [INF] Navigating to Page0_Welcome.
+2024-10-10 14:35:22.043 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:35:22.098 +08:00 [INF] Application initialized successfully.
+2024-10-10 14:35:25.667 +08:00 [ERR] Error occurred while loading tasks
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at WorkTrack.ViewModel.TaskViewModel.LoadTasksAsync() in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ViewModel\TaskViewModel.cs:line 135
+2024-10-10 14:35:25.668 +08:00 [INF] Tasks loaded successfully for date: "2024-10-10T00:00:00.0000000+08:00"
+2024-10-10 14:35:25.669 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:35:39.224 +08:00 [INF] Initializing application.
+2024-10-10 14:35:39.275 +08:00 [INF] Initializing database.
+2024-10-10 14:35:39.496 +08:00 [INF] 今日日期登入完成。
+2024-10-10 14:35:39.503 +08:00 [INF] Database initialized successfully.
+2024-10-10 14:35:39.503 +08:00 [INF] Navigating to Page0_Welcome.
+2024-10-10 14:35:39.962 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:35:40.046 +08:00 [INF] Application initialized successfully.
+2024-10-10 14:35:50.729 +08:00 [ERR] Error occurred while loading tasks
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at WorkTrack.ViewModel.TaskViewModel.LoadTasksAsync() in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ViewModel\TaskViewModel.cs:line 135
+2024-10-10 14:38:31.188 +08:00 [INF] Initializing application.
+2024-10-10 14:38:31.257 +08:00 [INF] Initializing database.
+2024-10-10 14:38:31.402 +08:00 [INF] 今日日期登入完成。
+2024-10-10 14:38:31.404 +08:00 [INF] Database initialized successfully.
+2024-10-10 14:38:31.404 +08:00 [INF] Navigating to Page0_Welcome.
+2024-10-10 14:38:31.498 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:38:31.548 +08:00 [INF] Application initialized successfully.
+2024-10-10 14:38:33.527 +08:00 [ERR] Error occurred while loading tasks
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at WorkTrack.ViewModel.TaskViewModel.LoadTasksAsync() in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ViewModel\TaskViewModel.cs:line 135
+2024-10-10 14:38:33.530 +08:00 [INF] Tasks loaded successfully for date: "2024-10-10T00:00:00.0000000+08:00"
+2024-10-10 14:38:33.532 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:38:49.789 +08:00 [INF] Initializing application.
+2024-10-10 14:38:49.851 +08:00 [INF] Initializing database.
+2024-10-10 14:38:50.211 +08:00 [INF] 今日日期登入完成。
+2024-10-10 14:38:50.214 +08:00 [INF] Database initialized successfully.
+2024-10-10 14:38:50.215 +08:00 [INF] Navigating to Page0_Welcome.
+2024-10-10 14:38:50.747 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:38:50.838 +08:00 [INF] Application initialized successfully.
+2024-10-10 14:55:31.852 +08:00 [INF] Initializing application.
+2024-10-10 14:55:31.906 +08:00 [INF] Initializing database.
+2024-10-10 14:55:32.027 +08:00 [INF] 今日日期登入完成。
+2024-10-10 14:55:32.029 +08:00 [INF] Database initialized successfully.
+2024-10-10 14:55:32.029 +08:00 [INF] Navigating to Page0_Welcome.
+2024-10-10 14:55:32.117 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:55:32.162 +08:00 [INF] Application initialized successfully.
+2024-10-10 14:55:53.248 +08:00 [INF] Initializing application.
+2024-10-10 14:55:53.303 +08:00 [INF] Initializing database.
+2024-10-10 14:55:53.433 +08:00 [INF] 今日日期登入完成。
+2024-10-10 14:55:53.436 +08:00 [INF] Database initialized successfully.
+2024-10-10 14:55:53.436 +08:00 [INF] Navigating to Page0_Welcome.
+2024-10-10 14:55:53.552 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:55:53.612 +08:00 [INF] Application initialized successfully.
+2024-10-10 14:55:56.141 +08:00 [ERR] Error occurred while loading tasks
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at WorkTrack.ViewModel.TaskViewModel.LoadTasksAsync() in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ViewModel\TaskViewModel.cs:line 134
+2024-10-10 14:56:11.966 +08:00 [INF] Initializing application.
+2024-10-10 14:56:12.024 +08:00 [INF] Initializing database.
+2024-10-10 14:56:12.346 +08:00 [INF] 今日日期登入完成。
+2024-10-10 14:56:12.351 +08:00 [INF] Database initialized successfully.
+2024-10-10 14:56:12.351 +08:00 [INF] Navigating to Page0_Welcome.
+2024-10-10 14:56:12.745 +08:00 [ERR] Failed to load task durations for "2024-10-10T00:00:00.0000000+08:00".
+System.InvalidOperationException: Sequence contains no elements
+   at System.Linq.ThrowHelper.ThrowNoElementsException()
+   at System.Linq.Enumerable.Average[TSource,TSelector,TAccumulator,TResult](IEnumerable`1 source, Func`2 selector)
+   at WorkTrack.Services.ChartService.GetChartStatisticsAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 47
+   at WorkTrack.Services.ChartService.InitializeChartAsync(DateTime selectedDate) in C:\Users\jay12\source\repos\WorkTrack\WorkTrack\ChartService.cs:line 60
+2024-10-10 14:56:12.831 +08:00 [INF] Application initialized successfully.

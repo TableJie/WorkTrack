@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 C:\Users\jay12\source\repos\WorkTrack\WorkTrack\App.xaml
-8-1686751938
+8-1654636407
 11413424753
-17-777962093
-210-1289131276
-DataGrid.xaml;Elements.xaml;MainWindow.xaml;OverTimeInput.xaml;TaskInput.xaml;TaskPage.xaml;UnitManagement.xaml;WelcomePage.xaml;
+35-735459877
+214-2002154849
+DataGrid.xaml;Elements.xaml;MainWindow.xaml;OverTimeInput.xaml;TaskInput.xaml;TaskPage.xaml;UnitInput.xaml;WelcomePage.xaml;
 
-False
+True
 
